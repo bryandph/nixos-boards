@@ -6,6 +6,17 @@
 }: let
   fixtureSystem = config.flake.nixosConfigurations.dragon-q8b-free;
   fixture = fixtureSystem.config;
+  overriddenESP =
+    (fixtureSystem.extendModules {
+      modules = [
+        {
+          fileSystems."/boot" = {
+            device = "/dev/fixture-esp";
+            options = ["noatime"];
+          };
+        }
+      ];
+    }).config.fileSystems."/boot";
   badDT = fixtureSystem.extendModules {
     modules = [({pkgs, ...}: {hardware.deviceTree.kernelPackage = lib.mkForce pkgs.linux;})];
   };
@@ -82,6 +93,10 @@ in {
         assert builtins.elem "register-nix-paths.service" fixture.systemd.services.install-initial-bootloader.after;
         assert fixture.systemd.services.install-initial-bootloader.unitConfig.ConditionPathExists == "/nix-path-registration";
         assert builtins.elem "umask=0077" fixture.fileSystems."/boot".options;
+        assert overriddenESP.device == "/dev/fixture-esp";
+        assert overriddenESP.fsType == "vfat";
+        assert builtins.elem "umask=0077" overriddenESP.options;
+        assert builtins.elem "noatime" overriddenESP.options;
           pkgs.runCommand "dragon-q8b-bootstrap-lifecycle" {} ''
             mkdir -p esp/loader/entries esp/EFI/nixos esp/dragon-q8b-bootstrap
             touch esp/loader/entries/dragon-q8b-bootstrap.conf

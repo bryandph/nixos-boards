@@ -22,9 +22,9 @@
       device = "/dev/disk/by-label/NIXOS_Q8B";
       fsType = "ext4";
     };
-    fileSystems."/boot" = lib.mkDefault {
-      device = "/dev/disk/by-label/BOOT_Q8B";
-      fsType = "vfat";
+    fileSystems."/boot" = {
+      device = lib.mkDefault "/dev/disk/by-label/BOOT_Q8B";
+      fsType = lib.mkDefault "vfat";
       # EFI random-seed material must not be world-readable on the mounted ESP.
       options = ["umask=0077"];
     };
