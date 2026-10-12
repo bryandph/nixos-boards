@@ -14,6 +14,8 @@ assert builtins.elem sectorSize [512 4096]; let
 in
   pkgs.runCommand "dragon-q8b-uefi-${sector}-v1.img" {
     nativeBuildInputs = [pkgs.util-linux pkgs.dosfstools pkgs.mtools pkgs.libfaketime];
+    requiredSystemFeatures = ["big-parallel"];
+    # Several GiB of media construction: use the scheduler's heavy lane.
     passthru = {
       inherit sectorSize;
       layoutVersion = 1;

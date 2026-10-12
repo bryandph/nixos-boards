@@ -54,8 +54,22 @@
       script = ''
         ${lib.getExe' config.nix.package.out "nix-store"} --load-db < /nix-path-registration
         ${lib.getExe' config.nix.package.out "nix-env"} -p /nix/var/nix/profiles/system --set /run/current-system
-        # Replace the one-shot ESP entry with GC-rooted managed generations.
-        # Failure leaves registration/bootstrap intact for a retry on next boot.
+      '';
+    };
+    # Keep EFI installation out of pre-sysinit registration: ordinary service
+    # ordering is available, and a failed install cannot delay store registration.
+    systemd.services.install-initial-bootloader = {
+      description = "Replace the Dragon Q8B bootstrap with managed boot generations";
+      wantedBy = ["multi-user.target"];
+      requires = ["register-nix-paths.service"];
+      after = ["register-nix-paths.service" "local-fs.target"];
+      unitConfig.ConditionPathExists = "/nix-path-registration";
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+      script = ''
+        # Failure leaves the marker/bootstrap intact for a retry on next boot.
         NIXOS_INSTALL_BOOTLOADER=1 /run/current-system/bin/switch-to-configuration boot
         rm -f /nix-path-registration
       '';

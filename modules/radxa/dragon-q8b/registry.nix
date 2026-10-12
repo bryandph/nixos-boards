@@ -1,10 +1,14 @@
 {
   config,
+  inputs,
   lib,
   ...
 }: {
   boards.manifests.dragon-q8b-firmware = import ../../../packages/radxa/dragon-q8b/firmware.manifest.nix {inherit lib;};
-  boards.manifests.dragon-q8b-mainline = import ../../../packages/radxa/dragon-q8b/mainline.manifest.nix;
+  boards.manifests.dragon-q8b-mainline = import ../../../packages/radxa/dragon-q8b/mainline.manifest.nix {
+    kernelVersion = inputs.nixpkgs.legacyPackages.aarch64-linux.linux.version;
+    nixpkgsRevision = inputs.nixpkgs.rev;
+  };
   boards.registry.dragon-q8b = {
     page = "Dragon-Q8B";
     free = with config.flake.modules.nixos; [dragon-q8b-core dragon-q8b-image];

@@ -35,6 +35,37 @@ working vendor microSD for recovery.
 Only write an image after manually verifying the target disk and its logical
 sector size. Image creation/building is not authorization to erase or flash a device.
 
+## Bootstrap handoff and recovery
+
+The image's one-shot entry is `loader/entries/dragon-q8b-bootstrap.conf`, with
+assets in `dragon-q8b-bootstrap/`. The initial profile protects its init closure.
+On first boot, `register-nix-paths.service` loads `/nix-path-registration` into the
+store database and sets the system profile before the Nix daemon. A separate,
+normally ordered `install-initial-bootloader.service` then installs managed NixOS
+generation entries. Only after the builder succeeds does its post-install hook
+remove the owned bootstrap entry/assets; managed and unknown files are preserved.
+The registration marker is removed last. Later switches and generation GC use
+the normal NixOS loader entries, not a stale handwritten init path.
+
+If registration fails, the install unit's dependency prevents cleanup. If loader
+installation fails, the bootstrap and marker remain for the next boot's retry.
+From the local console inspect:
+
+```console
+journalctl -b -u register-nix-paths -u install-initial-bootloader
+findmnt /boot
+ls /boot/loader/entries
+```
+
+Repair the cause (for example an unavailable/full ESP), then restart registration
+if it failed and run `systemctl restart install-initial-bootloader`. Do not delete
+the marker or bootstrap to hide an error. Keep the vendor microSD as recovery;
+restore it with power disconnected if the test media does not boot.
+
+Full registration → normal-unit ordering → managed builder → cleanup, including
+failure preservation/retry, is an explicit **physical acceptance test**. Build and
+cleanup/topology tests do not prove EFI runtime behavior or a real boot/GC cycle.
+
 ## Updates and recovery
 
 Use Radxa's current [downloads](https://docs.radxa.com/en/dragon/q8b/download) and

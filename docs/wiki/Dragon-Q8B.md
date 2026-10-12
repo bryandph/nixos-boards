@@ -10,15 +10,19 @@ See [hardware matrix](Dragon-Q8B-Hardware-Matrix), [firmware](Dragon-Q8B-Firmwar
 The default is named vendor provider `radxa-7.0.11`, source revision
 `a50eb5b71984bd82b49cd5d31b1e2eb5505c6512` from [radxa/kernel](https://github.com/radxa/kernel/tree/a50eb5b71984bd82b49cd5d31b1e2eb5505c6512).
 The kernel and installed Q8B device tree share this source. Vendor selection emits a warning.
-The mainline track is **blocked**, not experimentally bootable: the locked nixpkgs
-mainline kernel is 6.18.54 and there is no compatible native Q8B DTS at the research
-baseline. The operator explicitly rejected a factory-UEFI-DT exception. No mainline
+The mainline track is **blocked**, not experimentally bootable. The generated
+[firmware manifest](Dragon-Q8B-Firmware) derives its kernel version/revision from
+the locked nixpkgs input; there was no compatible native Q8B DTS at the initial
+research baseline (nixpkgs f45c6f04, Linux 6.18.54). The operator explicitly rejected a factory-UEFI-DT exception. No mainline
 provider module is exported and no vendor tree is labelled mainline.
 
 Unblock only when a compatible native Q8B DTS or reviewed source backport is pinned,
 compiled with its matching mainline kernel, and passes provider/DT-contract tests.
 Then evaluate/build a separate mainline fixture and physically verify the core
 serial/storage/PCIe functions before recommending it over the vendor provider.
+The core also guards `hardware.deviceTree.dtbSource` against a different base
+source. Supported overlays use the matching kernel's DT base; direct overrides of
+the internal `hardware.deviceTree.package` output are outside this contract.
 The blocked mainline manifest tracks this missing support independently from
 firmware licensing. It never blocks the vendor fixtures.
 

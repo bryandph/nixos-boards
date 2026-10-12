@@ -58,6 +58,10 @@ in {
         assertion = config.hardware.deviceTree.kernelPackage == config.boot.kernelPackages.kernel;
         message = "dragon-q8b: DT package must be the selected kernel (same provider and source)";
       }
+      {
+        assertion = toString config.hardware.deviceTree.dtbSource == "${config.boot.kernelPackages.kernel}/dtbs";
+        message = "dragon-q8b: DT source must be the selected kernel DT directory; use overlays, not unrelated dtbSource";
+      }
     ];
   };
   flake.nixosModules.dragon-q8b-core = config.flake.modules.nixos.dragon-q8b-core;
