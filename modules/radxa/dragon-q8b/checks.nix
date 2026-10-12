@@ -52,6 +52,28 @@ in {
         inherit sectorSize;
       };
   in {
+    # Operator-only proof needs TWO native build platforms; never force a
+    # foreign derivation into single-architecture CI's standard checks.
+    legacyPackages = lib.optionalAttrs (system == "aarch64-linux") {
+      crossChecks.dragon-q8b-rootfs = let
+        other = inputs.nixpkgs.legacyPackages.x86_64-linux.callPackage ../../../packages/radxa/dragon-q8b/rootfs.nix {
+          nixpkgs = inputs.nixpkgs;
+          toplevel = fixture.system.build.toplevel;
+        };
+      in
+        pkgs.runCommand "dragon-q8b-rootfs-cross-builder" {
+          nativeBuildInputs = [pkgs.e2fsprogs.bin];
+        } ''
+          export LC_ALL=C
+          cmp ${fixture.system.build.rootfsImage} ${other}
+          e2fsck -fnv ${fixture.system.build.rootfsImage} > native-fsck.txt
+          e2fsck -fnv ${other} > other-fsck.txt
+          cat native-fsck.txt other-fsck.txt
+          grep -Eq '^[[:space:]]*0[[:space:]]+(hard[[:space:]]+)?links[[:space:]]*$' native-fsck.txt
+          grep -Eq '^[[:space:]]*0[[:space:]]+(hard[[:space:]]+)?links[[:space:]]*$' other-fsck.txt
+          touch "$out"
+        '';
+    };
     checks =
       {
         dragon-q8b-bootstrap-lifecycle = assert !(lib.hasInfix "switch-to-configuration" fixture.systemd.services.register-nix-paths.script);
@@ -63,16 +85,27 @@ in {
             mkdir -p esp/loader/entries esp/EFI/nixos esp/dragon-q8b-bootstrap
             touch esp/loader/entries/dragon-q8b-bootstrap.conf
             touch esp/dragon-q8b-bootstrap/{linux,initrd,dragon-q8b.dtb}
-            touch esp/loader/entries/nixos-generation-1.conf esp/EFI/nixos/managed-kernel
-            ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/cleanup-bootstrap.sh} "$PWD/esp"
+            touch esp/loader/entries/nixos-generation-1.conf esp/EFI/nixos/managed-kernel marker
+            ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/cleanup-bootstrap.sh} "$PWD/esp" "$PWD/marker"
+            test ! -e marker
             test ! -e esp/loader/entries/dragon-q8b-bootstrap.conf
             test ! -e esp/dragon-q8b-bootstrap
             test -e esp/loader/entries/nixos-generation-1.conf
             test -e esp/EFI/nixos/managed-kernel
             mkdir -p esp/dragon-q8b-bootstrap
             touch esp/dragon-q8b-bootstrap/operator-file
-            ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/cleanup-bootstrap.sh} "$PWD/esp"
+            ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/cleanup-bootstrap.sh} "$PWD/esp" "$PWD/marker"
             test -e esp/dragon-q8b-bootstrap/operator-file
+            export CALLS=$PWD/calls
+            printf '#!${pkgs.runtimeShell}\nprintf "%%s\\n" "$@" > "$CALLS"\n' > fake-env
+            chmod +x fake-env
+            ln -s /initial-direct system
+            ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/initialize-profile.sh} "$PWD/fake-env" "$PWD/system" /initial-current
+            test -s calls
+            rm calls system
+            ln -s system-2-link system
+            ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/initialize-profile.sh} "$PWD/fake-env" "$PWD/system" /older-booted-generation
+            test ! -e calls
             touch "$out"
           '';
         dragon-q8b-provider-contract = assert rejects "dragon-q8b: DT package" badDT;
@@ -170,26 +203,6 @@ in {
           '';
       }
       // lib.optionalAttrs (system == "aarch64-linux") {
-        # Rebuild the SAME ARM system closure using independent native tooling/store.
-        # Kernel/initrd inputs remain fixed: this checks filesystem construction.
-        dragon-q8b-rootfs-cross-builder = let
-          other = inputs.nixpkgs.legacyPackages.x86_64-linux.callPackage ../../../packages/radxa/dragon-q8b/rootfs.nix {
-            nixpkgs = inputs.nixpkgs;
-            toplevel = fixture.system.build.toplevel;
-          };
-        in
-          pkgs.runCommand "dragon-q8b-rootfs-cross-builder" {
-            nativeBuildInputs = [pkgs.e2fsprogs.bin];
-          } ''
-            export LC_ALL=C
-            cmp ${fixture.system.build.rootfsImage} ${other}
-            e2fsck -fnv ${fixture.system.build.rootfsImage} > native-fsck.txt
-            e2fsck -fnv ${other} > other-fsck.txt
-            cat native-fsck.txt other-fsck.txt
-            grep -Eq '^[[:space:]]*0[[:space:]]+(hard[[:space:]]+)?links[[:space:]]*$' native-fsck.txt
-            grep -Eq '^[[:space:]]*0[[:space:]]+(hard[[:space:]]+)?links[[:space:]]*$' other-fsck.txt
-            touch "$out"
-          '';
         dragon-q8b-production-rootfs-reproducibility =
           pkgs.runCommand "dragon-q8b-production-rootfs-reproducibility" {
             nativeBuildInputs = fixture.system.build.rootfsImage.nativeBuildInputs;

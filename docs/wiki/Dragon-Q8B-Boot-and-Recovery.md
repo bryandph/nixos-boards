@@ -40,11 +40,14 @@ sector size. Image creation/building is not authorization to erase or flash a de
 The image's one-shot entry is `loader/entries/dragon-q8b-bootstrap.conf`, with
 assets in `dragon-q8b-bootstrap/`. The initial profile protects its init closure.
 On first boot, `register-nix-paths.service` loads `/nix-path-registration` into the
-store database and sets the system profile before the Nix daemon. A separate,
+store database and initializes the system profile before the Nix daemon. Retries
+preserve an existing managed generation selection rather than resetting it to an
+older generation chosen from the boot menu. A separate,
 normally ordered `install-initial-bootloader.service` then installs managed NixOS
 generation entries. Only after the builder succeeds does its post-install hook
 remove the owned bootstrap entry/assets; managed and unknown files are preserved.
-The registration marker is removed last. Later switches and generation GC use
+The registration marker is removed last by the successful install hook, including
+a manual `nixos-rebuild switch` after an initial failure. Later switches and generation GC use
 the normal NixOS loader entries, not a stale handwritten init path.
 
 If registration fails, the install unit's dependency prevents cleanup. If loader

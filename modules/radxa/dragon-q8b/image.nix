@@ -29,7 +29,7 @@
     boot.growPartition = true;
     # Runs only after a successful generation install; preserve bootstrap on failure.
     boot.loader.systemd-boot.extraInstallCommands = lib.mkAfter ''
-      ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/cleanup-bootstrap.sh} ${lib.escapeShellArg config.boot.loader.efi.efiSysMountPoint}
+      ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/cleanup-bootstrap.sh} ${lib.escapeShellArg config.boot.loader.efi.efiSysMountPoint} /nix-path-registration
     '';
     system.build = {
       rootfsImage = rootfs;
@@ -53,7 +53,7 @@
       };
       script = ''
         ${lib.getExe' config.nix.package.out "nix-store"} --load-db < /nix-path-registration
-        ${lib.getExe' config.nix.package.out "nix-env"} -p /nix/var/nix/profiles/system --set /run/current-system
+        ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/initialize-profile.sh} ${lib.getExe' config.nix.package.out "nix-env"} /nix/var/nix/profiles/system /run/current-system
       '';
     };
     # Keep EFI installation out of pre-sysinit registration: ordinary service
