@@ -195,6 +195,7 @@ in {
       assert full.hardware.graphics.enable;
       assert !(full.systemd.services.beagley-ai-remoteproc.serviceConfig ? ExecStop);
       assert builtins.hasAttr "beagley-ai-bluetooth-init" full.systemd.services;
+      assert builtins.elem "/share/beagley-ai/models" full.environment.pathsToLink;
       assert builtins.all (name: builtins.elem name packageNames) ["beagley-ai-accelerator-runtime" "beagley-ai-tidl" "beagley-ai-osrt" "beagley-ai-camera" "beagley-ai-regnet-model"];
       assert !(failed full);
       assert !(failed dualCamera);
