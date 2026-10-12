@@ -126,10 +126,11 @@ in {
         lib-manifests = assert expect (boardsLib.manifestErrors valid == []) "valid manifest has errors: ${toString (boardsLib.manifestErrors valid)}";
         assert expect (sortedEq (boardsLib.manifestErrors invalid) data.expectedErrors)
         "invalid manifest errors differ: ${builtins.toJSON (boardsLib.manifestErrors invalid)}";
-        assert expect (sortedEq (boardsLib.unfreePackages [valid]) (map name ["redist-fw" "cached-fw" "operator-fw"])) "unfree package list";
+        assert expect (sortedEq (boardsLib.unfreePackages [valid]) (map name ["redist-fw" "operator-fw"])) "unfree package list follows nixpkgs license semantics";
         assert expect (boardsLib.cacheablePackages [valid] == [(name "cached-fw")]) "cacheable package list";
         assert expect (sortedEq (boardsLib.nonCacheableHashes [valid])
-          (map data.sri [data.contents."redist.bin" data.contents."operator.bin" data.contents."mystery.bin"])) "non-cacheable hashes";
+          (map data.sri [data.contents."redist.bin" data.contents."operator.bin" data.contents."nocache.bin" data.contents."mystery.bin"])) "non-cacheable hashes";
+        assert expect (!(failsToEval (artifact pkgs "nocache-fw").drvPath)) "nixpkgs counts unfreeRedistributableFirmware as free";
         assert expect (failsToEval (artifact unfreePkgs "mystery-fw").drvPath) "blocked artifact must not package";
         assert expect (failsToEval (artifact pkgs "redist-fw").drvPath) "R1 artifact must need an unfree allowance";
         assert expect (!(failsToEval (artifact pkgs "free-blob").drvPath)) "R0 artifact must not need an unfree allowance";
@@ -182,6 +183,14 @@ in {
           ok = fixturesWith [];
           leak = fixturesWith [(useArtifacts ["redist-fw"])];
           nixpkgsFirmware = fixturesWith [({pkgs, ...}: {hardware.firmware = [pkgs.linux-firmware];})];
+          firmwareFree = fixturesWith [(useArtifacts ["nocache-fw"])];
+          pushSet = fixture:
+            boardsLib.mkPublicPushSet {
+              inherit pkgs fixture;
+              name = "test-board-public-push-set";
+              publish = ["toplevel"];
+              manifests = [];
+            };
           ownAllowance = fixturesWith [{nixpkgs.config.allowUnfreePredicate = _: true;}];
           otherManifest = config.boards.internal.mkFixtures {
             board = "test-board";
@@ -195,7 +204,10 @@ in {
           assert expect (!(failsToEval (evaluates ok.full))) "full fixture must evaluate: ${builtins.toJSON (fixtureAssertions ok.full)}";
           assert expect (lib.any (lib.hasInfix "uses the test-1.0 provider, not mainline") ok.free.config.warnings) "non-mainline provider warning";
           assert expect (failsToEval (evaluates leak.free)) "an R1 artifact in the free profile must fail";
-          assert expect (failsToEval (evaluates nixpkgsFirmware.free)) "nixpkgs non-free firmware in the free profile must fail";
+          assert expect (!(failsToEval (evaluates nixpkgsFirmware.free))) "the free profile follows nixpkgs: linux-firmware evaluates";
+          assert expect (!(failsToEval (evaluates firmwareFree.free))) "the free profile follows nixpkgs: unfreeRedistributableFirmware artifacts evaluate";
+          assert expect (!(failsToEval (pushSet ok.free).drvPath)) "gate 1: a free fixture without manifest artifacts is publishable";
+          assert expect (failsToEval (pushSet firmwareFree.free).drvPath) "gate 1: an artifact not cleared for cache must block the push set";
           assert expect (hasMessage ownAllowance.full "features must not set nixpkgs.config") "a feature's own unfree allowance must fail";
           assert expect (hasMessage otherManifest.full "comes from a manifest not listed") "artifacts from unlisted manifests must fail";
           assert expect (hasMessage wrongProvider.free "the kernel's provider (mainline) is not test-1.0") "provider mismatch must fail";
@@ -219,6 +231,12 @@ in {
                 evidence = null;
                 features = ["test-board-wireless"];
               };
+              audio = {
+                status = "pending";
+                reason = null;
+                evidence = null;
+                features = ["test-board-audio"];
+              };
               dsp = {
                 status = "blocked";
                 reason = "licensing";
@@ -238,7 +256,9 @@ in {
           assert has "Test-Board-Free-vs-NonFree.md" "## boot-firmware";
           assert has "Test-Board-Free-vs-NonFree.md" "| test-board-firmware | `test-board.operator-fw` | R2 | full |";
           assert has "Test-Board-Free-vs-NonFree.md" "| test-board-dsp | `test-board.mystery-fw` | R1 | blocked: licensing |";
+          assert has "Test-Board-Hardware-Matrix.md" "| audio | pending | free |";
           assert expect (!(lib.hasInfix "free-blob" pages."Test-Board-Free-vs-NonFree.md")) "R0 artifacts are not gaps";
+          assert expect (!(lib.hasInfix "nocache-fw" pages."Test-Board-Free-vs-NonFree.md")) "artifacts nixpkgs counts as free are not gaps";
             pkgs.runCommand "nixos-boards-lib-docs" {} "touch $out";
 
         lib-cache-scan = let

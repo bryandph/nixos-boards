@@ -7,6 +7,7 @@
     "cached.bin" = "cache-cleared firmware\n";
     "operator.bin" = "operator-supplied firmware\n";
     "mystery.bin" = "firmware with an unknown license\n";
+    "nocache.bin" = "firmware cleared for images but not caches\n";
     "LICENSE.redist" = "Redistribution of the unmodified file is permitted.\n";
   };
   sri = text:
@@ -106,6 +107,24 @@ in {
           load = "board-storage";
           features = ["test-board-firmware"];
         };
+      # nixpkgs counts this license as free, so it can enter the free
+      # profile, but it is not cleared for the public cache.
+      nocache-fw =
+        file "nocache.bin"
+        // {
+          class = "R1";
+          path = "lib/firmware/test/nocache.bin";
+          license = lib.licenses.unfreeRedistributableFirmware;
+          inherit evidence;
+          notices = [notice];
+          redistribution = {
+            file = true;
+            image = true;
+          };
+          layer = "runtime-firmware";
+          load = "firmware";
+          features = ["test-board-audio"];
+        };
       mystery-fw = {
         status = "blocked";
         blockedReason = "licensing";
@@ -140,6 +159,18 @@ in {
           class = "R1";
           path = "b";
           license = testLicense;
+          notices = [notice];
+          redistribution.file = true;
+          layer = "runtime-firmware";
+          load = "firmware";
+        };
+      r1-not-redistributable =
+        file "redist.bin"
+        // {
+          class = "R1";
+          path = "f";
+          license = operatorLicense;
+          inherit evidence;
           notices = [notice];
           redistribution.file = true;
           layer = "runtime-firmware";
@@ -181,6 +212,7 @@ in {
   expectedErrors = [
     "invalid.r0-unfree: R0 requires a free license"
     "invalid.r1-no-evidence: non-free artifacts require license evidence"
+    "invalid.r1-not-redistributable: R1 requires a license nixpkgs marks redistributable"
     "invalid.r1-cache-only: R1 requires redistribution.file"
     "invalid.r1-cache-only: redistribution.cache requires redistribution.file"
     "invalid.r2-public: R2 requires import instructions"

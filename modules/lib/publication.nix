@@ -6,34 +6,46 @@
 }: let
   cfg = config.boards;
   boardsLib = cfg.lib;
+  # Public lane (D8).
+  cache = {
+    name = "bph";
+    substituter = "https://bph.cachix.org";
+    publicKey = "bph.cachix.org-1:RAjeSPL3sh3IBdCkXFV9x7V0EI7bHuV5Uzr4GeKteP4=";
+  };
+  # Opt-in consumer module; board features never import it.
+  cacheModule = {
+    nix.settings = {
+      extra-substituters = [cache.substituter];
+      extra-trusted-public-keys = [cache.publicKey];
+    };
+  };
 in {
+  flake = {
+    modules.nixos.nixos-boards-cache = cacheModule;
+    modules.darwin.nixos-boards-cache = cacheModule;
+    nixosModules.nixos-boards-cache = cacheModule;
+    darwinModules.nixos-boards-cache = cacheModule;
+  };
+
   perSystem = {
     pkgs,
     system,
     ...
   }: let
-    # Gate 1 (D8): the public push set holds the free fixture's builds and
-    # the R1 artifacts cleared for `cache`, rebuilt with nixpkgs that admits
-    # only cacheable names. Anything else fails evaluation.
     pushSet = board: entry: let
-      fixture = config.flake.nixosConfigurations."${board}-free";
       manifests = map (n: cfg.manifests.${n}) entry.manifests;
-      cachePkgs = import inputs.nixpkgs {
-        inherit system;
-        config.allowUnfreePredicate = boardsLib.namePredicate (boardsLib.cacheablePackages manifests);
-      };
-      artifacts = lib.concatMap (m:
-        lib.mapAttrsToList (id: _:
-          boardsLib.mkArtifact {
-            pkgs = cachePkgs;
-            manifest = m;
-            inherit id;
-          })
-        (lib.filterAttrs (_: a: a.status == "adopted" && a.class == "R1" && a.redistribution.cache) m.artifacts))
-      manifests;
     in
-      pkgs.linkFarmFromDrvs "${board}-public-push-set"
-      (map (attr: fixture.config.system.build.${attr}) entry.publish ++ artifacts);
+      boardsLib.mkPublicPushSet {
+        name = "${board}-public-push-set";
+        fixture = config.flake.nixosConfigurations."${board}-free";
+        inherit (entry) publish;
+        inherit manifests;
+        # Admits only cache-cleared names, so nothing else can evaluate.
+        pkgs = import inputs.nixpkgs {
+          inherit system;
+          config.allowUnfreePredicate = boardsLib.namePredicate (boardsLib.cacheablePackages manifests);
+        };
+      };
     boardsHere = lib.filterAttrs (board: _: config.flake.nixosConfigurations."${board}-free".pkgs.stdenv.hostPlatform.system == system) cfg.registry;
     cacheScan = boardsLib.mkCacheScan {
       inherit pkgs;

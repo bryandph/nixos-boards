@@ -177,24 +177,14 @@
 
   isSri = h: h != null && lib.hasPrefix "sha256-" h;
 
-  # nixpkgs marks `unfreeRedistributableFirmware` as free so firmware builds
-  # without allowUnfree; treat it as non-free here.
-  isNonFree = l: !(builtins.isAttrs l) || !(l.free or true) || (l.shortName or "") == "unfreeRedistributableFirmware";
+  # License semantics follow nixpkgs: a license is free when its `free`
+  # attribute is true (nixpkgs counts unfreeRedistributableFirmware as
+  # free) and redistributable when `redistributable` is true.
+  nixpkgsFree = l: builtins.isAttrs l && (l.free or true);
+  nixpkgsRedistributable = l: builtins.isAttrs l && (l.redistributable or (l.free or true));
 
-  # nixpkgs configuration of every free profile (D7). allowUnfree rejects
-  # non-free licenses; the non-source predicate additionally rejects
-  # binary firmware unless all its licenses are genuinely free, because
-  # nixpkgs counts unfreeRedistributableFirmware as free. Other binary
-  # provenance stays allowed: nixpkgs bootstraps compilers from binaries.
-  freeNixpkgsConfig = {
-    allowUnfree = false;
-    allowNonSource = false;
-    allowNonSourcePredicate = pkg: let
-      licenses = lib.toList (pkg.meta.license or []);
-    in
-      !(builtins.elem lib.sourceTypes.binaryFirmware (pkg.meta.sourceProvenance or []))
-      || (licenses != [] && !(lib.any isNonFree licenses));
-  };
+  # nixpkgs configuration of every free profile (D7): nixpkgs' own default.
+  freeNixpkgsConfig = {allowUnfree = false;};
 
   artifactErrors = manifest: id: a: let
     at = "${manifest.name}.${id}";
@@ -210,8 +200,8 @@
       ++ err (a.size == null) "size is required"
       ++ err (!lib.all isSri a.derivedHashes) "derivedHashes must be SRI sha256 hashes"
       ++ err (a.class != "R0" && a.evidence == null) "non-free artifacts require license evidence"
-      ++ err (a.class == "R0" && a.license != null && isNonFree a.license) "R0 requires a free license"
-      ++ err (a.class != "R0" && a.license != null && !(isNonFree a.license)) "${a.class} requires a non-free license"
+      ++ err (a.class == "R0" && a.license != null && !(nixpkgsFree a.license)) "R0 requires a free license"
+      ++ err (a.class == "R1" && a.license != null && !(nixpkgsRedistributable a.license)) "R1 requires a license nixpkgs marks redistributable"
       ++ err (a.class != "R2" && a.url == null) "${a.class} requires a pinned url"
       ++ err (a.class == "R1" && !r.file) "R1 requires redistribution.file"
       ++ err (a.class == "R1" && a.notices == []) "R1 requires at least one license or notice file"
@@ -231,8 +221,8 @@
       (lib.filterAttrs (_: pred) (adopted m)))
     manifests;
 
-  # Package names that need an unfree allowance: adopted R1 and R2.
-  unfreePackages = namesWhere (a: a.class != "R0");
+  # Package names that need an unfree allowance under nixpkgs semantics.
+  unfreePackages = namesWhere (a: !(nixpkgsFree a.license));
 
   # Package names safe for the public cache: adopted R1 cleared for `cache`.
   cacheablePackages = namesWhere (a: a.class == "R1" && a.redistribution.cache);
@@ -267,12 +257,7 @@
     pname = artifactName manifest id;
     errors = artifactErrors manifest id a;
     fileName = baseNameOf a.path;
-    # Non-free artifacts always need an unfree allowance, whatever nixpkgs
-    # records for their license.
-    license =
-      if a.class == "R0"
-      then a.license
-      else a.license // {free = false;};
+    inherit (a) license;
     fetchFile =
       if fetch != null
       then fetch
@@ -378,6 +363,42 @@
       "resource ${resource} is claimed by ${lib.concatStringsSep ", " owners}")
     (lib.groupBy (c: c.resource) claims));
 
+  # Public push set (D8 gate 1). Every manifest artifact a published
+  # configuration installs must be cleared for `cache`, and for `image`
+  # when images are published; cache-cleared R1 artifacts are added
+  # explicitly. Anything else fails evaluation.
+  mkPublicPushSet = {
+    pkgs,
+    name,
+    fixture,
+    publish,
+    manifests,
+  }: let
+    imagePublished = lib.any (attr: attr != "toplevel") publish;
+    violations = lib.concatMap (p: let
+      e = p.manifestEntry;
+      missing =
+        lib.optional (!e.redistribution.cache) "cache"
+        ++ lib.optional (imagePublished && !e.redistribution.image) "image";
+    in
+      lib.optional (e.class != "R0" && missing != [])
+      "${e.manifest}.${e.id} is not cleared for ${lib.concatStringsSep " or " missing}")
+    fixture.config.hardware.boards.artifacts;
+    artifacts = lib.concatMap (m:
+      lib.mapAttrsToList (id: _:
+        mkArtifact {
+          inherit pkgs id;
+          manifest = m;
+        })
+      (lib.filterAttrs (_: a: a.status == "adopted" && a.class == "R1" && a.redistribution.cache) m.artifacts))
+    manifests;
+  in
+    if violations != []
+    then throw "${name}: refusing to build the public push set:\n${lib.concatStringsSep "\n" violations}"
+    else
+      pkgs.linkFarmFromDrvs name
+      (map (attr: fixture.config.system.build.${attr}) publish ++ artifacts);
+
   # Pre-push scan (D8 gate 2). Hashes every regular file in the closure
   # of the given store paths and fails if any matches a file the
   # manifests do not clear for the public cache. `--closure-file F` reads
@@ -449,7 +470,7 @@
     in
       if blocked != []
       then "blocked: ${lib.concatStringsSep ", " (lib.unique (map (a: a.blockedReason) blocked))}"
-      else if lib.any (a: a.class != "R0") as
+      else if lib.any (a: !(nixpkgsFree a.license)) as
       then "full"
       else "free";
     forms = r: lib.concatStringsSep ", " (lib.filter (f: r.${f}) ["file" "image" "cache" "private"]);
@@ -457,7 +478,8 @@
       if fn.status == "blocked" && fn.reason != null
       then "blocked: ${fn.reason}"
       else fn.status;
-    gaps = lib.filter (a: a.class != "R0" || a.status == "blocked") artifacts;
+    # Gaps follow nixpkgs: what allowUnfree = false excludes, plus blocked.
+    gaps = lib.filter (a: a.status == "blocked" || !(nixpkgsFree a.license)) artifacts;
   in {
     "${page}-Hardware-Matrix.md" =
       generatedHeader
@@ -523,9 +545,9 @@
       + "# ${page}: free and full profiles\n\n"
       + (
         if gaps == []
-        then "The free profile provides every supported function; no non-free artifacts are used.\n"
+        then "The free profile provides every supported function.\n"
         else
-          "These features need artifacts the free profile cannot include. Blocked artifacts are not packaged in any profile.\n"
+          "These features need artifacts that nixpkgs does not allow with `allowUnfree = false`, so only the full profile includes them. Blocked artifacts are not packaged in any profile.\n"
           + lib.concatMapStrings (layer: let
             here = lib.filter (a: a.layer == layer) gaps;
           in
@@ -614,6 +636,7 @@ in {
     withProvider
     claimConflicts
     mkFlashTool
+    mkPublicPushSet
     mkCacheScan
     generatedHeader
     docPages
