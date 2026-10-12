@@ -511,7 +511,11 @@
     "${page}-Firmware.md" =
       generatedHeader
       + "# ${page} firmware\n\n"
-      + "Every artifact below is pinned in a release manifest. Classes: R0 free, R1 redistributable, R2 operator-supplied; see [Glossary](Glossary).\n"
+      + (
+        if lib.all (m: m.artifacts == {}) manifests
+        then "This board uses no artifacts from release manifests. The firmware it needs comes from nixpkgs or an upstream flake; see [${page}](${page}).\n"
+        else "Every artifact below is pinned in a release manifest. Classes: R0 free, R1 redistributable, R2 operator-supplied; see [Glossary](Glossary).\n"
+      )
       + lib.concatMapStrings (m:
         "\n## ${m.name}\n\nProvider `${m.provider}`, version ${m.version}: ${m.source}.\n\n"
         + table ["Artifact" "Status" "Class" "License" "Layer" "Load" "Redistribution" "Evidence"]

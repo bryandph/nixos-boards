@@ -29,6 +29,7 @@
       fsType = "ext4";
     };
     hardware.boards = {
+      image.layoutVersion = 1;
       identity = {
         board = "test-board";
         vendor = "test";
@@ -254,6 +255,13 @@ in {
           assert has "Test-Board-Firmware.md" "| `mystery-fw` | blocked: licensing | R1 |";
           assert has "Test-Board-Firmware.md" "| `cached-fw` | adopted | R1 | unfreeRedistributableFirmware | runtime-firmware | firmware | file, image, cache |";
           assert has "Test-Board-Free-vs-NonFree.md" "## boot-firmware";
+          assert expect (lib.hasInfix "uses no artifacts from release manifests"
+            (boardsLib.docPages {
+              page = "Empty-Board";
+              manifests = [];
+              haveHardware = false;
+              functions = {};
+            })."Empty-Board-Firmware.md") "boards without manifests say where firmware comes from";
           assert has "Test-Board-Free-vs-NonFree.md" "| test-board-firmware | `test-board.operator-fw` | R2 | full |";
           assert has "Test-Board-Free-vs-NonFree.md" "| test-board-dsp | `test-board.mystery-fw` | R1 | blocked: licensing |";
           assert has "Test-Board-Hardware-Matrix.md" "| audio | pending | free |";
