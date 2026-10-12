@@ -6,6 +6,7 @@
   }: {
     treefmt.config = {
       projectRootFile = "flake.nix";
+      programs.actionlint.enable = true;
       programs.alejandra.enable = true;
       programs.deadnix.enable = true;
       programs.shellcheck.enable = true;
