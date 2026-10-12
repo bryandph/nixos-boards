@@ -136,6 +136,33 @@ in {
         features = ["test-board-dsp"];
       };
     };
+    built = {
+      # Built from a redistributable artifact; not cleared for caches.
+      runtime-bundle = {
+        class = "R1";
+        from = ["redist-fw"];
+        sources = ["synthetic runtime sources (test license)"];
+        license = testLicense;
+        inherit evidence;
+        redistribution = {
+          file = true;
+          image = true;
+        };
+        layer = "userspace";
+        load = "userspace";
+        features = ["test-board-runtime"];
+      };
+      # Built from an operator-supplied artifact.
+      operator-tool = {
+        class = "R2";
+        from = ["operator-fw"];
+        license = operatorLicense;
+        inherit evidence;
+        layer = "userspace";
+        load = "userspace";
+        features = ["test-board-firmware"];
+      };
+    };
   };
 
   # Each artifact violates one rule; the test expects every message.
@@ -207,6 +234,24 @@ in {
         load = "firmware";
       };
     };
+    built = {
+      weaker-than-input = {
+        class = "R1";
+        from = ["r2-public"];
+        license = testLicense;
+        inherit evidence;
+        redistribution.file = true;
+        layer = "userspace";
+        load = "userspace";
+      };
+      unknown-input = {
+        class = "R0";
+        from = ["missing"];
+        license = lib.licenses.mit;
+        layer = "userspace";
+        load = "userspace";
+      };
+    };
   };
 
   expectedErrors = [
@@ -218,5 +263,7 @@ in {
     "invalid.r2-public: R2 requires import instructions"
     "invalid.r2-public: R2 artifacts cannot be publicly redistributable"
     "invalid.blocked-no-reason: blocked artifacts must name a blockedReason"
+    "invalid.weaker-than-input: class R1 is less restrictive than an artifact it is built from"
+    "invalid.unknown-input: built from unknown artifact missing"
   ];
 }

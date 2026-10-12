@@ -137,6 +137,56 @@
     };
   };
 
+  # A package built from artifacts or from non-free sources (e.g. an SDK
+  # build). It carries its own license, evidence and redistribution forms,
+  # and its class is at least as restrictive as every artifact it uses.
+  builtType = types.submodule {
+    options = {
+      class = mkOption {
+        type = types.enum classes;
+        description = "Class of the built package; at least the strictest class of `from`.";
+      };
+      from = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        description = "Identifiers of the manifest's artifacts the package is built from.";
+      };
+      sources = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        description = "Other pinned sources and their licenses, for documentation, e.g. `TI vision_apps (TI Text File License)`.";
+      };
+      license = mkOption {
+        type = types.nullOr types.attrs;
+        default = null;
+        description = "License of the built package, as for artifacts.";
+      };
+      evidence = mkOption {
+        type = types.nullOr evidenceType;
+        default = null;
+        description = "Where the license grant for the built package was established.";
+      };
+      redistribution = mkOption {
+        type = redistributionType;
+        default = {};
+        description = "Redistribution forms the licenses permit for the built package.";
+      };
+      layer = mkOption {
+        type = types.enum layers;
+        description = "Support layer the package belongs to.";
+      };
+      load = mkOption {
+        type = types.enum loads;
+        description = "How the package reaches the hardware.";
+      };
+      features = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        description = "Features (or functions) the package enables.";
+      };
+    };
+  };
+
   manifestType = types.submodule ({name, ...}: {
     options = {
       name = mkOption {
@@ -160,6 +210,11 @@
         type = types.attrsOf artifactType;
         default = {};
         description = "Artifacts keyed by identifier.";
+      };
+      built = mkOption {
+        type = types.attrsOf builtType;
+        default = {};
+        description = "Packages built from artifacts or non-free sources, keyed by identifier.";
       };
     };
   });
@@ -209,22 +264,46 @@
       ++ err (a.class == "R2" && (r.file || r.image || r.cache)) "R2 artifacts cannot be publicly redistributable"
       ++ err (r.cache && !r.file) "redistribution.cache requires redistribution.file";
 
-  manifestErrors = manifest: lib.concatLists (lib.mapAttrsToList (artifactErrors manifest) manifest.artifacts);
+  classRank = class: lib.lists.findFirstIndex (c: c == class) 0 classes;
+
+  builtErrors = manifest: id: b: let
+    at = "${manifest.name}.${id}";
+    err = cond: msg: lib.optional cond "${at}: ${msg}";
+    r = b.redistribution;
+    inputs = map (i: manifest.artifacts.${i} or null) b.from;
+  in
+    err (manifest.artifacts ? ${id}) "an artifact and a built package share the identifier"
+    ++ lib.concatMap (i: err (!(manifest.artifacts ? ${i})) "built from unknown artifact ${i}") b.from
+    ++ lib.concatMap (i: err ((manifest.artifacts.${i}.status or "") == "blocked") "built from blocked artifact ${i}") b.from
+    ++ err (lib.any (a: a != null && classRank a.class > classRank b.class) inputs) "class ${b.class} is less restrictive than an artifact it is built from"
+    ++ err (b.license == null) "license is required"
+    ++ err (b.license != null && !(b.license ? free)) "license must state `free`"
+    ++ err (b.class != "R0" && b.evidence == null) "non-free built packages require license evidence"
+    ++ err (b.class == "R0" && b.license != null && !(nixpkgsFree b.license)) "R0 requires a free license"
+    ++ err (b.class == "R1" && b.license != null && !(nixpkgsRedistributable b.license)) "R1 requires a license nixpkgs marks redistributable"
+    ++ err (b.class == "R2" && (r.file || r.image || r.cache)) "R2 packages cannot be publicly redistributable"
+    ++ err (r.cache && !r.file) "redistribution.cache requires redistribution.file";
+
+  manifestErrors = manifest:
+    lib.concatLists (lib.mapAttrsToList (artifactErrors manifest) manifest.artifacts)
+    ++ lib.concatLists (lib.mapAttrsToList (builtErrors manifest) manifest.built);
 
   artifactName = manifest: id: "${manifest.name}-${id}";
 
   adopted = manifest: lib.filterAttrs (_: a: a.status == "adopted") manifest.artifacts;
 
+  # Adopted artifacts and built packages.
   namesWhere = pred: manifests:
     lib.concatMap (m:
       lib.mapAttrsToList (id: _: artifactName m id)
-      (lib.filterAttrs (_: pred) (adopted m)))
+      (lib.filterAttrs (_: pred) (adopted m // m.built)))
     manifests;
 
   # Package names that need an unfree allowance under nixpkgs semantics.
   unfreePackages = namesWhere (a: !(nixpkgsFree a.license));
 
-  # Package names safe for the public cache: adopted R1 cleared for `cache`.
+  # Package names safe for the public cache: adopted R1 artifacts and built
+  # packages cleared for `cache`.
   cacheablePackages = namesWhere (a: a.class == "R1" && a.redistribution.cache);
 
   # Hashes of files, adopted or blocked, that must never reach the public cache.
@@ -275,7 +354,6 @@
         # the generated unfree predicate cover the source too.
         (pkgs.requireFile {
           name = fileName;
-          meta = {inherit license;};
           hash = a.sha256;
           message = ''
             ${pname} is operator-supplied (class R2) and cannot be downloaded
@@ -286,7 +364,10 @@
             Then add it to the Nix store:
               nix-store --add-fixed sha256 ${fileName}
           '';
-        }).overrideAttrs {inherit pname;}
+        }).overrideAttrs (old: {
+          inherit pname;
+          meta = (old.meta or {}) // {inherit license;};
+        })
       else
         fetchFile {
           inherit (a) url;
@@ -345,6 +426,128 @@
             else [lib.sourceTypes.binaryFirmware];
         };
       };
+
+  # Register a package built from manifest inputs. The package keeps its
+  # derivation; its name must be `<manifest>-<id>`, and its license and
+  # manifest entry come from the release manifest, so the generated unfree
+  # lists and the publication gates cover it like an artifact.
+  mkBuilt = {
+    manifest,
+    id,
+    package,
+  }: let
+    b = manifest.built.${id} or (throw "${manifest.name}: no built package ${id}");
+    name = artifactName manifest id;
+    errors = builtErrors manifest id b;
+  in
+    if errors != []
+    then throw "invalid release manifest:\n${lib.concatStringsSep "\n" errors}"
+    else if lib.getName package != name
+    then throw "${manifest.name}.${id}: the package is named ${lib.getName package}, not ${name}"
+    else
+      package.overrideAttrs (old: {
+        passthru =
+          (old.passthru or {})
+          // {
+            manifestEntry = {
+              manifest = manifest.name;
+              inherit id;
+              inherit (manifest) provider;
+              inherit (b) class layer load features from;
+              built = true;
+              path = null;
+              sha256 = null;
+              derivedHashes = [];
+              redistribution = {inherit (b.redistribution) file image cache private;};
+            };
+          };
+        meta = (old.meta or {}) // {inherit (b) license;};
+      });
+
+  # Operator-run import of R2 artifacts (D6). Nothing is downloaded until
+  # the operator passes --accept-license after reading the terms; each file
+  # is checked against the manifest before it is added to the store.
+  mkImportTool = {
+    pkgs,
+    name,
+    manifests,
+  }: let
+    entries = lib.concatMap (m:
+      lib.mapAttrsToList (id: a: {
+        inherit id a;
+        manifest = m.name;
+      }) (lib.filterAttrs (_: a: a.class == "R2") (adopted m)))
+    manifests;
+    record = e:
+      lib.concatStringsSep "|" [
+        "${e.manifest}.${e.id}"
+        (baseNameOf e.a.path)
+        (hex e.a.sha256)
+        (toString e.a.size)
+        (
+          if e.a.url == null
+          then "-"
+          else e.a.url
+        )
+        (
+          if e.a.evidence == null
+          then "-"
+          else e.a.evidence.url
+        )
+      ];
+  in
+    pkgs.writeShellApplication {
+      inherit name;
+      runtimeInputs = [pkgs.coreutils pkgs.curl pkgs.nix];
+      text = ''
+        accept=0
+        case "''${1:-}" in
+          --accept-license) accept=1 ;;
+          "") ;;
+          *)
+            echo "usage: ${name} [--accept-license]" >&2
+            exit 2
+            ;;
+        esac
+        records=(
+        ${lib.concatMapStringsSep "\n" (e: "  ${lib.escapeShellArg (record e)}") entries}
+        )
+        status=0
+        work=$(mktemp -d)
+        trap 'rm -rf "$work"' EXIT
+        for entry in "''${records[@]}"; do
+          IFS='|' read -r label file hash size url terms <<< "$entry"
+          path=$(nix-store --print-fixed-path sha256 "$hash" "$file")
+          if nix-store --check-validity "$path" 2>/dev/null; then
+            echo "$label: already imported ($path)"
+            continue
+          fi
+          echo "$label: $file"
+          echo "  terms: $terms"
+          if [ "$url" = "-" ]; then
+            echo "  obtain it as described on the board's firmware page, then: nix-store --add-fixed sha256 $file"
+            status=1
+            continue
+          fi
+          echo "  source: $url"
+          if [ "$accept" -ne 1 ]; then
+            status=1
+            continue
+          fi
+          curl -fL --retry 3 -o "$work/$file" "$url"
+          test "$(stat -c %s "$work/$file")" = "$size" \
+            || { echo "$label: size differs from the release manifest" >&2; exit 1; }
+          echo "$hash  $work/$file" | sha256sum -c --quiet \
+            || { echo "$label: sha256 differs from the release manifest" >&2; exit 1; }
+          nix-store --add-fixed sha256 "$work/$file"
+          rm -f "$work/$file"
+        done
+        if [ "$accept" -ne 1 ] && [ "$status" -ne 0 ]; then
+          echo "Review the terms above, then rerun with --accept-license to download and import." >&2
+        fi
+        exit "$status"
+      '';
+    };
 
   # Label a kernel with its provider (D3). passthru is not part of the
   # derivation, so labelling does not rebuild the kernel.
@@ -511,7 +714,14 @@
           inherit id;
           manifest = m.name;
         })
-      m.artifacts)
+      (m.artifacts
+        // lib.mapAttrs (_: b:
+          b
+          // {
+            status = "adopted";
+            blockedReason = null;
+          })
+        m.built))
     manifests;
     needs = feature: lib.filter (a: builtins.elem feature a.features) artifacts;
     availability = fn: let
@@ -562,7 +772,7 @@
       generatedHeader
       + "# ${page} firmware\n\n"
       + (
-        if lib.all (m: m.artifacts == {}) manifests
+        if lib.all (m: m.artifacts == {} && m.built == {}) manifests
         then "This board uses no artifacts from release manifests. The firmware it needs comes from nixpkgs or an upstream flake; see [${page}](${page}).\n"
         else "Every artifact below is pinned in a release manifest. Classes: R0 free, R1 redistributable, R2 operator-supplied; see [Glossary](Glossary).\n"
       )
@@ -591,7 +801,30 @@
               else "[${a.evidence.location}](${a.evidence.url}), ${a.evidence.retrieved}"
             )
           ])
-          m.artifacts))
+          m.artifacts)
+        + lib.optionalString (m.built != {}) (
+          "\n### Built packages\n\nPackages built from the artifacts above or from other pinned sources.\n\n"
+          + table ["Package" "Class" "License" "Built from" "Layer" "Load" "Redistribution" "Evidence"]
+          (lib.mapAttrsToList (id: b: [
+              "`${id}`"
+              b.class
+              (
+                if b.license == null
+                then ""
+                else licenseName b.license
+              )
+              (lib.concatStringsSep ", " (map (i: "`${i}`") b.from ++ b.sources))
+              b.layer
+              b.load
+              (forms b.redistribution)
+              (
+                if b.evidence == null
+                then ""
+                else "[${b.evidence.location}](${b.evidence.url}), ${b.evidence.retrieved}"
+              )
+            ])
+            m.built)
+        ))
       manifests;
 
     "${page}-Free-vs-NonFree.md" =
@@ -690,6 +923,8 @@ in {
     withProvider
     claimConflicts
     mkFlashTool
+    mkBuilt
+    mkImportTool
     mkPublicPushSet
     mkCacheScan
     generatedHeader
