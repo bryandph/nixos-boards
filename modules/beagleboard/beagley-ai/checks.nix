@@ -74,7 +74,7 @@ in {
     system,
     ...
   }: let
-    packages = config.legacyPackages.beagley-ai;
+    packages = config.boardPackages.beagley-ai;
   in {
     checks = lib.optionalAttrs (system == "aarch64-linux") {
       beagley-ai-sd-identity-guard = pkgs.callPackage (dir + "/sd-identity-check.nix") {};
@@ -205,7 +205,7 @@ in {
     };
 
     # Operator-run: need imported R2 artifacts or build the full system.
-    legacyPackages.hardwareChecks.beagley-ai =
+    hardwareChecks.beagley-ai =
       lib.optionalAttrs (system == "aarch64-linux") {
         full-system = full.system.build.toplevel;
         accelerator-vision-dt = vision.system.build.beagleyAiAcceleratorDeviceTreeCheck;
@@ -223,7 +223,7 @@ in {
           test "$(fdtget -t s ${dtb cameraDisplay} /panel0 compatible)" = 'raspberrypi,7inch-dsi simple-panel'
         '';
         accelerator-memory-map = let
-          runtime = config.legacyPackages.beagley-ai.accelerator-runtime;
+          runtime = config.boardPackages.beagley-ai.accelerator-runtime;
           firmware = full.hardware.boards.artifacts;
           visionFirmware = lib.findFirst (p: lib.getName p == "beagley-ai-accelerator-firmware") null firmware;
         in

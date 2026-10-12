@@ -20,7 +20,7 @@ in {
     native = beagley pkgs;
     cross = beagley pkgs.pkgsCross.aarch64-multiplatform;
   in {
-    legacyPackages.beagley-ai =
+    boardPackages.beagley-ai =
       lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
         boot-bundle = native.callPackage (dir + "/boot-bundle.nix") {};
         boot-firmware = native.callPackage (dir + "/boot-firmware.nix") {};
