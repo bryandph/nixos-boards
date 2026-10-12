@@ -22,8 +22,26 @@ A kernel used by more than one board SHALL be defined once at SoC or repository 
 - **THEN** both reference one definition, and updating it changes both
 
 ### Requirement: Boot-chain classes
-Each board SHALL declare one boot-chain class: `image`, `vendor-partition` or `board`. For the `board` class, automation MUST NOT write board-owned firmware; the board's documentation SHALL state the minimum firmware version, the update procedure and the recovery procedure.
+Each board SHALL declare one boot-chain class: `image`, `vendor-partition` or `board`. For the `board` class, the board's documentation SHALL state the minimum firmware version, the update procedure and the recovery procedure.
 
 #### Scenario: Board-owned UEFI
 - **WHEN** a board's firmware lives in on-board SPI flash
-- **THEN** no package, activation script or app writes that flash, and the Boot and Recovery page documents the operator procedure
+- **THEN** the Boot and Recovery page documents its minimum version, update and recovery
+
+### Requirement: Board firmware is written only by an operator
+Board-owned firmware MUST NOT be written by activation, `nixos-rebuild switch`, boot services, CI, or any module imported implicitly. A board MAY provide an operator-run host tool `<board>-flash-firmware` and an operator-run on-device update command where the vendor supports one. Each tool SHALL refuse to run without an interactive terminal, SHALL show the target device and the firmware version and hash from the release manifest, SHALL print the recovery procedure, and SHALL write only after the operator types the board name. The firmware SHALL come from the board's release manifest.
+
+#### Scenario: Non-interactive invocation
+- **WHEN** `nix run .#<board>-flash-firmware` runs without a terminal, for example in CI
+- **THEN** it exits without writing anything
+
+#### Scenario: Operator flashes firmware
+- **WHEN** the operator runs the tool interactively and types the board name
+- **THEN** it writes the manifest-pinned firmware after showing its version, hash and the recovery procedure
+
+### Requirement: Upstream first
+Hardware support that nixos-hardware or nixos-raspberrypi can accept SHALL be contributed there. This repository SHALL hold only what upstream cannot take, and MAY import upstream modules and add providers, manifests, profiles, fixtures and documentation on top.
+
+#### Scenario: Generic x86 machine profile
+- **WHEN** a contributor proposes a profile for an x86 machine with no board-specific boot chain or licensing-gated firmware
+- **THEN** it is directed to nixos-hardware instead

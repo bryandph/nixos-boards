@@ -14,6 +14,8 @@ Shared hardware terms are defined in `docs/wiki/Glossary.md`; use them.
 - Boards live in `modules/<vendor>/<board>/`, SoC families in
   `modules/soc/<soc>/`, add-ons in `modules/addons/<kind>/<name>/`.
 - Package expressions and release manifests live under `packages/`.
+- Contribute hardware support upstream (nixos-hardware, nixos-raspberrypi)
+  when upstream can take it; this repository holds the rest.
 - Compose features by imports. Do not add feature `enable` gates,
   `specialArgs`, or `_module.args` injection into NixOS configurations.
 - Never add operator identity, credentials, hostnames or SSH keys. Fixtures
@@ -34,8 +36,9 @@ Shared hardware terms are defined in `docs/wiki/Glossary.md`; use them.
   repository has no devenv, so `--impure` is never needed.
 - Stage new files with `git add` before any flake evaluation.
 - Linux outputs use configured Linux builders; do not cap concurrency.
-- Never write board-owned firmware (SPI flash, eMMC boot partitions) from
-  automation. Record physical verification separately from implemented
+- Board-owned firmware (SPI flash, eMMC boot partitions) is written only
+  by operator-run, interactively confirmed tools, never by automation,
+  activation or CI. Record physical verification separately from implemented
   support.
 
 ## Documentation

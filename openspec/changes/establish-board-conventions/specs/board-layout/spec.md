@@ -18,11 +18,11 @@ Each board SHALL publish `<board>-core` and `<board>-image` features, and SHALL 
 Features SHALL be composed by imports. Repository modules MUST NOT declare `enable` options that switch their own features, MUST NOT use `specialArgs`, and MUST NOT inject `_module.args` into consumers' NixOS configurations.
 
 #### Scenario: Review rejects an enable gate
-- **WHEN** a change adds `options.boards.<board>.wireless.enable`
+- **WHEN** a change adds `options.hardware.boards.<board>.wireless.enable`
 - **THEN** the change is rejected in favor of a separate `<board>-wireless` feature
 
 ### Requirement: Board description options
-The repository SHALL provide `boards.identity`, `boards.connectors`, `boards.claims` and `boards.artifacts` NixOS options. Every board core SHALL set `boards.identity`, including its boot-chain class. Every feature that uses a pin, bus address, interrupt line or remote processor exposed through a connector SHALL add a claim. Evaluation SHALL fail when two claims name the same resource.
+The repository SHALL provide `hardware.boards.identity`, `hardware.boards.connectors`, `hardware.boards.claims` and `hardware.boards.artifacts` NixOS options. Every board core SHALL set `hardware.boards.identity`, including its boot-chain class. Every feature that uses a pin, bus address, interrupt line or remote processor exposed through a connector SHALL add a claim. Evaluation SHALL fail when two claims name the same resource.
 
 #### Scenario: Conflicting add-ons
 - **WHEN** two add-on features both claim UART1's pins on the 40-pin header

@@ -3,15 +3,16 @@
 - [x] 1.1 Flake skeleton: flake-parts, import-tree, treefmt (`nix run .#fmt`), NixOS 26.05 lock, no devenv
 - [x] 1.2 AGENTS.md, OpenSpec configuration and this change
 - [x] 1.3 Wiki skeleton (`Home`, `_Sidebar`, `Glossary`) and `checks.wiki-links`
-- [ ] 1.4 Approval of this change's design and specs (maintainer)
+- [x] 1.4 Approval of this change's design and specs (maintainer; 2026-10-11, with the D2 namespace, D4 flashing tools and D12 upstream-first revisions)
 
 ## 2. Board options and manifests
 
-- [ ] 2.1 `modules/lib/boards.nix`: `boards.identity`, `boards.connectors`, `boards.claims`, `boards.artifacts` options and the claim-conflict assertion
+- [ ] 2.1 `modules/lib/boards.nix`: `hardware.boards.identity`, `hardware.boards.connectors`, `hardware.boards.claims`, `hardware.boards.artifacts` options and the claim-conflict assertion
 - [ ] 2.2 `modules/lib/manifest.nix`: typed release-manifest schema, R0–R2 classes, redistribution forms, `blocked: licensing` entries
 - [ ] 2.3 Helpers that build R1 fixed-output fetches and R2 `requireFile` derivations from manifest entries, with license files and `meta` filled from the entry
 - [ ] 2.4 Generated `lib.unfreePackages.<board>` and unfree predicates from manifests
 - [ ] 2.5 Synthetic test board under `modules/lib/_test/` exercising claims, all three classes and a blocked artifact
+- [ ] 2.6 Guarded firmware-flashing helper (interactive-terminal check, manifest version and hash display, recovery text, typed board-name confirmation) with a test that it refuses non-interactive use
 
 ## 3. Profiles and checks
 
