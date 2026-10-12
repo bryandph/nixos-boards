@@ -374,9 +374,12 @@
           hash = a.sha256;
           name = fileName;
         };
+    # Query strings (e.g. cgit's `?id=`) are not part of the file name and
+    # are not valid in FAT boot partitions.
+    noticeName = url: lib.head (lib.splitString "?" (baseNameOf url));
     notices =
       lib.imap0 (i: n: {
-        name = "${toString i}-${baseNameOf n.url}";
+        name = "${toString i}-${noticeName n.url}";
         file = fetchFile {
           inherit (n) url;
           hash = n.sha256;

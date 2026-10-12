@@ -78,7 +78,7 @@
     data.contents.${
       if url == null
       then name
-      else baseNameOf url
+      else lib.head (lib.splitString "?" (baseNameOf url))
     };
   testEntry = extraFree: {
     free = [testCore (useArtifacts ["free-blob"])] ++ extraFree;

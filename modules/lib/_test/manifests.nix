@@ -22,7 +22,7 @@
     sha256 = sri contents.${name};
   };
   notice = {
-    url = "https://example.invalid/LICENSE.redist";
+    url = "https://example.invalid/LICENSE.redist?id=0123abcd";
     sha256 = sri contents."LICENSE.redist";
   };
   testLicense = {
