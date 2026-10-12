@@ -131,16 +131,17 @@ branch after two gates pass:
    file in their closure. It refuses if any file matches a non-cacheable
    artifact, or one of its `derivedHashes`, from any manifest.
 
-R2 artifacts never leave the machine that imported them, except as part of
-the system deployed to the board that runs it.
-
-Internal build machines may hold artifacts cleared for `build`, and the
-maintainer's private cache may hold artifacts cleared for `private`. An
+An R2 artifact leaves the machine that imported it only in the forms its
+manifest entry permits, and never publicly. Internal build machines may hold
+artifacts cleared for `build`, and the maintainer's private cache, serving
+only the maintainer's own systems, may hold artifacts cleared for `private`.
+Deploying a system to the board that runs it is always allowed. An
 operator's authorization never replaces the vendor's grant: an artifact with
 no license, or with terms that allow no reproduction, permits neither. Such
 systems are built only where their files were imported, and
 `config.hardware.boards.publication.build` is false for them.
-Each system reports whether its closure may go there:
+
+Each system also reports whether its closure may go to the private cache:
 `config.hardware.boards.publication.private` is false when the system uses
 an artifact or built package not cleared for `private`, and
 `config.hardware.boards.publication.blocking` names them. Cache tooling
