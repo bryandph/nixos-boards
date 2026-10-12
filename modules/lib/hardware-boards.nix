@@ -31,6 +31,20 @@ in {
           type = types.enum ["image" "vendor-partition" "board"];
           description = "Who owns the firmware that runs before NixOS (D4).";
         };
+        provider = mkOption {
+          type = types.str;
+          description = ''
+            Provider of the board's kernel, device tree and firmware (D3):
+            `mainline`, `mainline+<series>` or `<vendor>-<release>`. The
+            kernel must carry the same `passthru.provider`.
+          '';
+        };
+        statusPage = mkOption {
+          type = types.str;
+          default = "https://github.com/bryandph/nixos-boards/wiki/${cfg.identity.board}";
+          defaultText = lib.literalExpression ''"https://github.com/bryandph/nixos-boards/wiki/''${board}"'';
+          description = "Board status page, named in provider warnings.";
+        };
       };
 
       connectors = mkOption {
@@ -83,8 +97,22 @@ in {
       };
     };
 
+    config.warnings = lib.optional (!lib.hasPrefix "mainline" cfg.identity.provider) ''
+      ${cfg.identity.board} uses the ${cfg.identity.provider} provider, not mainline. See ${cfg.identity.statusPage}.
+    '';
+
     config.assertions =
-      map (message: {
+      [
+        {
+          assertion = (config.boot.kernelPackages.kernel.provider or null) == cfg.identity.provider;
+          message = "${cfg.identity.board}: the kernel's provider (${toString (config.boot.kernelPackages.kernel.provider or "unlabelled")}) is not ${cfg.identity.provider}";
+        }
+      ]
+      ++ map (p: {
+        assertion = builtins.elem p.manifestEntry.provider ["any" cfg.identity.provider];
+        message = "${cfg.identity.board}: ${p.name} comes from provider ${p.manifestEntry.provider}, not ${cfg.identity.provider}";
+      }) (lib.filter (p: p ? manifestEntry && builtins.elem p.manifestEntry.layer ["kernel" "runtime-firmware"]) cfg.artifacts)
+      ++ map (message: {
         assertion = false;
         message = "hardware.boards.claims: ${message}";
       }) (boardsLib.claimConflicts cfg.claims)

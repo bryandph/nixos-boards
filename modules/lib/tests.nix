@@ -18,15 +18,23 @@
 
   # Synthetic test board composition: one core and add-on features that
   # claim connector resources. Imports hardware-boards twice on purpose.
-  testCore = {
+  testCore = {pkgs, ...}: {
     imports = [config.flake.modules.nixos.hardware-boards];
     nixpkgs.hostPlatform = "aarch64-linux";
+    boot.kernelPackages = pkgs.linuxPackagesFor (boardsLib.withProvider "test-1.0" pkgs.linux);
+    boot.loader.grub.enable = false;
+    boot.loader.generic-extlinux-compatible.enable = true;
+    fileSystems."/" = {
+      device = "/dev/disk/by-label/NIXOS";
+      fsType = "ext4";
+    };
     hardware.boards = {
       identity = {
         board = "test-board";
         vendor = "test";
         soc = "test-soc";
         bootChain = "board";
+        provider = "test-1.0";
       };
       connectors.header = {
         standard = "rpi-40pin";
@@ -45,21 +53,58 @@
     map (a: a.message)
     (lib.filter (a: !a.assertion && lib.hasPrefix "hardware.boards" a.message)
       (inputs.nixpkgs.lib.nixosSystem {modules = [testCore] ++ modules;}).config.assertions);
+
+  # Features of the synthetic board. `useArtifacts` installs manifest
+  # artifacts the way real board features do.
+  useArtifacts = ids: {pkgs, ...}: let
+    packages = map (id:
+      boardsLib.mkArtifact {
+        inherit pkgs id;
+        manifest = valid;
+        fetch = testFetch pkgs;
+      })
+    ids;
+  in {
+    hardware.firmware = packages;
+    hardware.boards.artifacts = packages;
+  };
+  testFetch = pkgs: {
+    name,
+    url,
+    ...
+  }:
+    pkgs.writeText name
+    data.contents.${
+      if url == null
+      then name
+      else baseNameOf url
+    };
+  testEntry = extraFree: {
+    free = [testCore (useArtifacts ["free-blob"])] ++ extraFree;
+    full = [(useArtifacts ["redist-fw" "cached-fw" "operator-fw"])];
+  };
+  fixturesWith = extraFree:
+    config.boards.internal.mkFixtures {
+      board = "test-board";
+      entry = testEntry extraFree;
+      manifests = [valid];
+    };
+  inherit (config.boards.internal) evaluates;
+  fixtureAssertions = nixos: map (a: a.message) (lib.filter (a: !a.assertion) nixos.config.assertions);
 in {
   perSystem = {
     pkgs,
     system,
     ...
   }: let
-    fetch = {
-      name,
-      url,
-      ...
-    }:
-      pkgs.writeText name data.contents.${baseNameOf url};
+    fetch = testFetch pkgs;
     unfreePkgs = import inputs.nixpkgs {
       inherit system;
       config.allowUnfreePredicate = boardsLib.namePredicate (boardsLib.unfreePackages [valid]);
+    };
+    cachePkgs = import inputs.nixpkgs {
+      inherit system;
+      config.allowUnfreePredicate = boardsLib.namePredicate (boardsLib.cacheablePackages [valid]);
     };
     artifact = p: id:
       boardsLib.mkArtifact {
@@ -87,7 +132,9 @@ in {
           (map data.sri [data.contents."redist.bin" data.contents."operator.bin" data.contents."mystery.bin"])) "non-cacheable hashes";
         assert expect (failsToEval (artifact unfreePkgs "mystery-fw").drvPath) "blocked artifact must not package";
         assert expect (failsToEval (artifact pkgs "redist-fw").drvPath) "R1 artifact must need an unfree allowance";
-        assert expect (!(failsToEval (artifact pkgs "free-blob").drvPath)) "R0 artifact must not need an unfree allowance"; let
+        assert expect (!(failsToEval (artifact pkgs "free-blob").drvPath)) "R0 artifact must not need an unfree allowance";
+        assert expect (failsToEval (artifact cachePkgs "redist-fw").drvPath) "gate 1: R1 without cache clearance must fail under the cache predicate";
+        assert expect (!(failsToEval (artifact cachePkgs "cached-fw").drvPath)) "gate 1: cache-cleared R1 must evaluate under the cache predicate"; let
           r2 = boardsLib.mkArtifact {
             pkgs = unfreePkgs;
             manifest = valid;
@@ -130,6 +177,94 @@ in {
           assert expect (foreign == ["hardware.boards.artifacts: ${pkgs.hello.name} was not built from a release manifest"])
           "non-manifest artifact: ${builtins.toJSON foreign}";
             pkgs.runCommand "nixos-boards-lib-claims" {} "touch $out";
+
+        lib-fixtures = let
+          ok = fixturesWith [];
+          leak = fixturesWith [(useArtifacts ["redist-fw"])];
+          nixpkgsFirmware = fixturesWith [({pkgs, ...}: {hardware.firmware = [pkgs.linux-firmware];})];
+          ownAllowance = fixturesWith [{nixpkgs.config.allowUnfreePredicate = _: true;}];
+          otherManifest = config.boards.internal.mkFixtures {
+            board = "test-board";
+            entry = testEntry [];
+            manifests = [];
+          };
+          wrongProvider = fixturesWith [({pkgs, ...}: {boot.kernelPackages = lib.mkForce (pkgs.linuxPackagesFor (boardsLib.withProvider "mainline" pkgs.linux));})];
+          hasMessage = nixos: fragment: lib.any (lib.hasInfix fragment) (fixtureAssertions nixos);
+        in
+          assert expect (!(failsToEval (evaluates ok.free))) "free fixture must evaluate: ${builtins.toJSON (fixtureAssertions ok.free)}";
+          assert expect (!(failsToEval (evaluates ok.full))) "full fixture must evaluate: ${builtins.toJSON (fixtureAssertions ok.full)}";
+          assert expect (lib.any (lib.hasInfix "uses the test-1.0 provider, not mainline") ok.free.config.warnings) "non-mainline provider warning";
+          assert expect (failsToEval (evaluates leak.free)) "an R1 artifact in the free profile must fail";
+          assert expect (failsToEval (evaluates nixpkgsFirmware.free)) "nixpkgs non-free firmware in the free profile must fail";
+          assert expect (hasMessage ownAllowance.full "features must not set nixpkgs.config") "a feature's own unfree allowance must fail";
+          assert expect (hasMessage otherManifest.full "comes from a manifest not listed") "artifacts from unlisted manifests must fail";
+          assert expect (hasMessage wrongProvider.free "the kernel's provider (mainline) is not test-1.0") "provider mismatch must fail";
+            pkgs.runCommand "nixos-boards-lib-fixtures" {} "touch $out";
+
+        lib-docs = let
+          pages = boardsLib.docPages {
+            page = "Test-Board";
+            manifests = [valid];
+            haveHardware = false;
+            functions = {
+              console = {
+                status = "verified";
+                reason = null;
+                evidence = "https://example.invalid/log";
+                features = ["test-board-core"];
+              };
+              wifi = {
+                status = "implemented-unverified";
+                reason = null;
+                evidence = null;
+                features = ["test-board-wireless"];
+              };
+              dsp = {
+                status = "blocked";
+                reason = "licensing";
+                evidence = null;
+                features = ["test-board-dsp"];
+              };
+            };
+          };
+          has = file: fragment: expect (lib.hasInfix fragment pages.${file}) "${file} lacks: ${fragment}\n${pages.${file}}";
+        in
+          assert has "Test-Board-Hardware-Matrix.md" "| console | verified | free | test-board-core | [evidence](https://example.invalid/log) |";
+          assert has "Test-Board-Hardware-Matrix.md" "| wifi | implemented-unverified | full |";
+          assert has "Test-Board-Hardware-Matrix.md" "| dsp | blocked: licensing | blocked: licensing |";
+          assert has "Test-Board-Hardware-Matrix.md" "do not have this board";
+          assert has "Test-Board-Firmware.md" "| `mystery-fw` | blocked: licensing | R1 |";
+          assert has "Test-Board-Firmware.md" "| `cached-fw` | adopted | R1 | unfreeRedistributableFirmware | runtime-firmware | firmware | file, image, cache |";
+          assert has "Test-Board-Free-vs-NonFree.md" "## boot-firmware";
+          assert has "Test-Board-Free-vs-NonFree.md" "| test-board-firmware | `test-board.operator-fw` | R2 | full |";
+          assert has "Test-Board-Free-vs-NonFree.md" "| test-board-dsp | `test-board.mystery-fw` | R1 | blocked: licensing |";
+          assert expect (!(lib.hasInfix "free-blob" pages."Test-Board-Free-vs-NonFree.md")) "R0 artifacts are not gaps";
+            pkgs.runCommand "nixos-boards-lib-docs" {} "touch $out";
+
+        lib-cache-scan = let
+          scan = boardsLib.mkCacheScan {
+            inherit pkgs;
+            hashes = boardsLib.nonCacheableHashes [valid];
+          };
+          # A non-cacheable blob copied under an unrelated name.
+          leak = pkgs.runCommand "innocent-data" {} ''
+            mkdir -p $out/share
+            cp ${pkgs.writeText "x" data.contents."redist.bin"} $out/share/innocent.dat
+          '';
+          clean = [(artifact unfreePkgs "cached-fw") (artifact pkgs "free-blob")];
+        in
+          pkgs.runCommand "nixos-boards-lib-cache-scan" {
+            nativeBuildInputs = [scan];
+            leakClosure = pkgs.closureInfo {rootPaths = [leak];};
+            cleanClosure = pkgs.closureInfo {rootPaths = clean;};
+          } ''
+            status=0
+            nixos-boards-cache-scan --closure-file "$leakClosure/store-paths" 2>err || status=$?
+            test "$status" -eq 1
+            grep -q innocent.dat err
+            nixos-boards-cache-scan --closure-file "$cleanClosure/store-paths"
+            touch $out
+          '';
 
         lib-flash-tool =
           pkgs.runCommand "nixos-boards-lib-flash-tool" {
