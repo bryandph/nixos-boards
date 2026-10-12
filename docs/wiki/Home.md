@@ -30,6 +30,10 @@ configurations, publication gates and generated documentation.
 | [BeagleY-AI](BeagleY-AI) (BeagleBoard.org) | AM67A / J722S | free, full | `beagle-ti-6.12-psdk-11.02` |
 | [FRDM-i.MX95](FRDM-i.MX95) (NXP) | i.MX 95 | free, full | `mainline`; `nxp-lf-6.18.20-2.0.0` |
 | [uConsole](uConsole) (ClockworkPi, CM5) | BCM2712 | free | `rpi-<release>` |
+| [Turing RK1](Turing-RK1) (Turing Machines) | RK3588 | free | `mainline` |
+| [Orange Pi 5](Orange-Pi-5) (Xunlong) | RK3588S | free | `mainline` |
+| [Orange Pi 5 Plus](Orange-Pi-5-Plus) (Xunlong) | RK3588 | free | `mainline` |
+| [ROCK 5A](ROCK-5A) (Radxa) | RK3588S | free | `mainline` |
 
 To contribute a board, start with [Adding a board](Guide-Adding-a-Board)
 and [Non-free firmware](Guide-Non-Free-Firmware).
