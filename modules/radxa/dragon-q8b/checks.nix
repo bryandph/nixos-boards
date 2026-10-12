@@ -81,6 +81,7 @@ in {
         assert builtins.elem "register-nix-paths.service" fixture.systemd.services.install-initial-bootloader.requires;
         assert builtins.elem "register-nix-paths.service" fixture.systemd.services.install-initial-bootloader.after;
         assert fixture.systemd.services.install-initial-bootloader.unitConfig.ConditionPathExists == "/nix-path-registration";
+        assert builtins.elem "umask=0077" fixture.fileSystems."/boot".options;
           pkgs.runCommand "dragon-q8b-bootstrap-lifecycle" {} ''
             mkdir -p esp/loader/entries esp/EFI/nixos esp/dragon-q8b-bootstrap
             touch esp/loader/entries/dragon-q8b-bootstrap.conf

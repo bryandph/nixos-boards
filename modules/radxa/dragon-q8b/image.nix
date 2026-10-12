@@ -25,6 +25,8 @@
     fileSystems."/boot" = lib.mkDefault {
       device = "/dev/disk/by-label/BOOT_Q8B";
       fsType = "vfat";
+      # EFI random-seed material must not be world-readable on the mounted ESP.
+      options = ["umask=0077"];
     };
     boot.growPartition = true;
     # Runs only after a successful generation install; preserve bootstrap on failure.
