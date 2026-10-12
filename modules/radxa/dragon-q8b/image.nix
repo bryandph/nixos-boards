@@ -27,6 +27,10 @@
       fsType = "vfat";
     };
     boot.growPartition = true;
+    # Runs only after a successful generation install; preserve bootstrap on failure.
+    boot.loader.systemd-boot.extraInstallCommands = lib.mkAfter ''
+      ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/cleanup-bootstrap.sh} ${lib.escapeShellArg config.boot.loader.efi.efiSysMountPoint}
+    '';
     system.build = {
       rootfsImage = rootfs;
       image512 = image 512;
@@ -50,6 +54,9 @@
       script = ''
         ${lib.getExe' config.nix.package.out "nix-store"} --load-db < /nix-path-registration
         ${lib.getExe' config.nix.package.out "nix-env"} -p /nix/var/nix/profiles/system --set /run/current-system
+        # Replace the one-shot ESP entry with GC-rooted managed generations.
+        # Failure leaves registration/bootstrap intact for a retry on next boot.
+        NIXOS_INSTALL_BOOTLOADER=1 /run/current-system/bin/switch-to-configuration boot
         rm -f /nix-path-registration
       '';
     };

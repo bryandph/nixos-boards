@@ -1,6 +1,6 @@
 # Dragon Q8B BSP design
 
-Work: [LAB-152](https://youtrack.k8s.bph/issue/LAB-152), provenance/acquisition: [LAB-151](https://youtrack.k8s.bph/issue/LAB-151).
+Work: LAB-152; provenance/acquisition: LAB-151.
 
 ## Provider boundary
 
@@ -14,7 +14,7 @@ The BSP owns media, not the Qualcomm ROM/XBL/SPI boot chain. The observed UEFI b
 
 UEFI layout v1 has a 1 MiB-aligned, 512 MiB FAT32 ESP and ext4 root. Both GPT headers/entry CRCs and FAT BPB geometry use the requested logical sector size (512 or 4096). The ESP holds fallback BOOTAA64.EFI, systemd-boot entry, kernel/initrd and matching DTB. Actual EFI DT handoff/fixups, third-party OS settings and unsigned-image boot compatibility require physical acceptance. The fixture does not assume firmware preserves vendor dynamic DT mutations without verification.
 
-The root filesystem imports the Nix closure and registration, supplies an init symlink and system profile, and registers paths on first boot before the daemon. Partition growth is delegated to NixOS's existing growPartition implementation. Fixed GUIDs/labels describe installation fixtures, not machine identities; cloned images must not be mounted simultaneously by label without operator adjustment.
+The root filesystem imports the Nix closure and registration, supplies an init symlink and system profile, and registers paths on first boot before the daemon. First boot then installs NixOS-managed generation entries. The post-install hook removes only the dedicated bootstrap entry/assets after a successful generation install, so switch/GC cannot leave an entry pointing to an unrooted closure. Partition growth is delegated to NixOS's existing growPartition implementation. Fixed GUIDs/labels describe installation fixtures, not machine identities; cloned images must not be mounted simultaneously by label without operator adjustment.
 
 ## Determinism and test scope
 
@@ -28,6 +28,6 @@ Unknown vendor CDSP/QUP/video/topology and exact UEFI payload licensing remains 
 
 ## Review/integration boundary
 
-Use the intended open-code-review executable `ocr` against the immutable scaffolding-to-BSP diff. Unconfigured endpoint/auth is a gate, not permission to change billing/provider paths or substitute another review. Markdown not covered by OCR's supported-extension set is reported explicitly and covered by maintained documentation/OpenSpec checks and source inspection.
+Use the intended open-code-review executable `ocr` against the immutable scaffolding-to-BSP diff. The operator selected OCR host-agent delegation: prepare exact-ref preview/resolved-rule artifacts and have an independent opposite-model-family peer apply them. An LLM endpoint is not required; never self-review as independent evidence or change billing/provider paths. Markdown not covered by OCR's supported-extension set is reported explicitly and covered by maintained documentation/OpenSpec checks and source inspection.
 
 The nixspace bring-up branch retains earlier LAB-144 adoption/history and applied switch commits. Never integrate that whole branch for LAB-152: use isolated BSP commits and a clean/selective parent pointer update only. No merge, deployment, firmware flash, retirement or tracker closure is authorized by implementation/check success.

@@ -1,6 +1,6 @@
 # Radxa Dragon Q8B
 
-SC8280XP ARM64 board support, tracked by [LAB-152](https://youtrack.k8s.bph/issue/LAB-152).
+SC8280XP ARM64 board support, tracked by LAB-152.
 Maintainers have hardware; vendor Ubuntu observations do **not** verify these NixOS images.
 See [hardware matrix](Dragon-Q8B-Hardware-Matrix), [firmware](Dragon-Q8B-Firmware),
 [profile gaps](Dragon-Q8B-Free-vs-NonFree), and [boot/recovery](Dragon-Q8B-Boot-and-Recovery).

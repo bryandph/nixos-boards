@@ -28,7 +28,7 @@ in {
         instructions = ''
           Personally review/accept LICENSES/LICENSE.qcom and NOTICE.qcom in
           linux-firmware commit ab23307cfe7f9366c819025ca3e4778299bc2db2.
-          Only if accepted, obtain qcom/a660_sqe.fw, verify the manifest hash/size,
+          Only if accepted, obtain ${base}/qcom/a660_sqe.fw, verify the manifest hash/size,
           then nix-store --add-fixed sha256 a660_sqe.fw. Never auto-accept terms.
         '';
       };
@@ -41,7 +41,7 @@ in {
         instructions = ''
           Personally review/accept LICENSES/LICENSE.qcom and NOTICE.qcom in
           linux-firmware commit ab23307cfe7f9366c819025ca3e4778299bc2db2.
-          Only if accepted, obtain qcom/a660_gmu.bin, verify the manifest hash/size,
+          Only if accepted, obtain ${base}/qcom/a660_gmu.bin, verify the manifest hash/size,
           then nix-store --add-fixed sha256 a660_gmu.bin. Never auto-accept terms.
         '';
       };
@@ -54,7 +54,7 @@ in {
         instructions = ''
           Personally review/accept LICENSES/LICENSE.qcom and NOTICE.qcom in
           linux-firmware commit ab23307cfe7f9366c819025ca3e4778299bc2db2.
-          Only if accepted, obtain qcom/sc8280xp/LENOVO/21BX/qcdxkmsuc8280.mbn,
+          Only if accepted, obtain ${base}/qcom/sc8280xp/LENOVO/21BX/qcdxkmsuc8280.mbn,
           verify the manifest hash/size, then nix-store --add-fixed sha256 qcdxkmsuc8280.mbn.
           This runtime GPU ZAP reuse is explicit in Radxa's DTS, not permission
           to reuse Lenovo UEFI or unrelated board firmware. Never auto-accept terms.
@@ -85,8 +85,8 @@ in {
       instructions = ''
         Read linux-firmware 20260916 LICENSES/LICENSE.qcom and NOTICE.qcom.
         Decide personally whether to accept those terms. Only if accepted,
-        obtain qcom/sc8280xp/radxa/dragon-q8b/qcadsp8280.mbn from commit
-        ab23307cfe7f9366c819025ca3e4778299bc2db2 (release 20260916)
+        obtain ${base}/qcom/sc8280xp/radxa/dragon-q8b/qcadsp8280.mbn
+        (release 20260916)
         (ADSP.HT.5.6.c2-00037-MAKENA-1), verify the manifest size/hash, and run
         nix-store --add-fixed sha256 qcadsp8280.mbn.
         No script accepts terms or downloads this file on your behalf.

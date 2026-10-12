@@ -48,6 +48,22 @@ in {
   in {
     checks =
       {
+        dragon-q8b-bootstrap-lifecycle = pkgs.runCommand "dragon-q8b-bootstrap-lifecycle" {} ''
+          mkdir -p esp/loader/entries esp/EFI/nixos esp/dragon-q8b-bootstrap
+          touch esp/loader/entries/dragon-q8b-bootstrap.conf
+          touch esp/dragon-q8b-bootstrap/{linux,initrd,dragon-q8b.dtb}
+          touch esp/loader/entries/nixos-generation-1.conf esp/EFI/nixos/managed-kernel
+          ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/cleanup-bootstrap.sh} "$PWD/esp"
+          test ! -e esp/loader/entries/dragon-q8b-bootstrap.conf
+          test ! -e esp/dragon-q8b-bootstrap
+          test -e esp/loader/entries/nixos-generation-1.conf
+          test -e esp/EFI/nixos/managed-kernel
+          mkdir -p esp/dragon-q8b-bootstrap
+          touch esp/dragon-q8b-bootstrap/operator-file
+          ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/cleanup-bootstrap.sh} "$PWD/esp"
+          test -e esp/dragon-q8b-bootstrap/operator-file
+          touch "$out"
+        '';
         dragon-q8b-provider-contract = assert rejects "dragon-q8b: DT package" badDT;
         assert rejects "dragon-q8b: the kernel's provider" badKernel;
           pkgs.writeText "dragon-q8b-provider-contract" "Mismatched DT and unlabelled kernels are rejected.\n";
@@ -164,7 +180,7 @@ in {
               python ${../../../packages/radxa/dragon-q8b/verify-image.py} ${img} ${toString sector}
               # ESP always starts at 1 MiB, independent of logical sector size.
               mdir -i ${img}@@1048576 ::/EFI/BOOT/BOOTAA64.EFI
-              mtype -i ${img}@@1048576 ::/loader/entries/nixos.conf | grep -F 'devicetree /nixos/dragon-q8b.dtb'
+              mtype -i ${img}@@1048576 ::/loader/entries/dragon-q8b-bootstrap.conf | grep -F 'devicetree /dragon-q8b-bootstrap/dragon-q8b.dtb'
             '') [512 4096]}
             touch $out
           '';

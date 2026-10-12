@@ -20,20 +20,20 @@ in
     };
   } ''
     export TZ=UTC
-    mkdir -p esp/EFI/BOOT esp/loader/entries esp/nixos
+    mkdir -p esp/EFI/BOOT esp/loader/entries esp/dragon-q8b-bootstrap
     cp ${config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi esp/EFI/BOOT/BOOTAA64.EFI
-    cp -L ${system}/kernel esp/nixos/linux
-    cp -L ${system}/initrd esp/nixos/initrd
-    cp ${dtb} esp/nixos/dragon-q8b.dtb
+    cp -L ${system}/kernel esp/dragon-q8b-bootstrap/linux
+    cp -L ${system}/initrd esp/dragon-q8b-bootstrap/initrd
+    cp ${dtb} esp/dragon-q8b-bootstrap/dragon-q8b.dtb
     cat > esp/loader/loader.conf <<'EOF'
-    default nixos
+    default dragon-q8b-bootstrap
     timeout 3
     EOF
-    cat > esp/loader/entries/nixos.conf <<'EOF'
-    title NixOS Dragon Q8B
-    linux /nixos/linux
-    initrd /nixos/initrd
-    devicetree /nixos/dragon-q8b.dtb
+    cat > esp/loader/entries/dragon-q8b-bootstrap.conf <<'EOF'
+    title NixOS Dragon Q8B (bootstrap)
+    linux /dragon-q8b-bootstrap/linux
+    initrd /dragon-q8b-bootstrap/initrd
+    devicetree /dragon-q8b-bootstrap/dragon-q8b.dtb
     options init=${system}/init root=LABEL=NIXOS_Q8B ${lib.concatStringsSep " " config.boot.kernelParams}
     EOF
     # Fixed creation times, volume ID, disk GUID and partition GUIDs.

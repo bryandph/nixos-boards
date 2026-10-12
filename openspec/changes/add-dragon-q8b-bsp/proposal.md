@@ -17,4 +17,4 @@ LAB-152 brings Radxa Dragon Q8B support into the already merged public conventio
 - New capability: dragon-q8b-board-support.
 - No migration/retirement of existing BSPs or changes to PRs #1–#5.
 - Hardware verification remains independent of software build checks; vendor OS observations are not NixOS verification.
-- Work: https://youtrack.k8s.bph/issue/LAB-152 ; licensing: https://youtrack.k8s.bph/issue/LAB-151.
+- Work: LAB-152; licensing: LAB-151.
