@@ -3,12 +3,21 @@
 - [x] 1.1 `hardware.boards.publication.{private,blocking}`
 - [x] 1.2 `lib.nonPrivateHashes` and `apps.private-cache-scan`
 - [x] 1.3 Tests for the status and the hash list
+- [x] 1.4 Internal build copies: the `build` redistribution form (implied by `file`/`private`), `lib.buildPermitted`, and `hardware.boards.publication.{build,buildBlocking}`
+- [x] 1.5 Validation: built packages permit no form their non-free inputs lack; tests
 
-## 2. Consumer (nixspace)
+## 2. Manifests
 
-- [x] 2.1 push-cache and deploy-batch skip blocked systems and scan before pushing
-- [x] 2.2 Host closure checks skip blocked systems
+- [x] 2.1 FRDM-i.MX95: the NXP SLA v63 §2.2(a) grants internal reproduction, so files under it, and packages built only from them, permit `private`. eIQ files and their derivatives do not.
+- [x] 2.2 BeagleY-AI: unchanged. The TI files without any license grant permit neither `build` nor `private`.
+- [x] 2.3 Dragon Q8B: unchanged. LICENSE.qcom §1.1 already permits `private`.
 
-## 3. Close
+## 3. Consumer (nixspace)
 
-- [ ] 3.1 Archive this change after merge
+- [x] 3.1 push-cache and deploy-batch skip blocked systems and scan before pushing
+- [x] 3.2 Host closure checks skip blocked systems
+- [ ] 3.3 Establish the private cache's read boundary (consumer side; see proposal)
+
+## 4. Close
+
+- [ ] 4.1 Archive this change after merge

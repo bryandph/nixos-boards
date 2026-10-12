@@ -86,7 +86,8 @@ as `boards.manifests.<name>`. The values below are illustrative:
 | `file` | Redistributing the unmodified file |
 | `image` | Including it in a disk image we distribute |
 | `cache` | Publishing it as a binary-cache substitute |
-| `private` | Keeping internal copies on the maintainer's private infrastructure |
+| `private` | Copies in the licensee's private binary cache, served only to the licensee's own systems |
+| `build` | Copies on the licensee's own build machines while building (implied by `file` and `private`) |
 
 Set a form only when the license grants it.
 
@@ -133,7 +134,12 @@ branch after two gates pass:
 R2 artifacts never leave the machine that imported them, except as part of
 the system deployed to the board that runs it.
 
-The maintainer's private cache may hold artifacts cleared for `private`.
+Internal build machines may hold artifacts cleared for `build`, and the
+maintainer's private cache may hold artifacts cleared for `private`. An
+operator's authorization never replaces the vendor's grant: an artifact with
+no license, or with terms that allow no reproduction, permits neither. Such
+systems are built only where their files were imported, and
+`config.hardware.boards.publication.build` is false for them.
 Each system reports whether its closure may go there:
 `config.hardware.boards.publication.private` is false when the system uses
 an artifact or built package not cleared for `private`, and

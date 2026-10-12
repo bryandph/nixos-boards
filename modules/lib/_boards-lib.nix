@@ -43,8 +43,13 @@
     file = "The license permits redistributing the unmodified file.";
     image = "The license permits redistributing it inside an aggregate disk image.";
     cache = "The license permits publishing it as a binary-cache substitute.";
-    private = "The license permits internal copies on the maintainer's private infrastructure.";
+    private = "The license permits internal copies in the licensee's private binary cache, served only to the licensee's own systems.";
+    build = "The license permits internal copies on the licensee's own build machines while building. Implied by `file` and `private`.";
   };
+
+  # Internal build copies are permitted when granted explicitly or implied
+  # by a broader grant (redistribution or the private cache).
+  buildPermitted = r: r.build || r.file || r.private;
 
   redistributionType = types.submodule {
     options = lib.mapAttrs (_: description:
@@ -276,6 +281,11 @@
     ++ lib.concatMap (i: err (!(manifest.artifacts ? ${i})) "built from unknown artifact ${i}") b.from
     ++ lib.concatMap (i: err ((manifest.artifacts.${i}.status or "") == "blocked") "built from blocked artifact ${i}") b.from
     ++ err (lib.any (a: a != null && classRank a.class > classRank b.class) inputs) "class ${b.class} is less restrictive than an artifact it is built from"
+    ++ lib.concatMap (form:
+      err (r.${form} && lib.any (a: a != null && a.class != "R0" && !a.redistribution.${form}) inputs)
+      "redistribution.${form} is not permitted by every artifact it is built from") ["file" "image" "cache" "private"]
+    ++ err (buildPermitted r && lib.any (a: a != null && a.class != "R0" && !(buildPermitted a.redistribution)) inputs)
+    "internal build copies are not permitted by every artifact it is built from"
     ++ err (b.license == null) "license is required"
     ++ err (b.license != null && !(b.license ? free)) "license must state `free`"
     ++ err (b.class != "R0" && b.evidence == null) "non-free built packages require license evidence"
@@ -427,7 +437,10 @@
           inherit id;
           inherit (manifest) provider;
           inherit (a) class layer load path sha256 derivedHashes features;
-          redistribution = {inherit (a.redistribution) file image cache private;};
+          redistribution = {
+            inherit (a.redistribution) file image cache private;
+            build = buildPermitted a.redistribution;
+          };
         };
         meta = {
           description = "${id} from ${manifest.source}";
@@ -470,7 +483,10 @@
               path = null;
               sha256 = null;
               derivedHashes = [];
-              redistribution = {inherit (b.redistribution) file image cache private;};
+              redistribution = {
+                inherit (b.redistribution) file image cache private;
+                build = buildPermitted b.redistribution;
+              };
             };
           };
         meta = (old.meta or {}) // {inherit (b) license;};
@@ -750,7 +766,9 @@
       else if lib.any (a: !(nixpkgsFree a.license)) as
       then "full"
       else "free";
-    forms = r: lib.concatStringsSep ", " (lib.filter (f: r.${f}) ["file" "image" "cache" "private"]);
+    forms = r:
+      lib.concatStringsSep ", " (lib.filter (f: r.${f}) ["file" "image" "cache" "private"]
+        ++ lib.optional (r.build && !(buildPermitted (r // {build = false;}))) "build");
     statusText = fn:
       if fn.status == "blocked" && fn.reason != null
       then "blocked: ${fn.reason}"
@@ -935,6 +953,7 @@ in {
     cacheablePackages
     nonCacheableHashes
     nonPrivateHashes
+    buildPermitted
     namePredicate
     mkArtifact
     freeNixpkgsConfig

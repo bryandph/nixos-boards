@@ -98,6 +98,29 @@ in {
       };
 
       publication = {
+        build = mkOption {
+          type = types.bool;
+          readOnly = true;
+          default = cfg.publication.buildBlocking == [];
+          defaultText = lib.literalExpression "config.hardware.boards.publication.buildBlocking == []";
+          description = ''
+            Whether this system may be built on the licensee's internal build
+            machines other than the one that imported its operator-supplied
+            artifacts. When false, build it where those artifacts were imported
+            (each build machine may import them itself).
+          '';
+        };
+        buildBlocking = mkOption {
+          type = types.listOf types.str;
+          readOnly = true;
+          default = map (p: "${p.manifestEntry.manifest}.${p.manifestEntry.id}") (lib.filter (p:
+            p ? manifestEntry
+            && p.manifestEntry.class != "R0"
+            && !p.manifestEntry.redistribution.build)
+          cfg.artifacts);
+          defaultText = lib.literalExpression "non-R0 artifacts without internal build permission";
+          description = "Manifest artifacts and built packages whose licenses do not permit internal build copies.";
+        };
         private = mkOption {
           type = types.bool;
           readOnly = true;

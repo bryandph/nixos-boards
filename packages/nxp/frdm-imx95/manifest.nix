@@ -30,12 +30,12 @@ _: let
     agreement = {
       url = nxpAgreement;
       inherit retrieved;
-      location = "section 2.3: distribution only as part of an authorized NXP-based system; LF6.18.20 Software Content Register";
+      location = "§2.2(a): use and reproduce solely for developing an Authorized System, no distribution to others (internal copies only); §2.3: distribution only within an Authorized System; ELE and firmware-imx recipes share COPYING md5 bc649096ad3928ec06a8713b8d787eac; LF6.18.20 Software Content Register";
     };
     neutron = {
       url = "https://github.com/nxp-imx/neutron/blob/${neutronRev}/LICENSE.txt";
       inherit retrieved;
-      location = "LICENSE.txt (NXP Software License Agreement) and SW-Content-Register.txt at the pinned revision";
+      location = "LICENSE.txt (LA_OPT_NXP_Software_License v63, git blob 37ddcbd5) §2.2(a) internal reproduction only; SW-Content-Register.txt at the pinned revision";
     };
     converter = {
       url = licenses.eiq.url;
@@ -72,6 +72,10 @@ _: let
     inherit size sha256 layer load features license;
     evidence = evidenceFor;
     instructions = how;
+    # NXP SLA §2.2(a) permits the licensee to reproduce the software for
+    # developing an Authorized System, but not to distribute it to others:
+    # internal build and private-cache copies only, never public forms.
+    redistribution.private = license == licenses.nxp;
   };
   bootFirmware = file: size: sha256:
     operatorSupplied {
@@ -104,6 +108,7 @@ _: let
       class = "R2";
       license = licenses.nxp;
       evidence = evidence.agreement;
+      redistribution.private = (attrs.license or licenses.nxp) == licenses.nxp;
     }
     // attrs;
 in {
@@ -250,6 +255,8 @@ in {
       };
       neutron-smoke = built {
         from = ["neutron-driver" "neutron-converted-model"];
+        # The converted model's eIQ terms grant no internal copies.
+        redistribution.private = false;
         evidence = evidence.neutron;
         layer = "userspace";
         load = "userspace";

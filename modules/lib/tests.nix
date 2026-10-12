@@ -218,6 +218,18 @@ in {
           leak = fixturesWith [(useArtifacts ["redist-fw"])];
           nixpkgsFirmware = fixturesWith [({pkgs, ...}: {hardware.firmware = [pkgs.linux-firmware];})];
           firmwareFree = fixturesWith [(useArtifacts ["nocache-fw"])];
+          buildOnly =
+            (fixturesWith [
+              ({pkgs, ...}: {
+                hardware.boards.artifacts = [
+                  (boardsLib.mkBuilt {
+                    manifest = valid;
+                    id = "operator-tool";
+                    package = pkgs.runCommand (name "operator-tool") {} "touch $out";
+                  })
+                ];
+              })
+            ]).free;
           pushSet = fixture:
             boardsLib.mkPublicPushSet {
               inherit pkgs fixture;
@@ -239,6 +251,9 @@ in {
           assert expect ok.free.config.hardware.boards.publication.private "a fixture with only R0 artifacts may enter the private cache";
           assert expect (sortedEq ok.full.config.hardware.boards.publication.blocking ["test-board.redist-fw" "test-board.cached-fw"]) "artifacts without redistribution.private block the private cache: ${builtins.toJSON ok.full.config.hardware.boards.publication.blocking}";
           assert expect (!ok.full.config.hardware.boards.publication.private) "a blocked system is not private-publishable";
+          assert expect ok.full.config.hardware.boards.publication.build "file and private grants imply internal build copies";
+          assert expect (buildOnly.config.hardware.boards.publication.buildBlocking == ["test-board.operator-tool"]) "an R2 package without build permission blocks internal build copies: ${builtins.toJSON buildOnly.config.hardware.boards.publication.buildBlocking}";
+          assert expect (!buildOnly.config.hardware.boards.publication.build) "a build-blocked system reports build = false";
           assert expect (lib.any (lib.hasInfix "uses the test-1.0 provider, not mainline") ok.free.config.warnings) "non-mainline provider warning";
           assert expect (failsToEval (evaluates leak.free)) "an R1 artifact in the free profile must fail";
           assert expect (!(failsToEval (evaluates nixpkgsFirmware.free))) "the free profile follows nixpkgs: linux-firmware evaluates";
