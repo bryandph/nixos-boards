@@ -1,0 +1,63 @@
+name: publish
+
+# Public lane (D8): builds each board's public push set (gate 1), scans
+# its closure for artifacts not cleared for the cache (gate 2), and only
+# then pushes to bph.cachix.org. Nothing else built in the job is pushed.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: cachix/install-nix-action@v31
+      - uses: cachix/cachix-action@v16
+        with:
+          name: bph
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: true
+      - name: Build public push sets (gate 1)
+        run: |
+          system=$(nix eval --raw --impure --expr builtins.currentSystem)
+          mapfile -t boards < <(nix eval --json ".#legacyPackages.$system.publicPushSet" --apply builtins.attrNames | jq -r '.[]')
+          if [ "${#boards[@]}" -eq 0 ]; then
+            echo "No boards publish on $system."
+            exit 0
+          fi
+          for board in "${boards[@]}"; do
+            nix build -L ".#legacyPackages.$system.publicPushSet.$board" --out-link "push-set-$board"
+          done
+      - name: Scan closures (gate 2)
+        run: |
+          shopt -s nullglob
+          sets=(push-set-*)
+          [ "${#sets[@]}" -gt 0 ] || exit 0
+          nix run .#cache-scan -- "${sets[@]}"
+      - name: Push to bph.cachix.org
+        env:
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        run: |
+          shopt -s nullglob
+          sets=(push-set-*)
+          [ "${#sets[@]}" -gt 0 ] || exit 0
+          if [ -z "$CACHIX_AUTH_TOKEN" ]; then
+            echo "::warning::CACHIX_AUTH_TOKEN is not set; skipping the push."
+            exit 0
+          fi
+          for set in "${sets[@]}"; do
+            readlink -f "$set"
+          done | cachix push bph
