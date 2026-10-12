@@ -2,8 +2,8 @@
 - [x] Verify immutable repository bases and isolate BSP worktree.
 - [x] Pin Radxa vendor source and record board-owned UEFI version.
 - [x] Implement and evaluate core/vendor provider.
-- [ ] Establish explicit experimental mainline DT contract.
-- [ ] Build GPT UEFI images for 512/4096 logical sectors.
+- [x] Record operator decision: mainline blocked until compatible native DTS or reviewed backport; no factory-DT exception.
+- [x] Build GPT UEFI images for 512/4096 logical sectors.
 
 ## 2. Licensing and profiles
 - [x] Record exact artifact/license evidence on LAB-151 (immutable HEAD-only metadata; four supported R2 files).
@@ -12,9 +12,11 @@
 
 ## 3. Documentation and verification
 - [x] Generate docs/gaps/hardware matrix.
-- [ ] Verify DT/provider, production images and complete boot reproducibility (kernel build in progress). Mock-input assembler layout and byte reproducibility checks pass for both sector sizes.
-- [x] Run formatting, Nix, OpenSpec and docs checks (6 native aarch64-darwin checks + all 17 x86_64-linux checks pass; production aarch64 image/DT builds pending).
-- [ ] Run required open-code-review and resolve findings (capability currently unavailable; coordinator sourcing route).
-- [ ] Return PR/commits and exact results on LAB-152.
+- [x] Build pinned vendor kernel and verify actual matching DT/provider contract.
+- [x] Check actual 512/4096 images, GPT CRCs, FAT BPB, EFI loader, DT boot entry and ext4 root.
+- [x] Byte-compare repeated actual rootfs creation and production boot-image assembly for both sectors. Fixed kernel/initrd/toplevel closure inputs; independent recompilation reproducibility is not claimed.
+- [x] Run formatting, Nix, OpenSpec and docs checks.
+- [ ] Run required open-code-review and resolve findings (ocr exists; review exits before LLM because intended endpoint is unconfigured; no auth/model/billing path changed).
+- [x] Publish draft PR #6 and report evidence/remaining gates on LAB-152.
 
 Physical boot/network/storage verification is pending operator access and must not be marked verified by builds alone. No merge/deploy/flash/closure is authorized.

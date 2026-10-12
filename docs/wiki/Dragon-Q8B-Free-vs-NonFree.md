@@ -10,6 +10,12 @@ These features need artifacts that nixpkgs does not allow with `allowUnfree = fa
 | --- | --- | --- | --- |
 | dragon-q8b-uefi-update | `dragon-q8b-firmware.uefi` | R2 | blocked: licensing |
 
+## kernel
+
+| Features | Artifact | Class | Available in |
+| --- | --- | --- | --- |
+| dragon-q8b-provider-mainline | `dragon-q8b-mainline.native-dtb` | R0 | blocked: compatible native Q8B DTS or reviewed backport required |
+
 ## runtime-firmware
 
 | Features | Artifact | Class | Available in |

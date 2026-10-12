@@ -19,3 +19,11 @@ Provider `radxa-7.0.11`, version 20260916: linux-firmware 20260916 (ab23307cfe7f
 | `qup` | blocked: licensing | R2 |  | runtime-firmware | firmware |  |  |
 | `uefi` | blocked: licensing | R2 |  | boot-firmware | board-storage |  |  |
 | `video` | blocked: licensing | R2 |  | runtime-firmware | firmware |  |  |
+
+## dragon-q8b-mainline
+
+Provider `mainline`, version 6.18.54: nixpkgs f45c6f04c2f013f004bf94e284e95d72898d9393 default mainline kernel; Q8B native DTS absent.
+
+| Artifact | Status | Class | License | Layer | Load | Redistribution | Evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `native-dtb` | blocked: compatible native Q8B DTS or reviewed backport required | R0 |  | kernel | boot-image |  |  |

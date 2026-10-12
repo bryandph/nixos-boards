@@ -10,8 +10,17 @@ See [hardware matrix](Dragon-Q8B-Hardware-Matrix), [firmware](Dragon-Q8B-Firmwar
 The default is named vendor provider `radxa-7.0.11`, source revision
 `a50eb5b71984bd82b49cd5d31b1e2eb5505c6512` from [radxa/kernel](https://github.com/radxa/kernel/tree/a50eb5b71984bd82b49cd5d31b1e2eb5505c6512).
 The kernel and installed Q8B device tree share this source. Vendor selection emits a warning.
-Upstream Linux has no native Q8B DTS at the research baseline; the mainline track is experimental,
-not an alternative labelled vendor DT. Its implementation/acceptance is tracked separately.
+The mainline track is **blocked**, not experimentally bootable: the locked nixpkgs
+mainline kernel is 6.18.54 and there is no compatible native Q8B DTS at the research
+baseline. The operator explicitly rejected a factory-UEFI-DT exception. No mainline
+provider module is exported and no vendor tree is labelled mainline.
+
+Unblock only when a compatible native Q8B DTS or reviewed source backport is pinned,
+compiled with its matching mainline kernel, and passes provider/DT-contract tests.
+Then evaluate/build a separate mainline fixture and physically verify the core
+serial/storage/PCIe functions before recommending it over the vendor provider.
+The blocked mainline manifest tracks this missing support independently from
+firmware licensing. It never blocks the vendor fixtures.
 
 ## Public fixtures
 
@@ -36,6 +45,11 @@ No default profile pulls all of linux-firmware or radxa-firmware into its closur
 
 Core targets microSD, NVMe, UFS, serial and dual Toshiba PCIe Ethernet.
 NixOS boot, device enumeration and network behavior remain implemented-unverified.
+The Toshiba switch power-control node uses I2C21. The vendor GENI I2C driver reuses
+an already initialized I2C engine, but requests the unestablished QUP firmware if
+its protocol is invalid. Ethernet therefore also needs physical verification of
+UEFI pre-initialization; a cold-start fallback cannot be claimed available without
+establishing that exact QUP firmware's grant.
 A UFS-attached vendor boot failed before readable firmware output; the failure is
 not proof of a Linux driver problem or boot-order cause. Power off before fitting modules.
 Wireless depends on the actual optional M.2 E-key card, not on the board name.

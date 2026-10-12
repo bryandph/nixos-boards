@@ -9,24 +9,10 @@
     pkgs,
     ...
   }: let
-    rootfs =
-      (pkgs.callPackage (inputs.nixpkgs + "/nixos/lib/make-ext4-fs.nix") {
-        storePaths = [config.system.build.toplevel];
-        volumeLabel = "NIXOS_Q8B";
-        uuid = "81ad85de-22d0-4e73-8ebb-0512b0000004";
-        populateImageCommands = ''
-          mkdir -p files/boot files/etc files/nix/var/nix/profiles
-          ln -s ${config.system.build.toplevel}/init files/init
-          touch files/etc/NIXOS
-          ln -s ${config.system.build.toplevel} files/nix/var/nix/profiles/system
-        '';
-      }).overrideAttrs (old: {
-        # e2fsprogs otherwise picks a random directory hash seed.
-        buildCommand =
-          lib.replaceStrings ["fakeroot mkfs.ext4"]
-          ["fakeroot mkfs.ext4 -E hash_seed=81ad85de-22d0-4e73-8ebb-0512b0000004"]
-          old.buildCommand;
-      });
+    rootfs = pkgs.callPackage ../../../packages/radxa/dragon-q8b/rootfs.nix {
+      nixpkgs = inputs.nixpkgs;
+      toplevel = config.system.build.toplevel;
+    };
     image = sectorSize:
       pkgs.callPackage ../../../packages/radxa/dragon-q8b/image.nix {
         inherit config rootfs sectorSize;
@@ -42,6 +28,7 @@
     };
     boot.growPartition = true;
     system.build = {
+      rootfsImage = rootfs;
       image512 = image 512;
       image4096 = image 4096;
       image = config.system.build.image512;

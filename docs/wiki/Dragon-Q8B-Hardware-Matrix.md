@@ -13,6 +13,7 @@ Maintainers have this board, so functions can be verified on hardware.
 | compute-dsp | blocked: licensing | blocked: licensing | dragon-q8b-compute-dsp |  |
 | ethernet | implemented-unverified | free | dragon-q8b-core |  |
 | gpu | implemented-unverified | full | dragon-q8b-gpu |  |
+| mainline | blocked: compatible native Q8B DTS or reviewed backport required | blocked: compatible native Q8B DTS or reviewed backport required | dragon-q8b-provider-mainline |  |
 | nvme | implemented-unverified | free | dragon-q8b-core |  |
 | qup | blocked: licensing | blocked: licensing | dragon-q8b-qup |  |
 | sd | implemented-unverified | free | dragon-q8b-core |  |

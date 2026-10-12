@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Dragon Q8B named providers
-The BSP SHALL default to a pinned Radxa kernel provider with a matching device tree. It SHALL expose a separately imported mainline experiment, clearly recording missing native board support without relabelling vendor device trees as mainline.
+The BSP SHALL default to a pinned Radxa kernel provider with a matching device tree. It SHALL record the mainline track as blocked until a compatible native Q8B DTS or reviewed source backport exists. It MUST NOT bypass matching provenance using factory UEFI device trees or relabel vendor device trees as mainline. This missing support MUST NOT block independent vendor BSP development.
 
 #### Scenario: Default provider
 - **WHEN** the free fixture evaluates
