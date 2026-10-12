@@ -315,6 +315,15 @@
       m.artifacts))
     manifests;
 
+  # Hashes of files, adopted or blocked, not cleared for the private cache.
+  nonPrivateHashes = manifests:
+    lib.concatMap (m:
+      lib.concatLists (lib.mapAttrsToList (_: a:
+        lib.optionals (a.class != "R0" && !a.redistribution.private)
+        (lib.filter (h: h != null) ([a.sha256] ++ a.derivedHashes)))
+      m.artifacts))
+    manifests;
+
   namePredicate = names: pkg: builtins.elem (lib.getName pkg) names;
 
   hex = hash:
@@ -613,15 +622,20 @@
   mkCacheScan = {
     pkgs,
     hashes,
+    lane ? "public",
   }: let
-    deny = pkgs.writeText "nixos-boards-non-cacheable-sha256" (lib.concatMapStrings (h: "${hex h}\n") (lib.unique hashes));
+    name =
+      if lane == "public"
+      then "nixos-boards-cache-scan"
+      else "nixos-boards-${lane}-cache-scan";
+    deny = pkgs.writeText "${name}-deny-sha256" (lib.concatMapStrings (h: "${hex h}\n") (lib.unique hashes));
   in
     pkgs.writeShellApplication {
-      name = "nixos-boards-cache-scan";
+      inherit name;
       runtimeInputs = [pkgs.coreutils pkgs.findutils pkgs.gnugrep];
       text = ''
         usage() {
-          echo "usage: nixos-boards-cache-scan STORE-PATH... | --closure-file FILE" >&2
+          echo "usage: ${name} STORE-PATH... | --closure-file FILE" >&2
           exit 2
         }
         refuse() {
@@ -684,11 +698,11 @@
         # grep exits 1 when nothing matches; any other failure aborts.
         matches=$(grep -F -f ${deny} "$hashes") || [ "$?" -eq 1 ]
         if [ -n "$matches" ]; then
-          echo "Refusing to publish: these files match artifacts not cleared for the public cache:" >&2
+          echo "Refusing to publish: these files match artifacts not cleared for the ${lane} cache:" >&2
           echo "$matches" >&2
           exit 1
         fi
-        echo "No non-cacheable artifacts in ''${#paths[@]} store paths."
+        echo "No artifacts barred from the ${lane} cache in ''${#paths[@]} store paths."
       '';
     };
 
@@ -920,6 +934,7 @@ in {
     unfreePackages
     cacheablePackages
     nonCacheableHashes
+    nonPrivateHashes
     namePredicate
     mkArtifact
     freeNixpkgsConfig

@@ -130,7 +130,16 @@ branch after two gates pass:
    file in their closure. It refuses if any file matches a non-cacheable
    artifact, or one of its `derivedHashes`, from any manifest.
 
-R2 artifacts never leave the machine that imported them.
+R2 artifacts never leave the machine that imported them, except as part of
+the system deployed to the board that runs it.
+
+The maintainer's private cache may hold artifacts cleared for `private`.
+Each system reports whether its closure may go there:
+`config.hardware.boards.publication.private` is false when the system uses
+an artifact or built package not cleared for `private`, and
+`config.hardware.boards.publication.blocking` names them. Cache tooling
+should skip those systems and run `nix run .#private-cache-scan -- <paths>`
+before pushing.
 
 To use the cache, import `nixosModules.nixos-boards-cache` (or
 `darwinModules.nixos-boards-cache`). It adds the substituter and its key.

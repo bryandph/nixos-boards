@@ -132,6 +132,8 @@ in {
         assert expect (sortedEq (boardsLib.nonCacheableHashes [valid])
           (map data.sri [data.contents."redist.bin" data.contents."operator.bin" data.contents."nocache.bin" data.contents."mystery.bin"])) "non-cacheable hashes";
         assert expect (!(failsToEval (artifact pkgs "nocache-fw").drvPath)) "nixpkgs counts unfreeRedistributableFirmware as free";
+        assert expect (sortedEq (boardsLib.nonPrivateHashes [valid])
+          (map data.sri [data.contents."redist.bin" data.contents."cached.bin" data.contents."nocache.bin" data.contents."mystery.bin"])) "non-private hashes";
         assert expect (failsToEval (artifact unfreePkgs "mystery-fw").drvPath) "blocked artifact must not package";
         assert expect (failsToEval (artifact pkgs "redist-fw").drvPath) "R1 artifact must need an unfree allowance";
         assert expect (!(failsToEval (artifact pkgs "free-blob").drvPath)) "R0 artifact must not need an unfree allowance";
@@ -234,6 +236,9 @@ in {
         in
           assert expect (!(failsToEval (evaluates ok.free))) "free fixture must evaluate: ${builtins.toJSON (fixtureAssertions ok.free)}";
           assert expect (!(failsToEval (evaluates ok.full))) "full fixture must evaluate: ${builtins.toJSON (fixtureAssertions ok.full)}";
+          assert expect ok.free.config.hardware.boards.publication.private "a fixture with only R0 artifacts may enter the private cache";
+          assert expect (sortedEq ok.full.config.hardware.boards.publication.blocking ["test-board.redist-fw" "test-board.cached-fw"]) "artifacts without redistribution.private block the private cache: ${builtins.toJSON ok.full.config.hardware.boards.publication.blocking}";
+          assert expect (!ok.full.config.hardware.boards.publication.private) "a blocked system is not private-publishable";
           assert expect (lib.any (lib.hasInfix "uses the test-1.0 provider, not mainline") ok.free.config.warnings) "non-mainline provider warning";
           assert expect (failsToEval (evaluates leak.free)) "an R1 artifact in the free profile must fail";
           assert expect (!(failsToEval (evaluates nixpkgsFirmware.free))) "the free profile follows nixpkgs: linux-firmware evaluates";

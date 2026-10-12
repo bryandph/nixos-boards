@@ -97,6 +97,32 @@ in {
         '';
       };
 
+      publication = {
+        private = mkOption {
+          type = types.bool;
+          readOnly = true;
+          default = cfg.publication.blocking == [];
+          defaultText = lib.literalExpression "config.hardware.boards.publication.blocking == []";
+          description = ''
+            Whether this system's closure may be copied to the maintainer's
+            private binary cache (D8): true unless an artifact it uses is not
+            cleared for `private`. Deploying the system to the board that runs
+            it is use, not publication, and is always allowed.
+          '';
+        };
+        blocking = mkOption {
+          type = types.listOf types.str;
+          readOnly = true;
+          default = map (p: "${p.manifestEntry.manifest}.${p.manifestEntry.id}") (lib.filter (p:
+            p ? manifestEntry
+            && p.manifestEntry.class != "R0"
+            && !p.manifestEntry.redistribution.private)
+          cfg.artifacts);
+          defaultText = lib.literalExpression "non-R0 artifacts without redistribution.private";
+          description = "Manifest artifacts and built packages that keep this system out of the private cache.";
+        };
+      };
+
       artifacts = mkOption {
         type = types.listOf types.package;
         default = [];
