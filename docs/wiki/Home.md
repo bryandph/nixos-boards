@@ -20,9 +20,14 @@ See the [Glossary](Glossary) for the terms used throughout this wiki.
 
 ## Status
 
-The repository is being bootstrapped. The board conventions are under
-review as an OpenSpec change in `openspec/changes/`. Board pages will
-appear here as boards are migrated or added.
+The conventions are approved and the shared library is in place: board
+options, release manifests, artifact packaging, free and full test
+configurations, publication gates and generated documentation. No board is
+supported yet. Board pages will appear here as boards are migrated or
+added.
+
+To contribute a board, start with [Adding a board](Guide-Adding-a-Board)
+and [Non-free firmware](Guide-Non-Free-Firmware).
 
 ## Editing this wiki
 

@@ -16,27 +16,27 @@
 
 ## 3. Profiles and checks
 
-- [ ] 3.1 Fixture factory producing `<board>-free` (no unfree) and `<board>-full` (generated predicate) configurations
-- [ ] 3.2 Per-board checks: fixture assertions, manifest validation, provider consistency
-- [ ] 3.3 Gap-table generator grouped by layer
-- [ ] 3.4 Negative checks on the test board: free fixture fails with an unfree dependency and with nixpkgs `unfreeRedistributableFirmware` firmware; a hand-written allowlist entry fails (conflicting claims are covered by `checks.lib-claims`)
+- [x] 3.1 Fixture factory producing `<board>-free` (`lib.freeNixpkgsConfig`) and `<board>-full` (generated predicate) configurations (`modules/lib/library.nix`)
+- [x] 3.2 Per-board checks: fixture assertions, manifest validation, provider consistency (`checks.<board>-free`, `checks.<board>-full`, `checks.release-manifests`; provider assertions and warning in `hardware-boards`)
+- [x] 3.3 Gap-table generator grouped by layer
+- [x] 3.4 Negative checks on the test board: free fixture fails with an unfree dependency and with nixpkgs `unfreeRedistributableFirmware` firmware; a hand-written allowlist entry fails (conflicting claims are covered by `checks.lib-claims`)
 
 ## 4. Publication
 
-- [ ] 4.1 Push-set evaluation with the cache-permitted predicate
-- [ ] 4.2 Pre-push closure hash scan against non-cacheable manifest hashes, with a test that copies a blob under another name
-- [ ] 4.3 Opt-in consumer cache module (substituter and key set once the service is chosen)
-- [ ] 4.4 Push workflow for the public lane, enabled only after the cache service decision
+- [x] 4.1 Push-set evaluation with the cache-permitted predicate
+- [x] 4.2 Pre-push closure hash scan against non-cacheable manifest hashes, with a test that copies a blob under another name
+- [ ] 4.3 Opt-in consumer cache module (substituter and key set once the service is chosen) — waiting on the cache-service decision
+- [ ] 4.4 Push workflow for the public lane, enabled only after the cache service decision — waiting on the cache-service decision
 
 ## 5. Documentation
 
-- [ ] 5.1 `nix build .#docs` generator for hardware matrices, firmware tables and gap tables
-- [ ] 5.2 Docs drift check naming the regeneration command
-- [ ] 5.3 `Guide-Adding-a-Board` and `Guide-Non-Free-Firmware` pages
-- [ ] 5.4 CI workflow mirroring `docs/wiki/` to the GitHub wiki from the default branch
+- [x] 5.1 `nix build .#docs` generator for hardware matrices, firmware tables and gap tables
+- [x] 5.2 Docs drift check naming the regeneration command
+- [x] 5.3 `Guide-Adding-a-Board` and `Guide-Non-Free-Firmware` pages
+- [x] 5.4 CI workflow mirroring `docs/wiki/` to the GitHub wiki from the default branch (`.github/workflows/wiki.yml`; runs once the wiki's first page exists)
 
 ## 6. CI and verification
 
-- [ ] 6.1 GitHub Actions: `nix flake check` on x86_64-linux and aarch64-linux
-- [ ] 6.2 Verify: `nix run .#fmt -- --fail-on-change`, `nix flake check`, `openspec validate --strict`
+- [x] 6.1 GitHub Actions: `nix flake check` on x86_64-linux and aarch64-linux (`.github/workflows/check.yml`); OpenSpec validation and actionlint run inside `nix flake check`
+- [x] 6.2 Verify: `nix run .#fmt -- --fail-on-change`, `nix flake check`, `openspec validate --strict` (2026-10-11: all 14 checks on aarch64-darwin, aarch64-linux and x86_64-linux)
 - [ ] 6.3 Archive this change into `openspec/specs/` after approval and implementation
