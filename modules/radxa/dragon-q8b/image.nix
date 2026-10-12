@@ -80,6 +80,7 @@
     };
     # Immutable GPT layout v1: 1 MiB alignment, 512 MiB ESP, ext4 root.
     system.nixos.tags = ["dragon-q8b-layout-v1"];
+    hardware.boards.image.layoutVersion = 1;
   };
   flake.nixosModules.dragon-q8b-image = config.flake.modules.nixos.dragon-q8b-image;
 }
