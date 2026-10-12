@@ -1,0 +1,15 @@
+schema: spec-driven
+context: |
+  Follow AGENTS.md. Shared hardware terms are defined in
+  docs/wiki/Glossary.md. Reference the module, package or manifest that
+  holds a fact rather than copying drift-prone values.
+rules:
+  proposal:
+    - 'Name the work item that tracks the change, if any.'
+    - 'State a "Non-goals" section explicitly.'
+  design:
+    - 'Record decisions with alternatives and rationale.'
+    - 'For non-free artifacts, state the license evidence and the redistribution forms it permits.'
+  tasks:
+    - 'Include format and verification gates, naming targeted checks or outputs.'
+    - 'Separate implemented support from physically verified support.'
