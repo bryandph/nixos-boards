@@ -35,7 +35,11 @@ in {
 
   # Device tree contract: every overlay config.txt names is built by the
   # kernel the configuration uses (upstream tree or board patches).
-  perSystem = {pkgs, ...}: let
+  perSystem = {
+    pkgs,
+    system,
+    ...
+  }: let
     nixosCfg = config.flake.nixosConfigurations.uconsole-free.config;
     kernel = nixosCfg.boot.kernelPackages.kernel;
     overlays = lib.unique (lib.concatMap (line: let
@@ -44,7 +48,8 @@ in {
       lib.optional (m != null) (lib.head m))
     (lib.splitString "\n" nixosCfg.hardware.raspberry-pi.config-generated));
   in {
-    checks = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+    # The kernel source is prepared on the board's platform.
+    checks = lib.optionalAttrs (system == config.boards.registry.uconsole.system) {
       uconsole-device-tree =
         pkgs.runCommand "uconsole-device-tree" {
           inherit (kernel) src;
