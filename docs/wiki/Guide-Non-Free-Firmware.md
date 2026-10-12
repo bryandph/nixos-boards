@@ -92,15 +92,18 @@ Set a form only when the license grants it.
 
 ## Profiles
 
-Each board has a free and a full test configuration.
+Each board has a free and a full test configuration. Both follow nixpkgs'
+license semantics:
 
-The free configuration rejects every non-free license, and every package
-of binary firmware whose licenses are not all genuinely free. The second
-rule is needed because nixpkgs marks `unfreeRedistributableFirmware` as
-free, so firmware builds without `allowUnfree`. A license check alone would
-let nixpkgs' own non-free firmware into the free profile.
+- The free configuration evaluates with `allowUnfree = false`, nixpkgs'
+  default. nixpkgs counts `unfreeRedistributableFirmware` as free, so
+  redistributable firmware can be part of the free profile, just as with
+  NixOS's `hardware.enableRedistributableFirmware`.
+- The full configuration admits exactly the board's manifest artifacts
+  that nixpkgs marks unfree.
 
-The full configuration admits exactly the board's manifest artifacts.
+The classes above decide how an artifact is fetched and whether it may be
+published. They do not change how nixpkgs treats its license.
 
 Consumers allow a board's non-free artifacts with its generated predicate:
 
@@ -110,18 +113,27 @@ nixpkgs.config.allowUnfreePredicate = inputs.nixos-boards.lib.unfreePredicate "d
 
 ## Publication
 
-Two gates protect the public binary cache.
+The public cache is `bph.cachix.org`. CI publishes to it from the default
+branch after two gates pass:
 
 1. **Evaluation.** The public push set,
    `legacyPackages.<system>.publicPushSet.<board>`, contains:
    - the free configuration's builds;
    - R1 artifacts cleared for `cache`, built with nixpkgs that admits only
      those names.
+
+   It fails to evaluate if the free configuration installs any non-R0
+   artifact that is not cleared for `cache`, or for `image` when images
+   are published. This check reads the manifest rather than the license,
+   because nixpkgs counts some non-free firmware as free.
 2. **Pre-push scan.** `nix run .#cache-scan -- <store paths>` hashes every
    file in their closure. It refuses if any file matches a non-cacheable
    artifact, or one of its `derivedHashes`, from any manifest.
 
 R2 artifacts never leave the machine that imported them.
+
+To use the cache, import `nixosModules.nixos-boards-cache` (or
+`darwinModules.nixos-boards-cache`). It adds the substituter and its key.
 
 The scan matches exact file contents. NixOS compresses firmware by default
 (`hardware.firmwareCompression`), so compressed copies only match if their

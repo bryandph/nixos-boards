@@ -14,7 +14,8 @@ modules and carriers. Every board follows the same conventions:
   and a full profile that adds the non-free pieces. The gaps between the
   two are documented for every board.
 - Only artifacts whose licenses permit it are published to the binary
-  cache.
+  cache, `bph.cachix.org`. Import `nixosModules.nixos-boards-cache` to
+  use it.
 
 See the [Glossary](Glossary) for the terms used throughout this wiki.
 

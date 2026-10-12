@@ -122,9 +122,9 @@ Registration produces:
 - the generated wiki pages `Dragon-Q8B-Hardware-Matrix`,
   `Dragon-Q8B-Firmware` and `Dragon-Q8B-Free-vs-NonFree`.
 
-The free configuration evaluates with nixpkgs that rejects every non-free
-license and all binary firmware that is not genuinely free. If a free
-feature pulls in non-free code, evaluation fails.
+The free configuration evaluates with `allowUnfree = false`, following
+nixpkgs' license semantics. If a free feature pulls in something nixpkgs
+considers unfree, evaluation fails.
 
 ## 6. Document the board
 

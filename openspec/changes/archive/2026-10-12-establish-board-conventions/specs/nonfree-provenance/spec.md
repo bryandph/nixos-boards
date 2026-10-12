@@ -8,7 +8,7 @@ A non-free artifact MUST NOT be packaged until its license has been established 
 - **THEN** the firmware is recorded as `blocked: licensing`, no derivation fetches it, and the features needing it are documented as gaps
 
 ### Requirement: Non-free classes
-Every artifact SHALL be classed R0 (free), R1 (non-free with permitted redistribution) or R2 (non-free, operator-supplied). R1 artifacts SHALL be fixed-output fetches from a pinned upstream URL, install their license and notice files, and carry `meta.license` and `meta.sourceProvenance` from the manifest. R2 artifacts SHALL use `requireFile` with import instructions, `allowSubstitutes = false` and `preferLocalBuild = true`.
+Every artifact SHALL be classed R0 (free), R1 (non-free with permitted redistribution) or R2 (non-free, operator-supplied). R0 artifacts SHALL have a license nixpkgs marks free, and R1 artifacts a license nixpkgs marks redistributable. R1 artifacts SHALL be fixed-output fetches from a pinned upstream URL, install their license and notice files, and carry `meta.license` and `meta.sourceProvenance` from the manifest. R2 artifacts SHALL use `requireFile` with import instructions, `allowSubstitutes = false` and `preferLocalBuild = true`.
 
 #### Scenario: Operator-supplied firmware
 - **WHEN** a build needs an R2 artifact that has not been imported
@@ -29,12 +29,12 @@ Each provider of non-free artifacts SHALL have a release manifest recording its 
 - **THEN** the manifest check fails
 
 ### Requirement: Free and full profiles
-Each board's free fixture SHALL evaluate with `allowUnfree = false`, no unfree predicate, and a non-source predicate that rejects binary firmware unless all its licenses are genuinely free. Board features MUST NOT set `nixpkgs.config`. Artifacts built from manifests with class R1 or R2 SHALL carry a non-free license in `meta`, even when nixpkgs marks their license as free (as it does for `unfreeRedistributableFirmware`). Each board's full fixture SHALL use only the board's generated unfree predicate. The repository SHALL generate, per board, a table of functions available only in the full profile, with the artifacts and classes they require, grouped by layer: boot firmware, kernel and device tree, runtime firmware, userspace.
+Profiles SHALL follow nixpkgs' license semantics. Each board's free fixture SHALL evaluate with `allowUnfree = false` and no unfree predicate. Board features MUST NOT set `nixpkgs.config`. Artifacts built from manifests SHALL carry their manifest license in `meta` unchanged, and generated unfree lists SHALL contain exactly the artifacts whose license nixpkgs marks non-free. Each board's full fixture SHALL use only the board's generated unfree predicate. The repository SHALL generate, per board, a table of functions available only in the full profile, with the artifacts and classes they require, grouped by layer: boot firmware, kernel and device tree, runtime firmware, userspace.
 
 #### Scenario: Non-free dependency leaks into a free feature
 - **WHEN** a feature imported by the free fixture depends on an unfree package
 - **THEN** the free fixture fails to evaluate
 
 #### Scenario: nixpkgs firmware marked free
-- **WHEN** a feature imported by the free fixture adds a nixpkgs firmware package licensed `unfreeRedistributableFirmware` with binary-firmware provenance
-- **THEN** the free fixture fails to evaluate
+- **WHEN** a feature imported by the free fixture adds firmware licensed `unfreeRedistributableFirmware`
+- **THEN** the free fixture evaluates, as it would in nixpkgs, and publication is still governed by the artifact's manifest entry

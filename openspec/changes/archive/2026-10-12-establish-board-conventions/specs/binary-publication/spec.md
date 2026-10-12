@@ -8,11 +8,11 @@ The public binary cache SHALL receive only the closures of free fixtures and out
 - **THEN** outputs containing it are excluded from the public push set
 
 ### Requirement: Evaluation gate
-The public push set SHALL be evaluated with an unfree predicate generated from the manifests that admits only cache-permitted packages.
+The public push set SHALL fail to evaluate when a published configuration installs a non-R0 manifest artifact that is not permitted for `cache`, or for `image` when images are published. Cache-cleared R1 artifacts in the push set SHALL be built with nixpkgs that admits only cache-permitted package names.
 
-#### Scenario: Unpermitted package in the push set
-- **WHEN** the push set includes an output depending on a non-cacheable package
-- **THEN** evaluation of the push set fails
+#### Scenario: Firmware nixpkgs counts as free but not cleared for caches
+- **WHEN** the free fixture installs an R1 artifact licensed `unfreeRedistributableFirmware` whose entry does not permit `cache`
+- **THEN** evaluation of the push set fails and names the artifact
 
 ### Requirement: Pre-push content scan
 Before pushing to the public cache, the publisher SHALL hash every regular file in the closure being pushed and compare the hashes with all manifest artifacts, and their recorded derived forms, that are not permitted for `cache`. Any match SHALL abort the push.

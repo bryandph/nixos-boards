@@ -232,29 +232,29 @@ Duplicated hand-written allowlists are not permitted.
 Every board has two public fixtures, `<board>-free` and `<board>-full`, as
 `nixosConfigurations`:
 
-- `<board>-free` imports every free feature and evaluates with
-  `lib.freeNixpkgsConfig`. This config sets `allowUnfree = false`, with no
-  unfree predicate. It also sets `allowNonSource = false`, with a predicate
-  that rejects binary firmware unless all its licenses are genuinely free.
-  A non-free dependency in a free feature fails evaluation.
+- `<board>-free` imports every free feature and evaluates with nixpkgs'
+  own configuration for free software: `allowUnfree = false` and no
+  unfree predicate. A dependency that nixpkgs considers unfree fails
+  evaluation.
 - `<board>-full` adds `<board>-full` and uses the board's generated
   unfree predicate.
 
-The provenance predicate is needed because nixpkgs marks
-`lib.licenses.unfreeRedistributableFirmware` as free, so that firmware
-builds without `allowUnfree`. The license check alone would admit
-nixpkgs' own non-free firmware (linux-firmware included) into the free
-profile.
+The profiles follow nixpkgs' license semantics instead of defining their
+own. Manifest licenses are passed to `meta.license` unchanged, and the
+generated unfree lists contain exactly the artifacts whose license nixpkgs
+marks non-free. nixpkgs counts `lib.licenses.unfreeRedistributableFirmware`
+as free, so such firmware (linux-firmware included) can be part of the free
+profile. This matches NixOS's own `hardware.enableRedistributableFirmware`.
 
-A blanket `allowNonSource = false` cannot be used. nixpkgs bootstraps
-some compilers from binaries (for example Rust's `binaryNativeCode`
-bootstrap), so every NixOS closure would fail. The predicate therefore
-rejects only `binaryFirmware` whose licenses are not all genuinely free.
+The R0–R2 classes remain the repository's provenance and publication
+classification. They decide how an artifact is fetched and whether it may
+be published (D8), not whether nixpkgs allows it.
 
-For the same reason, artifacts built from manifests always carry
-`free = false` in their license unless they are R0. Both the validator and
-`mkArtifact` treat `unfreeRedistributableFirmware` as non-free. R0
-artifacts record honest binary provenance and pass on their license.
+- *Alternative:* a stricter repository-specific free profile that also
+  rejects firmware nixpkgs considers free. This was rejected so that
+  "free" means the same thing here as in nixpkgs. A stricter definition
+  would also need a custom non-source predicate, because nixpkgs
+  bootstraps some compilers from binaries.
 
 The test configurations also assert that:
 
@@ -278,18 +278,23 @@ and consumers compose it.
 
 ### D8. Publication lanes
 
-- **Public lane:** a public binary cache. The service and plan are not yet
-  decided. It carries the closures of the free fixtures, plus R1 artifacts
-  whose manifest entry permits `cache`, and the derivations that embed
-  them only if the entry also permits `image`.
+- **Public lane:** the Cachix cache `bph` (`https://bph.cachix.org`, key
+  `bph.cachix.org-1:RAjeSPL3sh3IBdCkXFV9x7V0EI7bHuV5Uzr4GeKteP4=`). It
+  carries the closures of the free fixtures, plus R1 artifacts whose
+  manifest entry permits `cache`, and the derivations that embed them only
+  if the entry also permits `image`.
 - **Private lane:** the maintainer's private cache. It carries everything
   above, plus artifacts whose entry permits `private`.
 
 Two gates protect the public lane:
 
-1. **Evaluation:** the set of outputs to publish is evaluated with an
-   unfree predicate generated from the manifests that admits only
-   cache-permitted names.
+1. **Evaluation:** the set of outputs to publish fails to evaluate when a
+   published configuration installs a non-R0 artifact whose manifest
+   entry does not permit `cache`, or `image` when images are published.
+   This check uses manifest data rather than license freeness, because
+   nixpkgs counts some non-free firmware as free. Cache-cleared R1
+   artifacts are added to the set by building them with nixpkgs that
+   admits only cacheable names.
 2. **Before push:** a scan computes the closure to be pushed. Every regular
    file in it is hashed and compared against the hashes of all manifest
    artifacts not cleared for `cache`. Any match fails the push.
@@ -299,18 +304,27 @@ the machine that imported them.
 
 Implementation:
 
-- Gate 1 is `legacyPackages.<system>.publicPushSet.<board>`. It contains
-  the registry's `publish` attributes of the free fixture's
-  `system.build`, plus cache-cleared R1 artifacts built with nixpkgs that
-  admits only `cacheablePackages`.
+- Gate 1 is `legacyPackages.<system>.publicPushSet.<board>`, built by
+  `mkPublicPushSet`. It checks the free fixture's
+  `hardware.boards.artifacts` against their manifest entries and contains
+  the registry's `publish` attributes of the fixture's `system.build`, plus
+  cache-cleared R1 artifacts.
 - Gate 2 is `nix run .#cache-scan`. It is built by `mkCacheScan` from
   `nonCacheableHashes` across all manifests, blocked artifacts included.
 - NixOS compresses firmware into new derivations, so exact-hash scanning
   only catches compressed copies whose hashes are recorded in
   `derivedHashes`. Gate 1 remains the primary protection.
 
-The repository also offers an opt-in consumer module that adds the public
-cache's substituter and key. It is never imported by board features.
+`.github/workflows/publish.yml` runs both gates on x86_64-linux and
+aarch64-linux runners, then pushes only the push sets' closures with
+`cachix push bph`. Cachix uploads only paths it does not already have. The
+job's other builds are never pushed (`skipPush`), and the push step is
+skipped while the `CACHIX_AUTH_TOKEN` secret is absent.
+
+The repository also offers an opt-in consumer module,
+`nixosModules.nixos-boards-cache` (and `darwinModules.nixos-boards-cache`),
+that adds the public cache's substituter and key. It is never imported by
+board features.
 
 ### D9. Fixtures, identity and images
 
@@ -407,5 +421,4 @@ here may import an upstream module and add those layers on top.
 
 ## Open Questions
 
-- Which public cache service and plan to use. D8 applies to whichever is
-  chosen; until then, only the private lane is used.
+None.

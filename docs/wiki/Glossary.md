@@ -43,6 +43,6 @@ older name, the *Also called* column lists it.
 | Term | Meaning |
 |------|---------|
 | **Release manifest** | The pinned record of every artifact a provider ships: path, size, hash, license, evidence, permitted redistribution and what it enables. Profiles, cache filters and docs are derived from it. |
-| **Free profile** | A board composition that evaluates with `allowUnfree = false`. |
+| **Free profile** | A board composition that evaluates with nixpkgs' `allowUnfree = false`, using nixpkgs' license semantics. |
 | **Full profile** | The free profile plus every non-free artifact whose license has been established. |
 | **R0, R1, R2** | Non-free classes: R0 is free; R1 is redistributable non-free firmware fetched from a pinned source; R2 is operator-supplied and never published. Artifacts whose license is not established are not packaged; they are listed as *blocked: licensing*. |
