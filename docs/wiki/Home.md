@@ -28,6 +28,7 @@ configurations, publication gates and generated documentation.
 | Board | SoC | Profiles | Provider |
 | --- | --- | --- | --- |
 | [BeagleY-AI](BeagleY-AI) (BeagleBoard.org) | AM67A / J722S | free, full | `beagle-ti-6.12-psdk-11.02` |
+| [FRDM-i.MX95](FRDM-i.MX95) (NXP) | i.MX 95 | free, full | `mainline`; `nxp-lf-6.18.20-2.0.0` |
 | [uConsole](uConsole) (ClockworkPi, CM5) | BCM2712 | free | `rpi-<release>` |
 
 To contribute a board, start with [Adding a board](Guide-Adding-a-Board)
