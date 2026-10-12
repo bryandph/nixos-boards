@@ -29,8 +29,12 @@ Each provider of non-free artifacts SHALL have a release manifest recording its 
 - **THEN** the manifest check fails
 
 ### Requirement: Free and full profiles
-Each board's free fixture SHALL evaluate with `allowUnfree = false` and no unfree predicate. Each board's full fixture SHALL use only the board's generated unfree predicate. The repository SHALL generate, per board, a table of functions available only in the full profile, with the artifacts and classes they require, grouped by layer: boot firmware, kernel and device tree, runtime firmware, userspace.
+Each board's free fixture SHALL evaluate with `allowUnfree = false`, `allowNonSource = false` and no unfree predicate. Artifacts built from manifests with class R1 or R2 SHALL carry a non-free license in `meta`, even when nixpkgs marks their license as free (as it does for `unfreeRedistributableFirmware`). Each board's full fixture SHALL use only the board's generated unfree predicate. The repository SHALL generate, per board, a table of functions available only in the full profile, with the artifacts and classes they require, grouped by layer: boot firmware, kernel and device tree, runtime firmware, userspace.
 
 #### Scenario: Non-free dependency leaks into a free feature
 - **WHEN** a feature imported by the free fixture depends on an unfree package
+- **THEN** the free fixture fails to evaluate
+
+#### Scenario: nixpkgs firmware marked free
+- **WHEN** a feature imported by the free fixture adds a nixpkgs firmware package licensed `unfreeRedistributableFirmware` with binary-firmware provenance
 - **THEN** the free fixture fails to evaluate

@@ -90,9 +90,11 @@ describe the board; none of them turns a feature on or off.
   binding to SoC buses, pins and signals.
 - `hardware.boards.claims`: resource claims from features and add-ons. An assertion
   fails evaluation when two claims name the same resource.
-- `hardware.boards.artifacts`: the manifest entries of every non-free artifact the
-  configuration uses. This feeds the profile, cache and documentation
-  checks.
+- `hardware.boards.artifacts`: the artifact packages, built from release
+  manifests, that the configuration uses. Each carries its manifest entry
+  in `passthru.manifestEntry`. An assertion rejects packages that were
+  not built from a manifest. This feeds the profile, cache and
+  documentation checks.
 
 ### D3. Providers
 
@@ -175,7 +177,25 @@ Vendor binaries are never committed to the repository.
 
 Each provider of non-free artifacts has a release manifest: a pure Nix
 attribute set in `packages/<vendor>/<board>/` or `packages/soc/<soc>/`,
-validated by an option-typed schema in `modules/lib/`.
+registered as `boards.manifests.<name>` and validated by an option-typed
+schema. Boards list the manifests they use in `boards.registry.<board>`.
+The schema, validation and helpers are pure functions in
+`modules/lib/_boards-lib.nix`, exported as the flake's `lib`. These
+helpers are:
+
+- `mkArtifact`: builds one artifact.
+  - R0 and R1 artifacts are fetched from their pinned URL.
+  - R2 artifacts use `requireFile`. Its store name is the file name the
+    operator adds, and it carries the artifact's `pname` and license so
+    the generated predicate covers it.
+  - Every artifact's size and sha256 are re-checked at build time, and its
+    notices are installed under `share/licenses/<pname>/`.
+- `unfreePackages`, `cacheablePackages`, `nonCacheableHashes` and
+  `namePredicate`: generate the unfree lists, cache lists and predicates.
+- `claimConflicts`: finds resources claimed by more than one owner.
+- `mkFlashTool`: the guarded flashing tool (D4).
+
+`checks.release-manifests` validates every registered manifest.
 
 The manifest records the pinned source, and for each artifact:
 
@@ -213,10 +233,21 @@ Every board has two public fixtures, `<board>-free` and `<board>-full`, as
 `nixosConfigurations`:
 
 - `<board>-free` imports every free feature and evaluates with
-  `nixpkgs.config.allowUnfree = false` and no unfree predicate. A
-  non-free dependency in a free feature fails evaluation.
+  `nixpkgs.config.allowUnfree = false`, `allowNonSource = false` and no
+  unfree predicate. A non-free dependency in a free feature fails
+  evaluation.
 - `<board>-full` adds `<board>-full` and uses the board's generated
   unfree predicate.
+
+`allowNonSource = false` is needed because nixpkgs marks
+`lib.licenses.unfreeRedistributableFirmware` as free, so that firmware
+builds without `allowUnfree`. The license check alone would admit
+nixpkgs' own non-free firmware (linux-firmware included) into the free
+profile. The provenance check rejects every package whose
+`meta.sourceProvenance` is binary firmware or native code. For the same
+reason, artifacts built from manifests always carry `free = false` in
+their license unless they are R0. Both the validator and `mkArtifact`
+treat `unfreeRedistributableFirmware` as non-free.
 
 Support is described in four layers: boot firmware, kernel and device tree,
 runtime firmware, and userspace. A board whose boot chain needs non-free

@@ -14,6 +14,9 @@ Shared hardware terms are defined in `docs/wiki/Glossary.md`; use them.
 - Boards live in `modules/<vendor>/<board>/`, SoC families in
   `modules/soc/<soc>/`, add-ons in `modules/addons/<kind>/<name>/`.
 - Package expressions and release manifests live under `packages/`.
+- Shared library functions (manifest schema, `mkArtifact`, unfree lists,
+  claims, `mkFlashTool`) live in `modules/lib/_boards-lib.nix`; build
+  non-free artifacts only through `mkArtifact`.
 - Contribute hardware support upstream (nixos-hardware, nixos-raspberrypi)
   when upstream can take it; this repository holds the rest.
 - Compose features by imports. Do not add feature `enable` gates,

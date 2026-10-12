@@ -7,19 +7,19 @@
 
 ## 2. Board options and manifests
 
-- [ ] 2.1 `modules/lib/boards.nix`: `hardware.boards.identity`, `hardware.boards.connectors`, `hardware.boards.claims`, `hardware.boards.artifacts` options and the claim-conflict assertion
-- [ ] 2.2 `modules/lib/manifest.nix`: typed release-manifest schema, R0–R2 classes, redistribution forms, `blocked: licensing` entries
-- [ ] 2.3 Helpers that build R1 fixed-output fetches and R2 `requireFile` derivations from manifest entries, with license files and `meta` filled from the entry
-- [ ] 2.4 Generated `lib.unfreePackages.<board>` and unfree predicates from manifests
-- [ ] 2.5 Synthetic test board under `modules/lib/_test/` exercising claims, all three classes and a blocked artifact
-- [ ] 2.6 Guarded firmware-flashing helper (interactive-terminal check, manifest version and hash display, recovery text, typed board-name confirmation) with a test that it refuses non-interactive use
+- [x] 2.1 `modules/lib/hardware-boards.nix`: `hardware.boards.identity`, `hardware.boards.connectors`, `hardware.boards.claims`, `hardware.boards.artifacts` options and the claim-conflict assertion
+- [x] 2.2 `modules/lib/library.nix` and `modules/lib/_boards-lib.nix`: typed release-manifest schema, R0–R2 classes, redistribution forms, `blocked: licensing` entries
+- [x] 2.3 Helpers that build R1 fixed-output fetches and R2 `requireFile` derivations from manifest entries, with license files and `meta` filled from the entry
+- [x] 2.4 Generated `lib.unfreePackages.<board>` and unfree predicates from manifests
+- [x] 2.5 Synthetic test board under `modules/lib/_test/` exercising claims, all three classes and a blocked artifact (`checks.lib-*`)
+- [x] 2.6 Guarded firmware-flashing helper (interactive-terminal check, manifest version and hash display, recovery text, typed board-name confirmation) with a test that it refuses non-interactive use, plus a Linux pty test of the confirmed write
 
 ## 3. Profiles and checks
 
 - [ ] 3.1 Fixture factory producing `<board>-free` (no unfree) and `<board>-full` (generated predicate) configurations
 - [ ] 3.2 Per-board checks: fixture assertions, manifest validation, provider consistency
 - [ ] 3.3 Gap-table generator grouped by layer
-- [ ] 3.4 Negative checks on the test board: free fixture fails with an unfree dependency; conflicting claims fail; a hand-written allowlist entry fails
+- [ ] 3.4 Negative checks on the test board: free fixture fails with an unfree dependency and with nixpkgs `unfreeRedistributableFirmware` firmware; a hand-written allowlist entry fails (conflicting claims are covered by `checks.lib-claims`)
 
 ## 4. Publication
 
