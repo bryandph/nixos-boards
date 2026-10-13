@@ -414,14 +414,36 @@
       name = "nixos-boards-cache-scan";
       runtimeInputs = [pkgs.coreutils pkgs.findutils pkgs.gnugrep];
       text = ''
-        if [ "''${1:-}" = --closure-file ]; then
-          mapfile -t paths < "$2"
-        else
-          [ "$#" -gt 0 ] || { echo "usage: nixos-boards-cache-scan STORE-PATH... | --closure-file FILE" >&2; exit 2; }
-          mapfile -t paths < <(nix-store --query --requisites "$@")
-        fi
+        usage() {
+          echo "usage: nixos-boards-cache-scan STORE-PATH... | --closure-file FILE" >&2
+          exit 2
+        }
+        refuse() {
+          echo "Refusing to publish: $1" >&2
+          exit 2
+        }
+        closure=$(mktemp)
         hashes=$(mktemp)
-        trap 'rm -f "$hashes"' EXIT
+        trap 'rm -f "$closure" "$hashes"' EXIT
+        # The closure must be complete: a failed query, an empty closure or a
+        # path that is not in the store fails the scan instead of passing it.
+        if [ "''${1:-}" = --closure-file ]; then
+          [ "$#" -eq 2 ] || usage
+          [ -s "$2" ] || refuse "closure file $2 is missing or empty"
+          cp "$2" "$closure"
+        else
+          [ "$#" -gt 0 ] || usage
+          nix-store --query --requisites "$@" > "$closure" || refuse "could not query the closure of $*"
+        fi
+        mapfile -t paths < "$closure"
+        [ "''${#paths[@]}" -gt 0 ] || refuse "the closure is empty"
+        for p in "''${paths[@]}"; do
+          case "$p" in
+            ${builtins.storeDir}/?*) ;;
+            *) refuse "$p is not a store path" ;;
+          esac
+          [ -e "$p" ] || refuse "$p does not exist"
+        done
         for p in "''${paths[@]}"; do
           find "$p" -type f -print0 | xargs -0 -r sha256sum >> "$hashes"
         done

@@ -286,11 +286,40 @@ in {
             leakClosure = pkgs.closureInfo {rootPaths = [leak];};
             cleanClosure = pkgs.closureInfo {rootPaths = clean;};
           } ''
-            status=0
-            nixos-boards-cache-scan --closure-file "$leakClosure/store-paths" 2>err || status=$?
-            test "$status" -eq 1
-            grep -q innocent.dat err
+            # expect STATUS MESSAGE ARGS...: the scan exits with STATUS and says MESSAGE.
+            expect() {
+              want=$1 message=$2
+              shift 2
+              status=0
+              nixos-boards-cache-scan "$@" 2>err || status=$?
+              [ "$status" -eq "$want" ] || { echo "status $status, wanted $want: $*" >&2; cat err >&2; exit 1; }
+              grep -q -- "$message" err
+            }
+            expect 1 innocent.dat --closure-file "$leakClosure/store-paths"
             nixos-boards-cache-scan --closure-file "$cleanClosure/store-paths"
+
+            # An incomplete closure fails closed; it is never reported clean.
+            : > empty
+            expect 2 "missing or empty" --closure-file empty
+            expect 2 "missing or empty" --closure-file absent
+            echo relative/path > relative
+            expect 2 "not a store path" --closure-file relative
+            missing=${builtins.storeDir}/00000000000000000000000000000000-missing
+            echo "$missing" > invalid
+            expect 2 "does not exist" --closure-file invalid
+            { cat "$leakClosure/store-paths"; echo "$missing"; } > mixed
+            expect 2 "does not exist" --closure-file mixed
+
+            # Querying store paths: a failed or empty query fails closed.
+            mkdir bin
+            export PATH=$PWD/bin:$PATH
+            printf '#!${pkgs.runtimeShell}\nexit 1\n' > bin/nix-store
+            chmod +x bin/nix-store
+            expect 2 "could not query" "$missing"
+            printf '#!${pkgs.runtimeShell}\nexit 0\n' > bin/nix-store
+            expect 2 "closure is empty" "$missing"
+            printf '#!${pkgs.runtimeShell}\ncat %s\n' "$leakClosure/store-paths" > bin/nix-store
+            expect 1 innocent.dat "$missing"
             touch $out
           '';
 

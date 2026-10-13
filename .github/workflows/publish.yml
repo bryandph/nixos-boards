@@ -33,7 +33,11 @@ jobs:
       - name: Build public push sets (gate 1)
         run: |
           system=$(nix eval --raw --impure --expr builtins.currentSystem)
-          mapfile -t boards < <(nix eval --json ".#legacyPackages.$system.publicPushSet" --apply builtins.attrNames | jq -r '.[]')
+          # A failed evaluation must fail the job, not look like an empty list.
+          names=$(nix eval --json ".#legacyPackages.$system.publicPushSet" --apply builtins.attrNames)
+          list=$(jq -r '.[]' <<<"$names")
+          mapfile -t boards <<<"$list"
+          [ -n "$list" ] || boards=()
           if [ "${#boards[@]}" -eq 0 ]; then
             echo "No boards publish on $system."
             exit 0
