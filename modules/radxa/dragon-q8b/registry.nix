@@ -23,11 +23,14 @@
         features = ["dragon-q8b-provider-mainline"];
       };
       serial = {
-        status = "implemented-unverified";
+        status = "verified";
+        evidence = "Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance";
         features = ["dragon-q8b-core"];
       };
       ethernet = {
-        status = "implemented-unverified";
+        status = "verified";
+        reason = "one PCIe Ethernet link during ordinary warm boots";
+        evidence = "Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance";
         features = ["dragon-q8b-core"];
       };
       gpu = {
@@ -63,7 +66,9 @@
         features = ["dragon-q8b-core"];
       };
       nvme = {
-        status = "implemented-unverified";
+        status = "verified";
+        reason = "512-byte logical sectors; full-profile headless acceptance";
+        evidence = "Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance";
         features = ["dragon-q8b-core"];
       };
       ufs = {

@@ -19,4 +19,8 @@
 - [ ] Complete independent opposite-model OCR host-agent delegated review and resolve findings on the exact fixed candidate; no endpoint needed or auth/model/billing path changed.
 - [x] Publish draft PR #6 and report evidence/remaining gates on LAB-152.
 
-Physical boot/network/storage verification is pending operator access and must not be marked verified by builds alone. No merge/deploy/flash/closure is authorized.
+- [x] Complete authorized bounded full-profile 512-sector NVMe headless acceptance: native vendor 7.0.11/DT boot, UART, one Ethernet link, ordinary managed warm reboots, early TPM devices without the 90-second delay, renewed growth hooks on the already-expanded filesystem, preserved generations and verified vendor-SD fallback/return.
+- [x] Clean only proven owned temporary staging/transport material; preserve permanent identity, recovery media and generation roots.
+- [ ] Obtain opposite-model review of final public evidence bookkeeping and check generated-doc drift, links and private-identifier exclusion.
+
+See [public acceptance evidence](../../../docs/wiki/Dragon-Q8B-Boot-and-Recovery.md#headless-hardware-acceptance), baseline BSP 20b3d062. Structural free/full 512/4096 image checks do not establish free-fixture or 4096-sector hardware boot. No cold-start/power-failure, independent kernel rebuild, uConsole or GPU/audio verification is claimed. Authorized bounded activation is complete; no main merge, tracker completion, additional rollout or firmware payload flash is authorized. Full migration-stack review remains a separate gate.

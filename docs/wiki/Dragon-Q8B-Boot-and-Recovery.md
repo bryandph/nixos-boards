@@ -7,7 +7,8 @@ See [overview](Dragon-Q8B) and [firmware constraints](Dragon-Q8B-Firmware).
 Observed Radxa OS firmware banner:
 `6.0.260818.BOOT.MXF.1.1.c1-00167-MAKENA-1`.
 This exact compatibility baseline is recorded in `packages/radxa/dragon-q8b/sources.nix`.
-It is **not** a proven minimum version or a verified NixOS BIOS configuration.
+It is the observed baseline for the bounded headless acceptance below, **not** a
+proven minimum version or a complete, portable BIOS-settings recipe.
 The original firmware bytes/hash and redistribution rights are unestablished;
 the manifest blocks UEFI packaging/update at licensing level. Existing firmware on
 SPI is not downloaded, repackaged or automatically overwritten by this BSP.
@@ -15,12 +16,14 @@ SPI is not downloaded, repackaged or automatically overwritten by this BSP.
 ## Firmware settings / third-party OS
 
 Before testing record the firmware version and its third-party OS/device-tree
-selection, Secure Boot state and storage sector size. Those settings are presently
-**pending physical inspection**; do not fabricate a vendor menu name.
+selection, Secure Boot state and storage sector size. The acceptance below observed
+unsigned EFI execution and native Q8B DT boot on the existing firmware configuration;
+exact menu names and a general third-party-OS settings recipe were not established.
+Do not infer a Secure Boot policy or fabricate a vendor menu name from boot success.
 These fixture EFI binaries are unsigned, so firmware must allow unsigned third-party EFI.
 The ESP contains `EFI/BOOT/BOOTAA64.EFI`, a systemd-boot entry, kernel/initrd and
-matching Q8B DTB. Firmware must honor the entry's device-tree handoff; that remains
-an explicit hardware acceptance test, including firmware reserved-memory fixups.
+matching Q8B DTB. Native DT boot was observed on this baseline; this does not prove
+all firmware reserved-memory fixups or compatibility with other firmware releases.
 
 ## Image layout v1
 
@@ -56,6 +59,38 @@ introduced. Without that module, an initrd TPM device wait can delay boot by
 90 seconds even though the device appears later in stage 2. Confirm early-device
 timing on hardware; archive/module checks are not TPM attestation evidence.
 
+## Headless hardware acceptance
+
+Observed on 2026-10-13 with BSP integration baseline `20b3d062`, vendor kernel
+7.0.11 and its matching native Q8B DT, using an operator full-profile consumer:
+
+- Full-profile 512-byte-sector NVMe boot, UART output and one PCIe Ethernet link
+  with DHCP/default route worked. Persistent NVMe selection survived ordinary
+  managed warm reboots; the runtime kernel and native board compatibility matched.
+- The reviewed initrd exposed `/dev/tpm0` at about 2.66 seconds and `/dev/tpmrm0`
+  at about 2.68 seconds. Initrd startup took about 4.5–4.7 seconds, removing the
+  earlier 90-second device wait. Early SRK setup skipped its measured-UKI condition;
+  this is device-availability evidence, **not** provisioning or attestation.
+- An older image had grown GPT but retained its approximately 3 GiB filesystem.
+  Guarded offline assessment and ordinary filesystem growth expanded it. On the
+  updated managed boot, growpart reported no change before root growfs succeeded
+  at about 476.4 GiB. This verifies the renewed hooks/order on an already-expanded
+  filesystem, not a fresh image's first-boot expansion from 3 GiB.
+- Normal operator SSH/public-key authentication, administrative access, filesystem
+  capacity and zero failed stage-2 units were checked. Consumer-provided access
+  does not change the public fixtures' local-console-only policy.
+- Older managed generations and their GC roots remained available. Reversing the
+  persistent NVMe selection reached the preserved vendor microSD; restoring it
+  returned to the reviewed NVMe generation. Only proven owned temporary staging
+  and transport material was removed. No firmware payload was flashed.
+
+The 512/4096-sector free/full images passed structural checks; **4096-sector
+hardware boot was not tested**. The free fixture was built, **not boot-verified**.
+The matrix's `free` column describes module/profile availability, not which fixture
+was used for these observations. GPU, ADSP, audio, UFS and NixOS microSD operation
+remain unverified or blocked as separately recorded. This is not a cold-start,
+power-failure, all-Ethernet-ports, independently rebuilt kernel or uConsole result.
+
 ## Bootstrap handoff and recovery
 
 The image's one-shot entry is `loader/entries/dragon-q8b-bootstrap.conf`, with
@@ -86,9 +121,11 @@ if it failed and run `systemctl restart install-initial-bootloader`. Do not dele
 the marker or bootstrap to hide an error. Keep the vendor microSD as recovery;
 restore it with power disconnected if the test media does not boot.
 
-Full registration → normal-unit ordering → managed builder → cleanup, including
-failure preservation/retry, is an explicit **physical acceptance test**. Build and
-cleanup/topology tests do not prove EFI runtime behavior or a real boot/GC cycle.
+Successful managed NVMe boot and preserved generation roots were observed in the
+acceptance above. Full registration → normal-unit ordering → managed builder →
+cleanup, especially failure preservation/retry under injected faults, remains a
+separate acceptance contract. Build and cleanup/topology tests do not prove fault
+recovery, power-failure behavior or a real generation-deletion/GC cycle.
 
 ## Updates and recovery
 

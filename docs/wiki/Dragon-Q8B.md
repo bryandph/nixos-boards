@@ -1,7 +1,9 @@
 # Radxa Dragon Q8B
 
 SC8280XP ARM64 board support, tracked by LAB-152.
-Maintainers have hardware; vendor Ubuntu observations do **not** verify these NixOS images.
+Maintainers have hardware. Bounded full-profile NVMe headless acceptance is recorded
+in [boot/recovery](Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance);
+vendor Ubuntu observations alone do **not** verify NixOS images.
 See [hardware matrix](Dragon-Q8B-Hardware-Matrix), [firmware](Dragon-Q8B-Firmware),
 [profile gaps](Dragon-Q8B-Free-vs-NonFree), and [boot/recovery](Dragon-Q8B-Boot-and-Recovery).
 
@@ -48,11 +50,14 @@ No default profile pulls all of linux-firmware or radxa-firmware into its closur
 ## Hardware coverage
 
 Core targets microSD, NVMe, UFS, serial and dual Toshiba PCIe Ethernet.
-NixOS boot, device enumeration and network behavior remain implemented-unverified.
+Full-profile NixOS headless boot on 512-byte-sector NVMe, UART output and one
+PCIe Ethernet link were observed on the vendor BSP. Free-fixture boot, 4096-sector
+hardware, UFS and NixOS microSD operation remain unverified. See the bounded
+[hardware acceptance](Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance).
 The Toshiba switch power-control node uses I2C21. The vendor GENI I2C driver reuses
 an already initialized I2C engine, but requests the unestablished QUP firmware if
-its protocol is invalid. Ethernet therefore also needs physical verification of
-UEFI pre-initialization; a cold-start fallback cannot be claimed available without
+its protocol is invalid. Ordinary warm-boot Ethernet success does not establish a
+cold-start fallback or general UEFI pre-initialization guarantee without
 establishing that exact QUP firmware's grant.
 A UFS-attached vendor boot failed before readable firmware output; the failure is
 not proof of a Linux driver problem or boot-order cause. Power off before fitting modules.
