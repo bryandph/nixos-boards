@@ -18,9 +18,11 @@
         inherit config rootfs sectorSize;
       };
   in {
-    fileSystems."/" = lib.mkDefault {
-      device = "/dev/disk/by-label/NIXOS_Q8B";
-      fsType = "ext4";
+    fileSystems."/" = {
+      device = lib.mkDefault "/dev/disk/by-label/NIXOS_Q8B";
+      fsType = lib.mkDefault "ext4";
+      # growPartition expands GPT only; the filesystem must grow as well.
+      autoResize = lib.mkDefault true;
     };
     fileSystems."/boot" = {
       device = lib.mkDefault "/dev/disk/by-label/BOOT_Q8B";

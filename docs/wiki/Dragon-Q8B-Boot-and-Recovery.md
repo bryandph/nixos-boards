@@ -26,7 +26,19 @@ an explicit hardware acceptance test, including firmware reserved-memory fixups.
 
 GPT addresses and FAT BPB use the chosen 512 or 4096-byte logical sectors.
 Partition 1 starts at 1 MiB: FAT32 ESP, 512 MiB, label `BOOT_Q8B`.
-Partition 2: ext4 root, label `NIXOS_Q8B`. Root grows at first boot.
+Partition 2: ext4 root, label `NIXOS_Q8B`. On first boot, upstream
+`boot.growPartition` expands the partition and `fileSystems."/".autoResize`
+expands the filesystem to fill it. These are separate operations: check both
+partition capacity (`lsblk`) and filesystem capacity/free space (`df`). The
+per-field filesystem defaults preserve growth when a consumer overrides the
+root device; an explicit `autoResize = false` opts out.
+
+Older images without the filesystem-growth default can have a large partition
+but retain the approximately 3 GiB image filesystem. If capacity is insufficient,
+use recovery media and verify the exact target device, UUID and unmounted state
+before filesystem assessment and ordinary `resize2fs` into the existing
+partition. Stop for a repair decision if assessment is not clean; do not format,
+change GPT, force resizing, or automatically approve filesystem repairs.
 No raw Qualcomm boot partitions or SPI payload are included.
 Changing labels/partition placement requires a layout version bump; v1 has no
 in-place migration from vendor OS media. Re-image spare media and preserve the

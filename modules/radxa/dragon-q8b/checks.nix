@@ -17,6 +17,18 @@
         }
       ];
     }).config.fileSystems."/boot";
+  overriddenRoot =
+    (fixtureSystem.extendModules {
+      modules = [{fileSystems."/".device = "/dev/fixture-root";}];
+    }).config;
+  overriddenRootType =
+    (fixtureSystem.extendModules {
+      modules = [{fileSystems."/".fsType = "xfs";}];
+    }).config;
+  optedOutRoot =
+    (fixtureSystem.extendModules {
+      modules = [{fileSystems."/".autoResize = false;}];
+    }).config;
   badDT = fixtureSystem.extendModules {
     modules = [({pkgs, ...}: {hardware.deviceTree.kernelPackage = lib.mkForce pkgs.linux;})];
   };
@@ -122,6 +134,32 @@ in {
             ln -s system-2-link system
             ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/initialize-profile.sh} "$PWD/fake-env" "$PWD/system" /older-booted-generation
             test ! -e calls
+            touch "$out"
+          '';
+        dragon-q8b-root-growth = assert fixture.fileSystems."/".autoResize;
+        assert fixture.fileSystems."/".device == "/dev/disk/by-label/NIXOS_Q8B";
+        assert fixture.fileSystems."/".fsType == "ext4";
+        assert overriddenRoot.fileSystems."/".device == "/dev/fixture-root";
+        assert overriddenRoot.fileSystems."/".fsType == "ext4";
+        assert overriddenRoot.fileSystems."/".autoResize;
+        assert overriddenRootType.fileSystems."/".fsType == "xfs";
+        assert overriddenRootType.fileSystems."/".autoResize;
+        assert !optedOutRoot.fileSystems."/".autoResize;
+        assert fixture.boot.growPartition && overriddenRoot.boot.growPartition && optedOutRoot.boot.growPartition;
+        assert builtins.elem "x-systemd.growfs" fixture.fileSystems."/".options;
+        assert builtins.elem "x-systemd.growfs" overriddenRoot.fileSystems."/".options;
+        assert !(builtins.elem "x-systemd.growfs" optedOutRoot.fileSystems."/".options);
+        assert fixture.boot.initrd.systemd.enable;
+        assert builtins.elem "systemd-growfs-root.service" fixture.systemd.services.growpart.before;
+          pkgs.runCommand "dragon-q8b-root-growth" {} ''
+            # This fixture uses systemd stage 1, not the scripted resize2fs path.
+            # Its sysroot fstab carries the growth option; upstream growpart is
+            # ordered before the stage-2 root growfs unit and executable.
+            grep -E '^/dev/disk/by-label/NIXOS_Q8B / ext4 .*x-systemd.growfs' ${fixture.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
+            grep -E '^/dev/fixture-root / ext4 .*x-systemd.growfs' ${overriddenRoot.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
+            ! grep -F 'x-systemd.growfs' ${optedOutRoot.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
+            test -x ${fixture.systemd.package}/lib/systemd/systemd-growfs
+            grep -F 'systemd-growfs' ${fixture.environment.etc."systemd/system".source}/systemd-growfs-root.service
             touch "$out"
           '';
         dragon-q8b-provider-contract = assert rejects "dragon-q8b: DT package" badDT;
