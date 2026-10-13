@@ -66,6 +66,20 @@
       url = "https://raw.githubusercontent.com/TexasInstruments/ti-img-rogue-umlibs/adcbb5c620ff172da4152c02a2fee8f42dc4c472/LICENSE";
       sha256 = "sha256-N1B7Ri7fl7WXF9LRRNqqyF+8pggMNgK1Eo5Ebpf5rUc=";
     };
+    # The upstream notices for files that carry none of their own.
+    tidlTools = {
+      url = "https://raw.githubusercontent.com/TexasInstruments/edgeai-tidl-tools/84a10915e27dfb76a11c27e879fc5adc50793538/LICENSE";
+      sha256 = "sha256-PGucKgcuysRNRh9etfqFSsuA3TS7oD1UE9X1TpzMfKM=";
+    };
+    modelzoo = {
+      url = "https://raw.githubusercontent.com/TexasInstruments/edgeai-modelzoo/99f1bd6e434bdde9d26c3b0678ce368e69050ea3/LICENSE.md";
+      sha256 = "sha256-yjCiS+PtJw/gFVRm82X3IOB/zeYNnG19rdnUPIri2GM=";
+    };
+    # MIT requires its notice in all copies, including internal ones.
+    pycls = {
+      url = "https://raw.githubusercontent.com/facebookresearch/pycls/5719de641657c251f807c20a1fcf8ef6f4b60144/LICENSE";
+      sha256 = "sha256-UkEte8fOQVfqYou6rLiCngqcs8WPV/mRdhJryM8r/IU=";
+    };
   };
 
   evidence = {
@@ -204,10 +218,12 @@
     features,
     license ? licenses.noGrant,
     private ? false,
+    noticeFiles ? [],
   }: {
     class = "R2";
     path = "share/beagley-ai/sources/${file}";
     inherit url size sha256 evidence layer load features license;
+    notices = noticeFiles;
     redistribution.private = private;
     instructions = ''
       This file carries no license notice of its own, so it is not
@@ -359,6 +375,7 @@ in {
         features = ["beagley-ai-regnet-model"];
         license = licenses.tiText;
         private = true;
+        noticeFiles = [notices.tidlTools];
       };
       regnet-archive = operatorSupplied {
         file = "cl-6360_onnxrt_imagenet1k_fbr-pycls_regnetx-200mf_onnx.tar.gz";
@@ -369,6 +386,7 @@ in {
         features = ["beagley-ai-regnet-model"];
         license = licenses.modelzoo;
         private = true;
+        noticeFiles = [notices.modelzoo notices.pycls];
       };
       tidlruntime-wheel = operatorSupplied {
         file = "tidlruntime-0.1.0-cp312-cp312-linux_aarch64.whl";
@@ -379,6 +397,7 @@ in {
         features = ["beagley-ai-accelerator-runtime"];
         license = licenses.tiText;
         private = true;
+        noticeFiles = [notices.tidlTools];
       };
     };
 
