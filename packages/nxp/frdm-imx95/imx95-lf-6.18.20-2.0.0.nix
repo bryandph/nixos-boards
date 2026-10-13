@@ -392,7 +392,25 @@
           operator-supplied pending an affirmative grant.
         '';
       };
-      convertedOutputRedistribution = "unresolved-operator-input";
+      # Internal use, separate from redistribution above.
+      internalUseReview = {
+        reviewedOn = "2026-10-13";
+        status = "nxp-sla-v63-section-2.2";
+        authorities = [
+          "eiq_neutron_sdk-3.1.2.dist-info/licenses/LA_OPT_NXP_Software_License.txt"
+          "eiq_neutron_sdk-3.1.2.dist-info/licenses/Software-Content-Register.txt"
+        ];
+        rationale = ''
+          The wheel ships NXP SLA v63 and a Software Content Register stating
+          "Standard use - Section 2.2 applies" for the converter. §2.2(a)
+          permits use and reproduction solely for developing an Authorized
+          System, with no distribution to others: internal build and private
+          cache copies only. The agreement has no clause on converter output;
+          treating converted models the same way is an interpretation the
+          operator approved on 2026-10-13 (LAB-144).
+        '';
+      };
+      convertedOutputRedistribution = "none-internal-use-only";
     };
 
     model = {

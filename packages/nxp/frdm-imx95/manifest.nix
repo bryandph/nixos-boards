@@ -17,9 +17,11 @@ _: let
       free = false;
       redistributable = false;
     };
-    eiq = {
-      shortName = "LicenseRef-NXP-eIQ-Neutron-SDK";
-      fullName = "NXP eIQ Neutron SDK license (converted model output)";
+    # Output of the eIQ Neutron converter. NXP's agreement has no clause on
+    # converter output; see evidence.converterOutput.
+    eiqOutput = {
+      shortName = "LicenseRef-NXP-eIQ-Neutron-converter-output";
+      fullName = "Output of the NXP eIQ Neutron converter (NXP Software License Agreement v63 §2.2, interpreted)";
       url = "https://eiq.nxp.com/learning-hub/tools/neutronSdk/softwareTools/NeutronConverter.html";
       free = false;
       redistributable = false;
@@ -37,10 +39,15 @@ _: let
       inherit retrieved;
       location = "LICENSE.txt (LA_OPT_NXP_Software_License v63, git blob 37ddcbd5) §2.2(a) internal reproduction only; SW-Content-Register.txt at the pinned revision";
     };
-    converter = {
-      url = licenses.eiq.url;
-      inherit retrieved;
-      location = "converter documentation and the eIQ Toolkit download terms: no redistribution grant for the tool or converted payloads (reviewed 2026-07-24)";
+    eiqWheel = {
+      url = "https://eiq.nxp.com/repository/eiq-neutron-sdk/eiq_neutron_sdk-3.1.2-cp311-cp311-manylinux_2_31_x86_64.whl";
+      retrieved = "2026-10-13";
+      location = "eiq_neutron_sdk-3.1.2.dist-info/licenses/LA_OPT_NXP_Software_License.txt (v63, May 2025; same text as the Neutron repository's LICENSE.txt) and Software-Content-Register.txt: \"Package License: … Standard use - Section 2.2 applies\" (converter, runner and quantization tool §2.2; driver and firmware §2.3). §2.2(a): use and reproduce solely for developing an Authorized System, no distribution to others";
+    };
+    converterOutput = {
+      url = licenses.eiqOutput.url;
+      retrieved = "2026-10-13";
+      location = "The converter is licensed under NXP SLA v63 §2.2 (see eiqWheel), which has no clause on converter output; the input is TensorFlow's MobileNet v1. Interpreted as §2.2(a) internal reproduction for an Authorized System: internal build and private-cache copies only, never public. Interpretation approved by the operator on 2026-10-13 (LAB-144)";
     };
   };
 
@@ -160,7 +167,7 @@ in {
       neutron-driver = neutronMember "libNeutronDriver.so" 68496 "sha256-7MvFRNg8632NI4bsR+/A1oSIx25l3vuNCTHTz8eauMM=";
       neutron-driver-header = neutronMember "NeutronDriver.h" 8880 "sha256-fOxThBIQaJIsRaLbB/FIO8CuKlVtGDHA+uGHVcHCsUw=";
       neutron-errors-header = neutronMember "NeutronErrors.h" 2693 "sha256-OOtdNYE1KrOnr1pWXX4XsVImEc9GinY6lz8ZHAg4FjY=";
-      # Publicly downloadable, but NXP grants no redistribution.
+      # Publicly downloadable; NXP SLA v63 §2.2 grants internal use only.
       eiq-neutron-sdk-wheel =
         operatorSupplied {
           file = "eiq_neutron_sdk-3.1.2-cp311-cp311-manylinux_2_31_x86_64.whl";
@@ -169,8 +176,7 @@ in {
           layer = "userspace";
           load = "userspace";
           features = ["frdm-imx95-neutron-npu"];
-          license = licenses.eiq;
-          evidenceFor = evidence.converter;
+          evidenceFor = evidence.eiqWheel;
           how = ''
             Review the eIQ Neutron SDK terms, then run:
 
@@ -178,22 +184,25 @@ in {
           '';
         }
         // {url = "https://eiq.nxp.com/repository/eiq-neutron-sdk/eiq_neutron_sdk-3.1.2-cp311-cp311-manylinux_2_31_x86_64.whl";};
-      neutron-converted-model = operatorSupplied {
-        file = "mobilenet_v1_1.0_224_quant-neutron.tflite";
-        size = 4334416;
-        sha256 = "sha256-lGqRL2ix2Nhc4zkRKHzcPu2vTNvRsQLXugwSXGWg6bo=";
-        layer = "userspace";
-        load = "userspace";
-        features = ["frdm-imx95-neutron-npu"];
-        license = licenses.eiq;
-        evidenceFor = evidence.converter;
-        how = ''
-          Convert MobileNet v1 with NXP's eIQ Neutron SDK 3.1.2 after
-          accepting its license, on x86_64-linux:
+      neutron-converted-model =
+        operatorSupplied {
+          file = "mobilenet_v1_1.0_224_quant-neutron.tflite";
+          size = 4334416;
+          sha256 = "sha256-lGqRL2ix2Nhc4zkRKHzcPu2vTNvRsQLXugwSXGWg6bo=";
+          layer = "userspace";
+          load = "userspace";
+          features = ["frdm-imx95-neutron-npu"];
+          license = licenses.eiqOutput;
+          evidenceFor = evidence.converterOutput;
+          how = ''
+            Convert MobileNet v1 with NXP's eIQ Neutron SDK 3.1.2 after
+            accepting its license, on x86_64-linux:
 
-            nix run github:bryandph/nixos-boards#frdm-imx95-convert-neutron-model -- --accept-license <eiq-neutron-sdk wheel> <neutron-converter> <mobilenet_v1_1.0_224_quant.tflite> 946a912f68b1d8d85ce33911287cdc3eedaf4cdbd1b102d7ba0c125c65a0e9ba
-        '';
-      };
+              nix run github:bryandph/nixos-boards#frdm-imx95-convert-neutron-model -- --accept-license <eiq-neutron-sdk wheel> <neutron-converter> <mobilenet_v1_1.0_224_quant.tflite> 946a912f68b1d8d85ce33911287cdc3eedaf4cdbd1b102d7ba0c125c65a0e9ba
+          '';
+        }
+        # Private by the operator-approved interpretation in evidence.converterOutput.
+        // {redistribution.private = true;};
     };
 
     built = {
@@ -239,24 +248,22 @@ in {
       };
       eiq-neutron-sdk = built {
         from = ["eiq-neutron-sdk-wheel"];
-        license = licenses.eiq;
-        evidence = evidence.converter;
+        evidence = evidence.eiqWheel;
         layer = "userspace";
         load = "userspace";
         features = ["frdm-imx95-neutron-npu"];
       };
       neutron-model = built {
         from = ["neutron-converted-model"];
-        license = licenses.eiq;
-        evidence = evidence.converter;
+        license = licenses.eiqOutput;
+        evidence = evidence.converterOutput;
+        redistribution.private = true;
         layer = "userspace";
         load = "userspace";
         features = ["frdm-imx95-neutron-npu"];
       };
       neutron-smoke = built {
         from = ["neutron-driver" "neutron-converted-model"];
-        # The converted model's eIQ terms grant no internal copies.
-        redistribution.private = false;
         evidence = evidence.neutron;
         layer = "userspace";
         load = "userspace";

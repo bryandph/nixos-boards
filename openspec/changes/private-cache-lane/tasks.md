@@ -8,7 +8,7 @@
 
 ## 2. Manifests
 
-- [x] 2.1 FRDM-i.MX95: the NXP SLA v63 §2.2(a) grants internal reproduction, so files under it, and packages built only from them, permit `private`. eIQ files and their derivatives do not.
+- [x] 2.1 FRDM-i.MX95: the NXP SLA v63 §2.2(a) grants internal reproduction, so files under it, and packages built only from them, permit `private`. The eIQ Neutron SDK wheel is under the same §2.2; its converted model permits `private` by the operator-approved interpretation in the manifest evidence.
 - [x] 2.2 BeagleY-AI: unchanged. The TI files without any license grant permit neither `build` nor `private`.
 - [x] 2.3 Dragon Q8B: unchanged. LICENSE.qcom §1.1 already permits `private`.
 

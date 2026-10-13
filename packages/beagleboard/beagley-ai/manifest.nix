@@ -6,7 +6,6 @@
   tiFirmware = path: "https://git.ti.com/cgit/processor-firmware/ti-linux-firmware/plain/${path}?id=${tiFirmwareRev}";
   sandboxRev = "be3a57d2760691f6b4f5cc7cae6e00ccddef7016";
   sandbox = path: "https://raw.githubusercontent.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/${sandboxRev}/${path}";
-  tidlTools = path: "https://software-dl.ti.com/jacinto7/esd/tidl-tools/11_02_16_00/${path}";
   retrieved = "2026-10-12";
 
   licenses = {
@@ -29,6 +28,13 @@
       fullName = "Chips&Media firmware license (unmodified binaries; TI silicon only)";
       url = tiFirmware "LICENCE.cnm";
       free = false;
+      redistributable = true;
+    };
+    modelzoo = {
+      shortName = "LicenseRef-TI-edgeai-modelzoo";
+      fullName = "TI edgeai-modelzoo (BSD-3-Clause), with facebookresearch/pycls models (MIT)";
+      url = "https://github.com/TexasInstruments/edgeai-modelzoo/blob/main/LICENSE.md";
+      free = true;
       redistributable = true;
     };
     noGrant = {
@@ -104,19 +110,19 @@
       location = "repository root and patches/: no LICENSE file at the pinned revision";
     };
     tidlTools = {
-      url = tidlTools "TIDL_TOOLS/J722S/tidl_tools.tar.gz";
-      inherit retrieved;
-      location = "archive contents: no license or notice file";
+      url = "https://github.com/TexasInstruments/edgeai-tidl-tools/blob/11_02_16_00/LICENSE";
+      retrieved = "2026-10-13";
+      location = "The archive embeds no license or notice. TI distributes it through edgeai-tidl-tools 11_02_16_00 (TI Text File License: use, and unmodified binary redistribution for TI devices), whose scripts/setup/setup.sh fetches TIDL_TOOLS/<SOC>/tidl_tools from this release tree. Internal copies only until the archive carries its notices";
     };
     model = {
-      url = "https://software-dl.ti.com/jacinto7/esd/modelzoo/11_02_00/modelartifacts/AM67A/8bits/cl-6360_onnxrt_imagenet1k_fbr-pycls_regnetx-200mf_onnx.tar.gz";
-      inherit retrieved;
-      location = "archive contents: no license or notice file";
+      url = "https://github.com/TexasInstruments/edgeai-modelzoo/blob/main/LICENSE.md";
+      retrieved = "2026-10-13";
+      location = "The archive embeds no license or notice; its config.yaml names the source model edgeai-modelzoo models/vision/classification/imagenet1k/fbr-pycls/regnetx-200mf.onnx. LICENSE.md: BSD-3-Clause for the modelzoo, and \"The models under the folder fbr-pycls are from facebookresearch/pycls\" under MIT. Internal copies only until the archive carries its notices";
     };
     tidlRuntime = {
-      url = tidlTools "OSRT_TOOLS/ARM_LINUX/ARAGO/tidlruntime-0.1.0-cp312-cp312-linux_aarch64.whl";
-      inherit retrieved;
-      location = "wheel dist-info METADATA: no License field or license file";
+      url = "https://github.com/TexasInstruments/edgeai-tidl-tools/blob/11_02_16_00/LICENSE";
+      retrieved = "2026-10-13";
+      location = "The wheel's METADATA has no License field or license file. TI distributes it through edgeai-tidl-tools 11_02_16_00 (TI Text File License), whose setup scripts install tidlruntime wheels from this release's OSRT_TOOLS tree. Internal copies only until the wheel carries its notices";
     };
   };
 
@@ -196,13 +202,15 @@
     layer ? "userspace",
     load ? "userspace",
     features,
+    license ? licenses.noGrant,
+    private ? false,
   }: {
     class = "R2";
     path = "share/beagley-ai/sources/${file}";
-    inherit url size sha256 evidence layer load features;
-    license = licenses.noGrant;
+    inherit url size sha256 evidence layer load features license;
+    redistribution.private = private;
     instructions = ''
-      No redistribution grant is published for this file, so it is not
+      This file carries no license notice of its own, so it is not
       downloaded automatically. Review the source's terms, then run
       `nix run github:bryandph/nixos-boards#beagley-ai-import-artifacts -- --accept-license`
       to download, verify and import it.
@@ -349,6 +357,8 @@ in {
         sha256 = "sha256-mPuzEX2lh3Kms/oGbX+6OZK50Lsbr9kGaHed8Ui4zYA=";
         evidence = evidence.tidlTools;
         features = ["beagley-ai-regnet-model"];
+        license = licenses.tiText;
+        private = true;
       };
       regnet-archive = operatorSupplied {
         file = "cl-6360_onnxrt_imagenet1k_fbr-pycls_regnetx-200mf_onnx.tar.gz";
@@ -357,6 +367,8 @@ in {
         sha256 = "sha256-h40GFJYbKQES7KeFxdf01OfDDsd7N4+NtXMvt6JfMS0=";
         evidence = evidence.model;
         features = ["beagley-ai-regnet-model"];
+        license = licenses.modelzoo;
+        private = true;
       };
       tidlruntime-wheel = operatorSupplied {
         file = "tidlruntime-0.1.0-cp312-cp312-linux_aarch64.whl";
@@ -365,6 +377,8 @@ in {
         sha256 = "sha256-OE2CWjYttyQRwQ7MrPu+9dS0h8FZmCoX4niLtyTFpR4=";
         evidence = evidence.tidlRuntime;
         features = ["beagley-ai-accelerator-runtime"];
+        license = licenses.tiText;
+        private = true;
       };
     };
 
@@ -487,6 +501,8 @@ in {
       model-tools = operatorBuilt {
         from = ["tidl-tools"];
         sources = ["TI x86 onnxruntime-tidl (MIT) and tflite-runtime (Apache-2.0) wheels"];
+        license = licenses.tiText;
+        redistribution.private = true;
         evidence = evidence.tidlTools;
         features = ["beagley-ai-regnet-model"];
       };

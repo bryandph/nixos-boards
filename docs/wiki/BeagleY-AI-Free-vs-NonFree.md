@@ -53,7 +53,6 @@ These features need artifacts that nixpkgs does not allow with `allowUnfree = fa
 | beagley-ai-camera | `beagley-ai.imx219-dcc` | R2 | full |
 | beagley-ai-regnet-model | `beagley-ai.model-tools` | R2 | full |
 | beagley-ai-accelerator-runtime | `beagley-ai.osrt` | R2 | full |
-| beagley-ai-regnet-model | `beagley-ai.regnet-archive` | R2 | full |
 | beagley-ai-regnet-model | `beagley-ai.regnet-model` | R2 | full |
 | beagley-ai-gpu | `beagley-ai.rogue-umlibs` | R1 | full |
 | beagley-ai-gpu | `beagley-ai.rogue-userspace` | R1 | full |

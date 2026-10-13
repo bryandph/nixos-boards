@@ -38,7 +38,7 @@ The operator allowed internal build machines and the private ncps cache for non-
 
 Per-vendor results (evidence in the manifests):
 - NXP SLA v63 §2.2(a): internal reproduction for developing an Authorized System, no distribution to others. FRDM-i.MX95 NXP files permit `private`.
-- eIQ Neutron SDK and its converted model: no established grant, so neither form.
+- eIQ Neutron SDK 3.1.2: its wheel ships NXP SLA v63 with "Standard use - Section 2.2 applies", so `private`. The converted model has no explicit clause on converter output; the operator approved treating it the same way (2026-10-13), recorded in the manifest evidence. Neither is publicly redistributable.
 - TI Text File License: binary redistribution, so `file` (R1). TI files without any license (TIDL tools, the RegNet archive, the tidlruntime wheel, the TexasInstruments-Sandbox patches and script): no grant, so neither form.
 - Qualcomm LICENSE.qcom §1.1: reproduction and redistribution, so `private` (already set).
 
