@@ -166,17 +166,38 @@ in {
             touch $out
           '';
       }
+      // {
+        # power_supply_put_battery_info() frees the battery info, so the AXP20x
+        # probe must not read it afterwards. Checks the patch's new side.
+        uconsole-battery-info-lifetime = pkgs.runCommand "uconsole-battery-info-lifetime" {} ''
+          awk '
+            /^diff --git/ { file = ($0 ~ /axp20x_battery\.c/) }
+            file && /^[ +]/ {
+              line = substr($0, 2)
+              if (line ~ /power_supply_put_battery_info\(/) { freed = 1; next }
+              if (freed && line ~ /info->/) { print "info used after put: " line; bad = 1 }
+              if (freed && line ~ /^\t}/) freed = 0
+            }
+            END { exit bad }
+          ' ${../../../packages/clockworkpi/uconsole/patches/0004-power-axp20x-clockworkpi-uconsole.patch}
+          touch $out
+        '';
+      }
       # The kernel source is prepared on the board's platform.
       // lib.optionalAttrs (system == config.boards.registry.uconsole.system) {
-        # Compiles only the patched CWU50 panel driver in the board kernel's
-        # configured tree, without building the whole kernel.
-        uconsole-panel-driver = kernel.overrideAttrs (_: {
-          pname = "uconsole-panel-driver";
-          buildFlags = ["drivers/gpu/drm/panel/panel-cwu50.o"];
+        # Compiles only the patched CWU50 panel and AXP20x battery drivers in
+        # the board kernel's configured tree, without building the kernel.
+        uconsole-patched-drivers = kernel.overrideAttrs (_: {
+          pname = "uconsole-patched-drivers";
+          buildFlags = [
+            "drivers/gpu/drm/panel/panel-cwu50.o"
+            "drivers/power/supply/axp20x_battery.o"
+          ];
           installPhase = ''
             # Structured attrs: outputs is an associative array.
             for o in "''${!outputs[@]}"; do mkdir -p "''${outputs[$o]}"; done
             test -s "$buildRoot/drivers/gpu/drm/panel/panel-cwu50.o"
+            test -s "$buildRoot/drivers/power/supply/axp20x_battery.o"
           '';
           postInstall = "";
           dontFixup = true;
