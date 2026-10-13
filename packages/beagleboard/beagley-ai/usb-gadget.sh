@@ -3,7 +3,11 @@ set -euo pipefail
 root=/sys/kernel/config/usb_gadget/beagley-ai
 cleanup() {
   [ -d "$root" ] || return 0
-  if [ -s "$root/UDC" ]; then echo '' >"$root/UDC"; fi
+  # configfs attributes always report a non-zero size, so read the value:
+  # an unbound gadget reads as an empty line, and unbinding it fails.
+  local udc
+  udc=$(<"$root/UDC")
+  if [ -n "$udc" ]; then echo '' >"$root/UDC"; fi
   for function in acm.usb0 ecm.usb0; do
     [ ! -L "$root/configs/c.1/$function" ] || rm "$root/configs/c.1/$function"
     [ ! -d "$root/functions/$function" ] || rmdir "$root/functions/$function"
