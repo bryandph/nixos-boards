@@ -333,30 +333,23 @@ in {
             cp ${pkgs.writeText "x" data.contents."redist.bin"} $out/share/innocent.dat
           '';
           clean = [(artifact unfreePkgs "cached-fw") (artifact pkgs "free-blob")];
+          privateScan = boardsLib.mkCacheScan {
+            inherit pkgs;
+            hashes = boardsLib.nonPrivateHashes [valid];
+            lane = "private";
+          };
         in
           pkgs.runCommand "nixos-boards-lib-cache-scan" {
-            nativeBuildInputs = [scan];
+            nativeBuildInputs = [scan privateScan];
             leakClosure = pkgs.closureInfo {rootPaths = [leak];};
             cleanClosure = pkgs.closureInfo {rootPaths = clean;};
+            # cached-fw is cleared for the public cache, not the private one.
+            privateCleanClosure = pkgs.closureInfo {rootPaths = [(artifact pkgs "free-blob")];};
           } ''
-            # expect STATUS MESSAGE ARGS...: the scan exits with STATUS and says MESSAGE.
-            expect() {
-              want=$1 message=$2
-              shift 2
-              status=0
-              nixos-boards-cache-scan "$@" 2>err || status=$?
-              [ "$status" -eq "$want" ] || { echo "status $status, wanted $want: $*" >&2; cat err >&2; exit 1; }
-              grep -q -- "$message" err || { echo "wanted \"$message\" for: $*" >&2; cat err >&2; exit 1; }
-            }
-
-            # Without nix-store, nothing can be validated.
-            expect 2 "nix-store is needed" --closure-file "$cleanClosure/store-paths"
-            expect 2 "nix-store is needed" "$(head -n 1 "$cleanClosure/store-paths")"
-
             # A stub store: registered paths and the requisites a query returns.
             mkdir bin
-            export PATH=$PWD/bin:$PATH MOCK=$PWD
-            cat "$leakClosure/store-paths" "$cleanClosure/store-paths" > registered
+            export MOCK=$PWD
+            cat "$leakClosure/store-paths" "$cleanClosure/store-paths" "$privateCleanClosure/store-paths" > registered
             cat > bin/nix-store <<'SH'
             #!${pkgs.runtimeShell}
             case "$1" in
@@ -373,60 +366,85 @@ in {
             esac
             SH
             chmod +x bin/nix-store
-            answer() { echo "$1" > query; }
+            answer() { echo "$1" > "$MOCK/query"; }
 
-            answer "$leakClosure/store-paths"
-            expect 1 innocent.dat --closure-file "$leakClosure/store-paths"
-            answer "$cleanClosure/store-paths"
-            nixos-boards-cache-scan --closure-file "$cleanClosure/store-paths"
+            # Both lanes share the scan; run every case against each.
+            for lane in nixos-boards-cache-scan:cleanClosure nixos-boards-private-cache-scan:privateCleanClosure; do
+              IFS=: read -r scan cleanVar <<<"$lane"
+              clean=''${!cleanVar}/store-paths
+              (
+              # expect STATUS MESSAGE ARGS...: the scan exits with STATUS and says MESSAGE.
+              expect() {
+                want=$1 message=$2
+                shift 2
+                status=0
+                "$scan" "$@" 2>err || status=$?
+                [ "$status" -eq "$want" ] || { echo "$scan: status $status, wanted $want: $*" >&2; cat err >&2; exit 1; }
+                grep -q -- "$message" err || { echo "wanted \"$message\" for: $*" >&2; cat err >&2; exit 1; }
+              }
 
-            # Malformed, missing, unregistered or incomplete lists fail closed.
-            : > empty
-            expect 2 "missing or empty" --closure-file empty
-            expect 2 "missing or empty" --closure-file absent
-            echo relative/path > relative
-            expect 2 "not a top-level store path" --closure-file relative
-            missing=${builtins.storeDir}/00000000000000000000000000000000-missing
-            echo "$missing" > invalid
-            expect 2 "does not exist" --closure-file invalid
-            { cat "$leakClosure/store-paths"; echo "$missing"; } > mixed
-            expect 2 "does not exist" --closure-file mixed
-            top=$(head -n 1 "$leakClosure/store-paths")
-            for bad in "$top/share" "$top/share/.." "$top/." "${builtins.storeDir}/.$(basename "$top")"; do
-              { cat "$cleanClosure/store-paths"; echo "$bad"; } > nested
-              expect 2 "not a top-level store path" --closure-file nested
+              # Without nix-store, nothing can be validated.
+              expect 2 "nix-store is needed" --closure-file "$cleanClosure/store-paths"
+              expect 2 "nix-store is needed" "$(head -n 1 "$cleanClosure/store-paths")"
+
+              export PATH=$MOCK/bin:$PATH
+
+
+              answer "$leakClosure/store-paths"
+              expect 1 innocent.dat --closure-file "$leakClosure/store-paths"
+              answer "$clean"
+              "$scan" --closure-file "$clean"
+
+              # Malformed, missing, unregistered or incomplete lists fail closed.
+              : > empty
+              expect 2 "missing or empty" --closure-file empty
+              expect 2 "missing or empty" --closure-file absent
+              echo relative/path > relative
+              expect 2 "not a top-level store path" --closure-file relative
+              missing=${builtins.storeDir}/00000000000000000000000000000000-missing
+              echo "$missing" > invalid
+              expect 2 "does not exist" --closure-file invalid
+              { cat "$leakClosure/store-paths"; echo "$missing"; } > mixed
+              expect 2 "does not exist" --closure-file mixed
+              top=$(head -n 1 "$leakClosure/store-paths")
+              for bad in "$top/share" "$top/share/.." "$top/." "${builtins.storeDir}/.$(basename "$top")"; do
+                { cat "$cleanClosure/store-paths"; echo "$bad"; } > nested
+                expect 2 "not a top-level store path" --closure-file nested
+              done
+              # Exists in the store, but is not registered.
+              unregistered=$(dirname "$(dirname ${pkgs.runtimeShell})")
+              echo "$unregistered" > unknown
+              expect 2 "not valid in the Nix store" --closure-file unknown
+              answer "$cleanClosure/store-paths"
+              head -n 1 "$cleanClosure/store-paths" > partial
+              expect 2 "omits" --closure-file partial
+              answer fail
+              expect 2 "could not query" --closure-file "$cleanClosure/store-paths"
+              # A query that succeeds with nothing, or with less than the roots.
+              answer empty
+              expect 2 "returned no closure" --closure-file "$cleanClosure/store-paths"
+              head -n 1 "$cleanClosure/store-paths" > short
+              answer short
+              expect 2 "does not report" --closure-file "$cleanClosure/store-paths"
+
+              # Querying store paths directly: arguments are checked first.
+              for bad in "$top/share" "$top/share/.." relative "$missing"; do
+                expect 2 "Refusing" "$bad"
+              done
+              expect 2 "not valid in the Nix store" "$unregistered"
+              answer fail
+              expect 2 "could not query" "$top"
+              answer empty
+              expect 2 "does not include" "$top"
+              answer "$leakClosure/store-paths"
+              expect 1 innocent.dat "$top"
+              answer "$cleanClosure/store-paths"
+              expect 2 "does not include" "$top"
+              { echo "$top"; echo "$unregistered"; } > unknown-closure
+              answer unknown-closure
+              expect 2 "not valid in the Nix store" "$top"
+              )
             done
-            # Exists in the store, but is not registered.
-            unregistered=$(dirname "$(dirname ${pkgs.runtimeShell})")
-            echo "$unregistered" > unknown
-            expect 2 "not valid in the Nix store" --closure-file unknown
-            head -n 1 "$cleanClosure/store-paths" > partial
-            expect 2 "omits" --closure-file partial
-            answer fail
-            expect 2 "could not query" --closure-file "$cleanClosure/store-paths"
-            # A query that succeeds with nothing, or with less than the roots.
-            answer empty
-            expect 2 "returned no closure" --closure-file "$cleanClosure/store-paths"
-            head -n 1 "$cleanClosure/store-paths" > short
-            answer short
-            expect 2 "does not report" --closure-file "$cleanClosure/store-paths"
-
-            # Querying store paths directly: arguments are checked first.
-            for bad in "$top/share" "$top/share/.." relative "$missing"; do
-              expect 2 "Refusing" "$bad"
-            done
-            expect 2 "not valid in the Nix store" "$unregistered"
-            answer fail
-            expect 2 "could not query" "$top"
-            answer empty
-            expect 2 "does not include" "$top"
-            answer "$leakClosure/store-paths"
-            expect 1 innocent.dat "$top"
-            answer "$cleanClosure/store-paths"
-            expect 2 "does not include" "$top"
-            { echo "$top"; echo "$unregistered"; } > unknown-closure
-            answer unknown-closure
-            expect 2 "not valid in the Nix store" "$top"
             touch $out
           '';
 
