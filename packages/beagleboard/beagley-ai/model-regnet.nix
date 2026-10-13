@@ -39,4 +39,8 @@ in
         cp source/param.yaml "$destination/param.yaml"
         mkdir -p "$out/share/beagley-ai/model-source-notices"
         find source -type f \( -iname '*license*' -o -iname '*notice*' -o -iname '*copyright*' \) -exec cp --parents '{}' "$out/share/beagley-ai/model-source-notices/" \;
+        # The model is a substantial portion of facebookresearch/pycls (MIT),
+        # whose notice must accompany every copy.
+        mkdir -p "$out/share/licenses/beagley-ai-regnet-model"
+        cp -n ${beagleyArtifact "regnet-archive"}/share/licenses/*/* "$out/share/licenses/beagley-ai-regnet-model/"
     '')

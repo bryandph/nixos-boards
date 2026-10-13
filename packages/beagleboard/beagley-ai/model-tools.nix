@@ -27,8 +27,9 @@ in
           platforms = ["x86_64-linux"];
         };
       } ''
-        mkdir -p "$out/lib/original" "$out/lib/tidl-tools" "$out/python" "$out/bin"
+        mkdir -p "$out/lib/original" "$out/lib/tidl-tools" "$out/python" "$out/bin" "$out/share/licenses/beagley-ai-model-tools"
         tar -xzf ${artifactFile "tidl-tools"} -C "$out/lib/original" --strip-components=1
+        cp -n ${beagleyArtifact "tidl-tools"}/share/licenses/*/* "$out/share/licenses/beagley-ai-model-tools/"
         for file in "$out"/lib/original/*; do
           ln -s "$file" "$out/lib/tidl-tools/$(basename "$file")"
         done

@@ -59,6 +59,8 @@ in
       cp ${./accelerator-osrt-wheels.json} "$out/share/beagley-ai/osrt-wheels.json"
       cp -r ${runtime}/share/licenses/beagley-ai-accelerator-runtime "$out/share/licenses/beagley-ai-osrt/sdk"
       cp -r ${tidl}/share/licenses/beagley-ai-tidl "$out/share/licenses/beagley-ai-osrt/tidl"
+      mkdir -p "$out/share/licenses/beagley-ai-osrt/tidlruntime"
+      cp -n ${beagleyArtifact "tidlruntime-wheel"}/share/licenses/*/* "$out/share/licenses/beagley-ai-osrt/tidlruntime/"
       cp ${./beagley_model_contract.py} "$out/libexec/beagley_model_contract.py"
       PYTHONPATH="$out/libexec" PYTHONDONTWRITEBYTECODE=1 python ${./model-runtime-contract-check.py} ${./model-runtime-contract.py}
       makeWrapper ${environment}/bin/python "$out/bin/beagley-ai-osrt-python" \
