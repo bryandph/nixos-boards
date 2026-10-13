@@ -9,7 +9,7 @@
 ## 2. Manifests
 
 - [x] 2.1 FRDM-i.MX95: the NXP SLA v63 §2.2(a) grants internal reproduction, so files under it, and packages built only from them, permit `private`. The eIQ Neutron SDK wheel is under the same §2.2; its converted model permits `private` by the operator-approved interpretation in the manifest evidence.
-- [x] 2.2 BeagleY-AI: unchanged. The TI files without any license grant permit neither `build` nor `private`.
+- [x] 2.2 BeagleY-AI: TIDL tools, the tidlruntime wheel and the RegNet archive permit `private` only (R2, no public form; reviewed upstream grants, operator decision of 2026-10-13). The four TexasInstruments-Sandbox files have no license and permit neither `build` nor `private`, so the packages built from them stay blocked.
 - [x] 2.3 Dragon Q8B: unchanged. LICENSE.qcom §1.1 already permits `private`.
 
 ## 3. Consumer (nixspace)
