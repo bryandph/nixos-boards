@@ -434,6 +434,9 @@
           # Existing is not enough: every path must be registered in the store.
           nix-store --check-validity "$@" || refuse "the closure lists paths that are not valid in the Nix store"
         }
+        # Only the Nix store can say whether a path is registered and what its
+        # closure is; without it nothing can be validated.
+        command -v nix-store >/dev/null || refuse "nix-store is needed to validate store paths"
         closure=$(mktemp)
         hashes=$(mktemp)
         trap 'rm -f "$closure" "$closure".* "$hashes"' EXIT
@@ -442,14 +445,15 @@
         if [ "''${1:-}" = --closure-file ]; then
           [ "$#" -eq 2 ] || usage
           [ -s "$2" ] || refuse "closure file $2 is missing or empty"
-          # Only the Nix store can say whether a listed path is registered
-          # and whether the list is complete.
-          command -v nix-store >/dev/null || refuse "nix-store is needed to validate a closure file"
           cp "$2" "$closure"
         else
           [ "$#" -gt 0 ] || usage
           roots "$@"
           nix-store --query --requisites "$@" > "$closure" || refuse "could not query the closure of $*"
+          # The store's answer must include every root it was asked about.
+          for root in "$@"; do
+            grep -qxF -- "$root" "$closure" || refuse "the queried closure does not include $root"
+          done
         fi
         mapfile -t paths < "$closure"
         [ "''${#paths[@]}" -gt 0 ] || refuse "the closure is empty"
@@ -459,10 +463,14 @@
         if [ "''${1:-}" = --closure-file ]; then
           nix-store --query --requisites "''${paths[@]}" > "$closure.full" ||
             refuse "could not query the closure of the listed paths"
+          [ -s "$closure.full" ] || refuse "the store returned no closure for the listed paths"
           sort -u "$closure" > "$closure.listed"
           sort -u "$closure.full" > "$closure.needed"
+          # The list must be exactly the closure the store reports.
           comm -13 "$closure.listed" "$closure.needed" > "$closure.missing"
           [ ! -s "$closure.missing" ] || refuse "the closure file omits $(wc -l < "$closure.missing") referenced store paths"
+          comm -23 "$closure.listed" "$closure.needed" > "$closure.extra"
+          [ ! -s "$closure.extra" ] || refuse "the store does not report $(wc -l < "$closure.extra") listed paths in their closure"
         fi
         for p in "''${paths[@]}"; do
           find "$p" -type f -print0 | xargs -0 -r sha256sum >> "$hashes"

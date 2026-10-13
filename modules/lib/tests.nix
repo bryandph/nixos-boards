@@ -293,11 +293,12 @@ in {
               status=0
               nixos-boards-cache-scan "$@" 2>err || status=$?
               [ "$status" -eq "$want" ] || { echo "status $status, wanted $want: $*" >&2; cat err >&2; exit 1; }
-              grep -q -- "$message" err
+              grep -q -- "$message" err || { echo "wanted \"$message\" for: $*" >&2; cat err >&2; exit 1; }
             }
 
-            # Without nix-store, a closure file cannot be validated.
+            # Without nix-store, nothing can be validated.
             expect 2 "nix-store is needed" --closure-file "$cleanClosure/store-paths"
+            expect 2 "nix-store is needed" "$(head -n 1 "$cleanClosure/store-paths")"
 
             # A stub store: registered paths and the requisites a query returns.
             mkdir bin
@@ -350,18 +351,27 @@ in {
             expect 2 "omits" --closure-file partial
             answer fail
             expect 2 "could not query" --closure-file "$cleanClosure/store-paths"
+            # A query that succeeds with nothing, or with less than the roots.
+            answer empty
+            expect 2 "returned no closure" --closure-file "$cleanClosure/store-paths"
+            head -n 1 "$cleanClosure/store-paths" > short
+            answer short
+            expect 2 "does not report" --closure-file "$cleanClosure/store-paths"
 
             # Querying store paths directly: arguments are checked first.
             for bad in "$top/share" "$top/share/.." relative "$missing"; do
               expect 2 "Refusing" "$bad"
             done
             expect 2 "not valid in the Nix store" "$unregistered"
+            answer fail
             expect 2 "could not query" "$top"
             answer empty
-            expect 2 "closure is empty" "$top"
+            expect 2 "does not include" "$top"
             answer "$leakClosure/store-paths"
             expect 1 innocent.dat "$top"
-            echo "$unregistered" > unknown-closure
+            answer "$cleanClosure/store-paths"
+            expect 2 "does not include" "$top"
+            { echo "$top"; echo "$unregistered"; } > unknown-closure
             answer unknown-closure
             expect 2 "not valid in the Nix store" "$top"
             touch $out
