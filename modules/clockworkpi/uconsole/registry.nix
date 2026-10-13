@@ -109,8 +109,80 @@ in {
             exit "$status"
           '';
       }
+      // {
+        # Panel detection from the CWU50 patch, compiled against stub DSI
+        # calls: only a successful read may select the v2/v3 sequence.
+        uconsole-panel-detect = let
+          patch = ../../../packages/clockworkpi/uconsole/patches/0001-drm-panel-add-clockworkpi-cwu50.patch;
+          harness = pkgs.writeText "panel-detect-harness.c" ''
+            #include <assert.h>
+            #include <stdbool.h>
+            #include <stdio.h>
+            #include <string.h>
+            #include <sys/types.h>
+            typedef unsigned char u8;
+            struct device { int unused; };
+            struct mipi_dsi_device { int unused; };
+            struct cwu50 { struct device *dev; bool is_new_panel; };
+            static ssize_t read_ret;
+            static u8 read_bytes[3];
+            static int warnings;
+            /* Writes the bytes even on failure, standing in for stale memory. */
+            static ssize_t mipi_dsi_dcs_read(struct mipi_dsi_device *dsi, u8 cmd, void *buf, size_t len)
+            {
+              (void)dsi; assert(cmd == 0x04 && len == 3);
+              memcpy(buf, read_bytes, len);
+              return read_ret;
+            }
+            #define dev_warn(dev, ...) (warnings++)
+            #include "detect.c"
+            static bool run(bool start, ssize_t ret, u8 first)
+            {
+              struct device dev; struct mipi_dsi_device dsi;
+              struct cwu50 ctx = { &dev, start };
+              read_ret = ret; read_bytes[0] = first;
+              cwu50_detect_panel(&ctx, &dsi);
+              return ctx.is_new_panel;
+            }
+            int main(void)
+            {
+              assert(!run(false, -5, 0x39));  /* failed read ignores the buffer */
+              assert(!run(false, 0, 0x39));   /* empty read ignores the buffer */
+              assert(run(true, -5, 0x00));    /* failure keeps an earlier v2/v3 choice */
+              assert(run(false, 1, 0x39));    /* v2/v3 panel */
+              assert(!run(false, 3, 0x00));   /* old panel */
+              assert(warnings == 3);
+              puts("panel detection OK");
+              return 0;
+            }
+          '';
+        in
+          pkgs.runCommandCC "uconsole-panel-detect" {} ''
+            awk '/^\+static void cwu50_detect_panel\(/ {on = 1} on {print substr($0, 2)} on && /^\+}$/ {exit}' ${patch} > detect.c
+            grep -q 'cwu50_detect_panel' detect.c
+            cp ${harness} harness.c
+            $CC -Wall -Werror -o harness harness.c
+            ./harness
+            touch $out
+          '';
+      }
       # The kernel source is prepared on the board's platform.
       // lib.optionalAttrs (system == config.boards.registry.uconsole.system) {
+        # Compiles only the patched CWU50 panel driver in the board kernel's
+        # configured tree, without building the whole kernel.
+        uconsole-panel-driver = kernel.overrideAttrs (_: {
+          pname = "uconsole-panel-driver";
+          buildFlags = ["drivers/gpu/drm/panel/panel-cwu50.o"];
+          installPhase = ''
+            # Structured attrs: outputs is an associative array.
+            for o in "''${!outputs[@]}"; do mkdir -p "''${outputs[$o]}"; done
+            test -s "$buildRoot/drivers/gpu/drm/panel/panel-cwu50.o"
+          '';
+          postInstall = "";
+          dontFixup = true;
+          doCheck = false;
+          requiredSystemFeatures = [];
+        });
         uconsole-device-tree =
           pkgs.runCommand "uconsole-device-tree" {
             inherit (kernel) src;

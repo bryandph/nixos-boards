@@ -39,7 +39,7 @@ new file mode 100644
 index 0000000..925bbb1
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-cwu50.c
-@@ -0,0 +1,1070 @@
+@@ -0,0 +1,1085 @@
 +// SPDX-License-Identifier: GPL-2.0+
 +/*
 + * Copyright (c) 2021 Clockwork Tech LLC
@@ -676,6 +676,26 @@ index 0000000..925bbb1
 +}
 +
 +/*
++ * Read register 0x04 to tell the v2/v3 panel from the old one. Only a
++ * successful read may select the v2/v3 sequence; on a failed or empty
++ * read the caller's previous choice stands.
++ */
++static void cwu50_detect_panel(struct cwu50 *ctx, struct mipi_dsi_device *dsi)
++{
++	u8 buf[4] = {};
++	ssize_t ret;
++
++	ret = mipi_dsi_dcs_read(dsi, 0x04, buf, 3);
++	if (ret < 1) {
++		dev_warn(ctx->dev, "panel ID read failed (%zd), using the %s panel sequence\n",
++			 ret, ctx->is_new_panel ? "v2/v3" : "old");
++		return;
++	}
++	if (buf[0] == 0x39)
++		ctx->is_new_panel = true;
++}
++
++/*
 + * CM3/CM4S power-on sequence. This mirrors the original, independently-
 + * working CM3 driver step for step (order of regulator/reset/init-
 + * sequence/TE all matter to the panel firmware) rather than sharing
@@ -695,13 +715,12 @@ index 0000000..925bbb1
 +{
 +	struct mipi_dsi_device *dsi = to_mipi_dsi_device(ctx->dev);
 +	int ret;
-+	u8 buf[4];
 +	u8 response;
 +
 +	gpiod_set_value_cansleep(ctx->id_gpio, 1); /* ensure asserted state */
 +
-+	/* IOVCC first, then VCI */
-+	ret = regulator_enable(ctx->iovcc);
++	/* IOVCC first, then VCI. Probe leaves a supply NULL if it failed. */
++	ret = ctx->iovcc ? regulator_enable(ctx->iovcc) : 0;
 +	if (ret) {
 +		dev_err(ctx->dev, "failed to enable iovcc (%d)\n", ret);
 +		goto error_finalize;
@@ -710,7 +729,7 @@ index 0000000..925bbb1
 +	/* tPWON >= 0ms */
 +
 +	/* MIPI should change to LP-11 after turning on vci according to JD9365D.pdf */
-+	ret = regulator_enable(ctx->vci);
++	ret = ctx->vci ? regulator_enable(ctx->vci) : 0;
 +	if (ret) {
 +		dev_err(ctx->dev, "failed to enable vci (%d)\n", ret);
 +		goto disable_iovcc;
@@ -734,9 +753,7 @@ index 0000000..925bbb1
 +	dcs_write_seq(0x11); /* SLPOUT */
 +	msleep(120);
 +	dcs_write_seq(0xE0, 0x00);
-+	mipi_dsi_dcs_read(dsi, 0x04, buf, 3);
-+	if (buf[0] == 0x39)
-+		ctx->is_new_panel = true;
++	cwu50_detect_panel(ctx, dsi);
 +
 +	if (ctx->is_new_panel)
 +		cwu50_init_sequence2(ctx);
@@ -782,9 +799,11 @@ index 0000000..925bbb1
 +	return 0;
 +
 +disable_vci:
-+	regulator_disable(ctx->vci);
++	if (ctx->vci)
++		regulator_disable(ctx->vci);
 +disable_iovcc:
-+	regulator_disable(ctx->iovcc);
++	if (ctx->iovcc)
++		regulator_disable(ctx->iovcc);
 +error_finalize:
 +	gpiod_set_value_cansleep(ctx->id_gpio, 1);
 +	ctx->dsi_status = 1; /* error */
@@ -796,7 +815,6 @@ index 0000000..925bbb1
 +{
 +	struct mipi_dsi_device *dsi = to_mipi_dsi_device(ctx->dev);
 +	int ret;
-+	u8 buf[4];
 +
 +	if (ctx->iovcc != NULL && ctx->vci != NULL) {
 +		dev_info(ctx->dev, "regulator iovcc and vci defined, enabling\n");
@@ -839,10 +857,7 @@ index 0000000..925bbb1
 +	dcs_write_seq(0x11); // SLPOUT
 +	msleep(120);
 +	dcs_write_seq(0xE0, 0x00);
-+	mipi_dsi_dcs_read(dsi, 0x04, buf, 3);
-+
-+	if (buf[0] == 0x39)
-+		ctx->is_new_panel = 1;
++	cwu50_detect_panel(ctx, dsi);
 +
 +	if (ctx->is_new_panel)
 +		cwu50_init_sequence2(ctx);
