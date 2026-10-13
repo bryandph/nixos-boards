@@ -303,12 +303,18 @@ in {
             expect 2 "missing or empty" --closure-file empty
             expect 2 "missing or empty" --closure-file absent
             echo relative/path > relative
-            expect 2 "not a store path" --closure-file relative
+            expect 2 "not a top-level store path" --closure-file relative
             missing=${builtins.storeDir}/00000000000000000000000000000000-missing
             echo "$missing" > invalid
             expect 2 "does not exist" --closure-file invalid
             { cat "$leakClosure/store-paths"; echo "$missing"; } > mixed
             expect 2 "does not exist" --closure-file mixed
+            # Existing but not top-level: nested, dot and dot-named paths.
+            top=$(head -n 1 "$leakClosure/store-paths")
+            for bad in "$top/share" "$top/share/.." "$top/." "${builtins.storeDir}/.$(basename "$top")"; do
+              echo "$bad" > nested
+              expect 2 "not a top-level store path" --closure-file nested
+            done
 
             # Querying store paths: a failed or empty query fails closed.
             mkdir bin
@@ -320,6 +326,11 @@ in {
             expect 2 "closure is empty" "$missing"
             printf '#!${pkgs.runtimeShell}\ncat %s\n' "$leakClosure/store-paths" > bin/nix-store
             expect 1 innocent.dat "$missing"
+
+            # Where the store can be queried, a closure file must be complete.
+            head -n 1 "$cleanClosure/store-paths" > partial
+            printf '#!${pkgs.runtimeShell}\ncat %s\n' "$cleanClosure/store-paths" > bin/nix-store
+            expect 2 "omits" --closure-file partial
             touch $out
           '';
 

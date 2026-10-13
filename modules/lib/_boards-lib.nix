@@ -424,7 +424,7 @@
         }
         closure=$(mktemp)
         hashes=$(mktemp)
-        trap 'rm -f "$closure" "$hashes"' EXIT
+        trap 'rm -f "$closure" "$closure".* "$hashes"' EXIT
         # The closure must be complete: a failed query, an empty closure or a
         # path that is not in the store fails the scan instead of passing it.
         if [ "''${1:-}" = --closure-file ]; then
@@ -437,13 +437,23 @@
         fi
         mapfile -t paths < "$closure"
         [ "''${#paths[@]}" -gt 0 ] || refuse "the closure is empty"
+        # Only canonical top-level store paths: no nested, dot or relative
+        # paths, which would let a list skip the rest of a store path.
+        canonical='^${builtins.storeDir}/[0-9a-z]{32}-[A-Za-z0-9+_?=-][A-Za-z0-9+._?=-]*$'
         for p in "''${paths[@]}"; do
-          case "$p" in
-            ${builtins.storeDir}/?*) ;;
-            *) refuse "$p is not a store path" ;;
-          esac
-          [ -e "$p" ] || refuse "$p does not exist"
+          [[ "$p" =~ $canonical ]] || refuse "$p is not a top-level store path"
+          [ -e "$p" ] || [ -L "$p" ] || refuse "$p does not exist"
         done
+        # A closure file must be complete: where the store can be queried,
+        # every reference of every listed path must be listed too.
+        if [ "''${1:-}" = --closure-file ] && command -v nix-store >/dev/null; then
+          nix-store --query --requisites "''${paths[@]}" > "$closure.full" ||
+            refuse "could not query the closure of the listed paths"
+          sort -u "$closure" > "$closure.listed"
+          sort -u "$closure.full" > "$closure.needed"
+          comm -13 "$closure.listed" "$closure.needed" > "$closure.missing"
+          [ ! -s "$closure.missing" ] || refuse "the closure file omits $(wc -l < "$closure.missing") referenced store paths"
+        fi
         for p in "''${paths[@]}"; do
           find "$p" -type f -print0 | xargs -0 -r sha256sum >> "$hashes"
         done
