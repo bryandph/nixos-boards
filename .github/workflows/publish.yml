@@ -50,7 +50,10 @@ jobs:
           shopt -s nullglob
           sets=(push-set-*)
           [ "${#sets[@]}" -gt 0 ] || exit 0
-          nix run .#cache-scan -- "${sets[@]}"
+          # The scan takes store paths, not the out-links that point to them.
+          roots=()
+          for set in "${sets[@]}"; do roots+=("$(readlink -f "$set")"); done
+          nix run .#cache-scan -- "${roots[@]}"
       - name: Push to bph.cachix.org
         env:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}

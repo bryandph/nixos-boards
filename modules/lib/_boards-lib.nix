@@ -422,6 +422,18 @@
           echo "Refusing to publish: $1" >&2
           exit 2
         }
+        # Only canonical top-level store paths: no nested, dot or relative
+        # paths, which would let a list skip the rest of a store path, and
+        # no reliance on Nix normalising a path to its store root.
+        canonical='^${builtins.storeDir}/[0-9a-z]{32}-[A-Za-z0-9+_?=-][A-Za-z0-9+._?=-]*$'
+        roots() {
+          for p in "$@"; do
+            [[ "$p" =~ $canonical ]] || refuse "$p is not a top-level store path"
+            [ -e "$p" ] || [ -L "$p" ] || refuse "$p does not exist"
+          done
+          # Existing is not enough: every path must be registered in the store.
+          nix-store --check-validity "$@" || refuse "the closure lists paths that are not valid in the Nix store"
+        }
         closure=$(mktemp)
         hashes=$(mktemp)
         trap 'rm -f "$closure" "$closure".* "$hashes"' EXIT
@@ -430,23 +442,21 @@
         if [ "''${1:-}" = --closure-file ]; then
           [ "$#" -eq 2 ] || usage
           [ -s "$2" ] || refuse "closure file $2 is missing or empty"
+          # Only the Nix store can say whether a listed path is registered
+          # and whether the list is complete.
+          command -v nix-store >/dev/null || refuse "nix-store is needed to validate a closure file"
           cp "$2" "$closure"
         else
           [ "$#" -gt 0 ] || usage
+          roots "$@"
           nix-store --query --requisites "$@" > "$closure" || refuse "could not query the closure of $*"
         fi
         mapfile -t paths < "$closure"
         [ "''${#paths[@]}" -gt 0 ] || refuse "the closure is empty"
-        # Only canonical top-level store paths: no nested, dot or relative
-        # paths, which would let a list skip the rest of a store path.
-        canonical='^${builtins.storeDir}/[0-9a-z]{32}-[A-Za-z0-9+_?=-][A-Za-z0-9+._?=-]*$'
-        for p in "''${paths[@]}"; do
-          [[ "$p" =~ $canonical ]] || refuse "$p is not a top-level store path"
-          [ -e "$p" ] || [ -L "$p" ] || refuse "$p does not exist"
-        done
-        # A closure file must be complete: where the store can be queried,
-        # every reference of every listed path must be listed too.
-        if [ "''${1:-}" = --closure-file ] && command -v nix-store >/dev/null; then
+        roots "''${paths[@]}"
+        # A closure file must be complete: every reference of every listed
+        # path must be listed too.
+        if [ "''${1:-}" = --closure-file ]; then
           nix-store --query --requisites "''${paths[@]}" > "$closure.full" ||
             refuse "could not query the closure of the listed paths"
           sort -u "$closure" > "$closure.listed"
