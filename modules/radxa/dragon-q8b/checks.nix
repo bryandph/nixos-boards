@@ -29,6 +29,10 @@
     (fixtureSystem.extendModules {
       modules = [{fileSystems."/".autoResize = false;}];
     }).config;
+  appendedInitrdModules =
+    (fixtureSystem.extendModules {
+      modules = [{boot.initrd.availableKernelModules = ["loop"];}];
+    }).config;
   badDT = fixtureSystem.extendModules {
     modules = [({pkgs, ...}: {hardware.deviceTree.kernelPackage = lib.mkForce pkgs.linux;})];
   };
@@ -160,6 +164,27 @@ in {
             ! grep -F 'x-systemd.growfs' ${optedOutRoot.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
             test -x ${fixture.systemd.package}/lib/systemd/systemd-growfs
             grep -F 'systemd-growfs' ${fixture.environment.etc."systemd/system".source}/systemd-growfs-root.service
+            touch "$out"
+          '';
+        dragon-q8b-initrd-tpm = assert builtins.elem "tpm_qcom_qsee" fixture.boot.initrd.availableKernelModules;
+        assert builtins.elem "tpm_qcom_qsee" appendedInitrdModules.boot.initrd.availableKernelModules;
+        assert builtins.elem "loop" appendedInitrdModules.boot.initrd.availableKernelModules;
+        assert fixture.boot.initrd.systemd.tpm2.enable;
+        assert fixture.boot.initrd.compressor == "zstd";
+          pkgs.runCommand "dragon-q8b-initrd-tpm" {
+            nativeBuildInputs = [pkgs.zstd pkgs.cpio];
+          } ''
+            mkdir unpack
+            zstd -d -c ${fixture.system.build.initialRamdisk}/initrd > initrd.cpio
+            (cd unpack; cpio -id --quiet --no-absolute-filenames --no-preserve-owner < ../initrd.cpio)
+            # Inspect archive members, not absolute symlinks into the builder's
+            # modules store. The existing auxiliary driver has no module deps.
+            find unpack -type f -name 'tpm_qcom_qsee.ko*' > modules
+            test -s modules
+            find unpack -type f -name modules.alias -exec grep -lF 'alias auxiliary:qcom_qseecom.tpm tpm_qcom_qsee' {} + > aliases
+            test -s aliases
+            find unpack -type f -name modules.dep -exec grep -lE '/tpm_qcom_qsee\.ko[^:]*:[[:space:]]*$' {} + > deps
+            test -s deps
             touch "$out"
           '';
         dragon-q8b-provider-contract = assert rejects "dragon-q8b: DT package" badDT;

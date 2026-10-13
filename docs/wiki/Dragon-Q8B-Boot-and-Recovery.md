@@ -47,6 +47,15 @@ working vendor microSD for recovery.
 Only write an image after manually verifying the target disk and its logical
 sector size. Image creation/building is not authorization to erase or flash a device.
 
+## Early TPM device availability
+
+The initrd includes the existing vendor `tpm_qcom_qsee` module so udev can
+handle the TPM auxiliary device created by built-in QSEECOM before switching
+root. TPM2 support stays enabled; no new firmware or kernel configuration is
+introduced. Without that module, an initrd TPM device wait can delay boot by
+90 seconds even though the device appears later in stage 2. Confirm early-device
+timing on hardware; archive/module checks are not TPM attestation evidence.
+
 ## Bootstrap handoff and recovery
 
 The image's one-shot entry is `loader/entries/dragon-q8b-bootstrap.conf`, with
