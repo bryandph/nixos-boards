@@ -27,7 +27,10 @@ jobs:
           name: bph
           skipPush: true
       - name: Verify native runner execution
+        env:
+          CHECKED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
+          test "$(git rev-parse HEAD)" = "$CHECKED_HEAD"
           uname -srm
           lscpu
           case "$RUNNER_ARCH" in
