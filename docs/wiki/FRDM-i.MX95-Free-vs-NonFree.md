@@ -28,7 +28,7 @@ These features need artifacts that nixpkgs does not allow with `allowUnfree = fa
 | frdm-imx95-neutron-npu | `frdm-imx95.neutron-errors-header` | R2 | full |
 | frdm-imx95-neutron-npu | `frdm-imx95.neutron-firmware` | R2 | full |
 | frdm-imx95-neutron-npu | `frdm-imx95.neutron-runtime` | R2 | full |
-| frdm-imx95-wave6-vpu | `frdm-imx95.wave6-distribution` | R2 | full |
+| frdm-imx95-wave6-vpu | `frdm-imx95.wave6-codec-member` | R2 | full |
 | frdm-imx95-wave6-vpu | `frdm-imx95.wave6-firmware` | R2 | full |
 
 ## userspace

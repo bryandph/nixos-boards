@@ -84,6 +84,14 @@ as `boards.manifests.<name>`. The values below are illustrative:
 - `file` whenever `cache` is set;
 - a reason on every blocked entry.
 
+R2 does not waive notice obligations for internal copies. Preserve original
+copyright/proprietary legends and install the applicable pinned notices.
+Built entries can record `notices`; `mkBuilt` receives the consumer's `pkgs`
+when fetching them and installs notices in every output, including `dev`.
+For NXP, the pinned SLA and Neutron Software Content Register supplement,
+not replace, the original component legends. Installing the SLA does not grant
+new redistribution rights or license unrelated third-party content.
+
 ## Redistribution forms
 
 | Form | The license permits |
