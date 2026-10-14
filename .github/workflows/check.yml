@@ -13,10 +13,34 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+        runner: [ubuntu-26.04, ubuntu-26.04-arm]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: cachix/install-nix-action@v31
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      # Read-only: substitute what the publish workflow pushed.
+      - uses: cachix/cachix-action@3ba601ff5bbb07c7220846facfa2cd81eeee15a1 # v16
+        with:
+          name: bph
+          skipPush: true
+      - name: Verify native runner execution
+        env:
+          CHECKED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$CHECKED_HEAD"
+          uname -srm
+          lscpu
+          case "$RUNNER_ARCH" in
+            X64) expected=x86_64-linux; test "$(uname -m)" = x86_64 ;;
+            ARM64) expected=aarch64-linux; test "$(uname -m)" = aarch64 ;;
+            *) echo "Unsupported native runner: $RUNNER_ARCH" >&2; exit 1 ;;
+          esac
+          test "$(nix config show system)" = "$expected"
+      - name: Release gate regression fixtures
+        run: python3 -B -m unittest discover -s .github/scripts -p 'test_*.py' -v
       - name: nix flake check
-        run: nix flake check -L
+        # No remote/advertised translated execution fallback on CI runners.
+        run: nix flake check -L --builders '' --option extra-platforms ''
