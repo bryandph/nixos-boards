@@ -29,6 +29,8 @@ Provider `nxp-lf-6.18.20-2.0.0`, version 6.18.20-2.0.0: NXP Linux Factory 6.18.2
 
 Packages built from the artifacts above or from other pinned sources.
 
+Package `neutron-runtime` uses provider `any` rather than the release provider `nxp-lf-6.18.20-2.0.0`; this is a compatibility label, not a redistribution grant.
+
 | Package | Class | License | Built from | Layer | Load | Redistribution | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `complete-boot-container-provider` | R2 | LicenseRef-NXP-Software-License | `complete-boot-container` | boot-firmware | boot-image | private | [§2.2(a): use and reproduce solely in combination with an NXP Product to develop an Authorized System, no distribution to others (internal copies only); §2.3: distribution only within an Authorized System; ELE and firmware-imx recipes share COPYING md5 bc649096ad3928ec06a8713b8d787eac; LF6.18.20 Software Content Register](https://www.nxp.com/docs/en/disclaimer/LA_OPT_NXP_Software_License.pdf), 2026-10-12 |
