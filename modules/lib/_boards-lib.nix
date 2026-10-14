@@ -208,6 +208,11 @@
   # and its class is at least as restrictive as every artifact it uses.
   builtType = types.submodule {
     options = {
+      notices = mkOption {
+        type = types.listOf fileType;
+        default = [];
+        description = "Pinned license/notice files installed with every package output.";
+      };
       derivedHashes = mkOption {
         type = types.listOf types.str;
         default = [];
@@ -424,6 +429,22 @@
       m.built))
     manifests;
 
+  # Additional current-generation DENY evidence for a consumer. This is not
+  # provenance admission and cannot identify copied/unknown/historical forms.
+  artifactOutputIdentities = packages:
+    lib.concatMap (p:
+      if !(p ? manifestEntry)
+      then throw "artifactOutputIdentities requires registered manifest packages"
+      else
+        map (output: {
+          inherit output;
+          path = p.${output}.outPath;
+          drv = p.drvPath;
+          inherit (p.manifestEntry) manifest id class provider redistribution;
+        })
+        p.outputs)
+    packages;
+
   namePredicate = names: pkg: builtins.elem (lib.getName pkg) names;
 
   hex = hash:
@@ -556,6 +577,7 @@
     manifest,
     id,
     package,
+    pkgs ? null,
   }: let
     b = manifest.built.${id} or (throw "${manifest.name}: no built package ${id}");
     name = artifactName manifest id;
@@ -565,23 +587,42 @@
     then throw "invalid release manifest:\n${lib.concatStringsSep "\n" errors}"
     else if lib.getName package != name
     then throw "${manifest.name}.${id}: the package is named ${lib.getName package}, not ${name}"
+    else if b.notices != [] && pkgs == null
+    then throw "${manifest.name}.${id}: mkBuilt needs pkgs to fetch pinned notices"
     else if
-      b.internalUse
-      != null
+      (b.internalUse != null || b.notices != [])
       && !(package.drvAttrs ? buildCommand)
       && package.drvAttrs ? installPhase
       && !(lib.hasInfix "runHook postInstall" package.drvAttrs.installPhase)
     then throw "${manifest.name}.${id}: internal-use notice requires a custom installPhase to runHook postInstall"
     else
       package.overrideAttrs (old: let
-        notice = lib.optionalString (b.internalUse != null) ''
-          mkdir -p "$out/share/licenses/${name}"
-          printf '%s' ${lib.escapeShellArg (internalUseText b.internalUse)} > "$out/share/licenses/${name}/internal-use-interpretation.txt"
+        files =
+          lib.imap0 (i: n: {
+            name = "${toString i}-${baseNameOf n.url}";
+            file = pkgs.fetchurl {
+              inherit (n) url;
+              hash = n.sha256;
+            };
+          })
+          b.notices;
+        notice = lib.optionalString (b.internalUse != null || b.notices != []) ''
+          for output in ${lib.escapeShellArgs (old.outputs or ["out"])}; do
+            outputPath="''${!output}"
+            mkdir -p "$outputPath/share/licenses/${name}"
+            ${lib.optionalString (b.internalUse != null) ''
+            printf '%s' ${lib.escapeShellArg (internalUseText b.internalUse)} > "$outputPath/share/licenses/${name}/internal-use-interpretation.txt"
+          ''}
+            ${lib.concatMapStrings (n: ''
+              install -m444 ${n.file} "$outputPath/share/licenses/${name}/${n.name}"
+            '')
+            files}
+          done
         '';
       in {
         # runCommand uses buildCommand rather than the standard install phase.
         ${
-          if b.internalUse == null
+          if b.internalUse == null && b.notices == []
           then null
           else if old ? buildCommand
           then "buildCommand"
@@ -592,7 +633,11 @@
             then old.buildCommand
             else old.postInstall or ""
           )
-          + notice;
+          + (
+            if notice == ""
+            then ""
+            else "\n" + notice
+          );
         passthru =
           (old.passthru or {})
           // {
@@ -603,7 +648,7 @@
                 if b.provider == null
                 then manifest.provider
                 else b.provider;
-              inherit (b) class layer load features from internalUse;
+              inherit (b) class layer load features from internalUse notices;
               internalBuild = internalBuildPermitted b;
               built = true;
               path = null;
@@ -1094,6 +1139,8 @@ in {
     nonPrivateHashes
     buildPermitted
     internalBuildPermitted
+    internalUseText
+    artifactOutputIdentities
     namePredicate
     mkArtifact
     freeNixpkgsConfig

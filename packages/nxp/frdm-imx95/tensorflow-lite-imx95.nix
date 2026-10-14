@@ -5,6 +5,7 @@
   fetchFromGitHub,
   lib,
   stdenv,
+  fetchDepsSha256 ? "sha256-qnuldxLFIW0hB03Pydo+HhjaIeTDbf6gBhxH0XqxACE=",
 }: let
   release = import ./imx95-lf-6.18.20-2.0.0.nix {inherit lib;};
   source = release.neutron.tensorflowLite;
@@ -100,7 +101,7 @@ in
 
     # Bazel's dependency archive includes toolchain-dependent content. Keep this
     # pin aligned with flake.lock; verify two independent samples when updating.
-    fetchAttrs.sha256 = "sha256-qnuldxLFIW0hB03Pydo+HhjaIeTDbf6gBhxH0XqxACE=";
+    fetchAttrs.sha256 = fetchDepsSha256;
 
     env = {
       PYTHON_BIN_PATH = pythonEnv.interpreter;

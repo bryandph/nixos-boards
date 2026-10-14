@@ -51,27 +51,29 @@ the composed all-features role below installs those probes for that purpose.
 The Wave6 driver uses standard V4L2 mem2mem userspace, but its
 `wave633c_codec_fw.bin` firmware member comes from NXP's licensed
 `firmware-imx-8.32-1991416.bin` distribution. Review and accept that license,
-then import the fixed distribution locally:
+then explicitly invoke the operator-only extraction/import app:
 
 ```console
 nix run github:bryandph/nixos-boards#frdm-imx95-import-nxp-wave6-firmware -- \
   --accept-license /path/to/firmware-imx-8.32-1991416.bin
 ```
 
-Because the selected member's standalone hash and size are not yet available,
-the import app adds the complete hash-pinned distribution to the local Nix
-store as a build source (artifact `frdm-imx95.wave6-distribution`). NXP's
-extractor runs inside the build only after that import, which is where the
-operator accepts the license. This is intentional: using only an extracted member
-would otherwise discard the fixed identity or require inventing one. The
-firmware package extracts only the release-recipe-selected member into its
-output and retains no store-path reference to the source distribution, so the
-runtime, system, and image closures contain only that member package. The
-complete distribution remains local build input and must not be copied with
-the output closure.
+The app validates the pinned distribution before running NXP's extractor in
+that explicitly accepted operator context, then validates and imports only
+`wave633c_codec_fw.bin` (artifact `frdm-imx95.wave6-codec-member`): 524672 bytes,
+SHA256 `279960869a8e6f736f4199217454993a2c8bdad4d934d823c6500da99f5fe647`.
+The member pin was verified from the existing registered release-selected
+output; it is not a claim of an independent vendor reacquisition. A derivation
+uses `requireFile` for that member and installs pinned notices. No build runs
+the vendor extractor or accepts an EULA, and the raw distribution is not
+imported or retained in runtime closures. Missing input requires the operator
+app; an agent must not accept or import it on the operator's behalf.
 
-Never publish the distribution, firmware output, dependent closure, generated
-image, or hardware report containing licensed bytes.
+No standalone/public publication, public cache or image clearance is granted.
+Only manifest-cleared controlled internal/private copies are eligible under
+the recorded NXP terms and consumer gates. NXP SLA restrictions on reports and
+licensed bytes remain applicable; this build boundary is not permission to
+publish hardware reports or vendor content.
 
 Compose the VPU role only in a dedicated removable-media evaluation:
 

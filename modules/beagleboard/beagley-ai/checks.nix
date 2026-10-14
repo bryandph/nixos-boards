@@ -7,6 +7,8 @@
   ...
 }: let
   dir = ../../../packages/beagleboard/beagley-ai;
+  boardsLib = config.boards.lib;
+  beagley = import ./_scope.nix {inherit config;};
   profiles = config.flake.modules.nixos;
   manifest = config.boards.manifests.beagley-ai;
   # Core, image and boot firmware, with the board's unfree names admitted.
@@ -224,6 +226,24 @@ in {
     # Operator-run: need imported R2 artifacts or build the full system.
     hardwareChecks.beagley-ai =
       lib.optionalAttrs (system == "aarch64-linux") {
+        internal-use-notices = let
+          scope = beagley fullFixture.pkgs;
+          helpers = map scope.beagleyArtifact ["memory-map-patch" "disable-cpsw-patch" "scrub-workaround" "model-compiler-script"];
+          outputs = helpers ++ lib.filter (p: (p.manifestEntry.internalUse or null) != null) full.hardware.boards.artifacts;
+        in
+          pkgs.runCommand "beagley-ai-internal-use-notices" {} ''
+            ${lib.concatMapStrings (p: let
+              entry = p.manifestEntry;
+              expected = pkgs.writeText "${entry.id}-expected-interpretation" (boardsLib.internalUseText entry.internalUse);
+            in
+              lib.concatMapStrings (output: ''
+                cmp ${expected} ${p.${output}}/share/licenses/${entry.manifest}-${entry.id}/internal-use-interpretation.txt
+              '')
+              p.outputs)
+            outputs}
+            touch "$out"
+          '';
+
         full-system = full.system.build.toplevel;
         accelerator-vision-dt = vision.system.build.beagleyAiAcceleratorDeviceTreeCheck;
         full-feature-device-trees = pkgs.runCommand "beagley-ai-full-feature-device-trees" {nativeBuildInputs = [pkgs.dtc];} ''

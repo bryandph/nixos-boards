@@ -3,9 +3,14 @@ set -euo pipefail
 
 distribution_name="firmware-imx-8.32-1991416.bin"
 distribution_sha256="11396e5798b62cd61963db806c0c05500887bc62a98e1d16dbc3014aa0c21a2a"
+member_name="wave633c_codec_fw.bin"
+member_path="firmware-imx-8.32-1991416/firmware/vpu/$member_name"
+member_sha256="279960869a8e6f736f4199217454993a2c8bdad4d934d823c6500da99f5fe647"
+member_size="524672"
 
 if [ "$#" -ne 2 ] || [ "$1" != "--accept-license" ]; then
   echo "usage: $0 --accept-license /path/to/$distribution_name" >&2
+  echo "Operator-only: review NXP's terms before accepting and extracting." >&2
   exit 2
 fi
 
@@ -14,14 +19,37 @@ if [ ! -f "$distribution" ]; then
   echo "distribution not found: $distribution" >&2
   exit 1
 fi
-
+for command_name in sha256sum awk stat nix-store sh tar gzip tail; do
+  command -v "$command_name" >/dev/null 2>&1 || {
+    echo "required command not found: $command_name" >&2
+    exit 1
+  }
+done
 actual_sha256=$(sha256sum "$distribution" | awk '{print $1}')
 if [ "$actual_sha256" != "$distribution_sha256" ]; then
   echo "$distribution_name hash mismatch" >&2
   exit 1
 fi
-
-store_path=$(nix-store --add-fixed sha256 "$distribution")
-echo "Imported the fixed-identity NXP distribution as $store_path"
-echo "Only the Wave6 package output selects wave633c_codec_fw.bin."
-echo "Do not publish this store path or a dependent output."
+# Resolve before changing directory. No network acquisition occurs here.
+distribution=$(realpath "$distribution")
+work=$(mktemp -d)
+trap 'rm -rf -- "$work"' EXIT
+(
+  cd "$work"
+  # Only this explicitly invoked operator context runs the vendor extractor.
+  sh "$distribution" --auto-accept --force
+)
+member="$work/$member_path"
+test -f "$member" || { echo "Wave6 member missing" >&2; exit 1; }
+test "$(stat -c %s "$member")" = "$member_size" || {
+  echo "Wave6 member size mismatch" >&2
+  exit 1
+}
+echo "$member_sha256  $member" | sha256sum -c --quiet || {
+  echo "Wave6 member hash mismatch" >&2
+  exit 1
+}
+store_path=$(nix-store --add-fixed sha256 "$member")
+echo "Imported only the pinned Wave6 member as $store_path"
+echo "The raw distribution was not imported. No public publication/cache/upload."
+echo "Only manifest-cleared controlled internal/private forms are eligible; consumer gates still apply."

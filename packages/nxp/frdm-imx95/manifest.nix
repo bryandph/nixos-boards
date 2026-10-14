@@ -29,6 +29,17 @@ _: let
     };
   };
 
+  notices = {
+    nxp = {
+      url = "https://raw.githubusercontent.com/nxp-imx/neutron/${neutronRev}/LICENSE.txt";
+      sha256 = "sha256-MAHPhAGMXLENGDpnj27IqSjHl2FroGs5jXypPAd5qqI=";
+    };
+    neutron = {
+      url = "https://raw.githubusercontent.com/nxp-imx/neutron/${neutronRev}/SW-Content-Register.txt";
+      sha256 = "sha256-o/0AzFeBQeXLTB3sci7KMWDyIJhrWpE3MGp2X9/EXxE=";
+    };
+  };
+
   evidence = {
     agreement = {
       url = nxpAgreement;
@@ -74,11 +85,13 @@ _: let
     how,
     license ? licenses.nxp,
     evidenceFor ? evidence.agreement,
+    noticeFiles ? [notices.nxp],
   }: {
     class = "R2";
     path = file;
     inherit size sha256 layer load features license;
     evidence = evidenceFor;
+    notices = noticeFiles;
     instructions = how;
     # NXP SLA §2.2(a) permits the licensee to reproduce the software for
     # developing an Authorized System solely in combination with an NXP Product,
@@ -104,6 +117,7 @@ _: let
         else "userspace";
       features = ["frdm-imx95-neutron-npu"];
       evidenceFor = evidence.neutron;
+      noticeFiles = [notices.nxp notices.neutron];
       how = ''
         Check out https://github.com/nxp-imx/neutron at ${neutronRev},
         review its LICENSE.txt, then run:
@@ -117,6 +131,13 @@ _: let
       class = "R2";
       license = licenses.nxp;
       evidence = evidence.agreement;
+      notices =
+        [notices.nxp]
+        ++ (
+          if builtins.any (id: builtins.elem id ["neutron-firmware" "neutron-driver" "neutron-driver-header" "neutron-errors-header"]) (attrs.from or [])
+          then [notices.neutron]
+          else []
+        );
       redistribution.private = (attrs.license or licenses.nxp) == licenses.nxp;
     }
     // attrs;
@@ -132,10 +153,10 @@ in {
       lpddr4x-dmem-qb = bootFirmware "lpddr4x_dmem_qb_v202409.bin" 65536 "sha256-uTRKp6ZMffalNzFdu6/E3EuEuwpz/qenmMBZ18HSNqw=";
       lpddr4x-imem = bootFirmware "lpddr4x_imem_v202409.bin" 51860 "sha256-hiW9S9+szfdzRpp/gdiuJw56fsSkUcv0uQ+LvE3COYo=";
       lpddr4x-imem-qb = bootFirmware "lpddr4x_imem_qb_v202409.bin" 25224 "sha256-k5RuLtQUiJwKtHiZwgGDO8GAfLNn5eMTChHAvB9Y7bU=";
-      wave6-distribution = operatorSupplied {
-        file = "firmware-imx-8.32-1991416.bin";
-        size = 2033181;
-        sha256 = "sha256-ETluV5i2LNYZY9uAbAwFUAiHvGKpjh0W28MBSqDCGio=";
+      wave6-codec-member = operatorSupplied {
+        file = "wave633c_codec_fw.bin";
+        size = 524672;
+        sha256 = "sha256-J5lghpqOb3NvQZkhdFSZOiyL2tTZNNgjxlANqZ9f5kc=";
         layer = "runtime-firmware";
         load = "firmware";
         features = ["frdm-imx95-wave6-vpu"];
@@ -232,7 +253,7 @@ in {
         features = ["frdm-imx95-boot-container"];
       };
       wave6-firmware = built {
-        from = ["wave6-distribution"];
+        from = ["wave6-codec-member"];
         layer = "runtime-firmware";
         load = "firmware";
         features = ["frdm-imx95-wave6-vpu"];

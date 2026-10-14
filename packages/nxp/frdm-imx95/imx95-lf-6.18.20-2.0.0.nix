@@ -492,26 +492,28 @@
           archivePath = "firmware-imx-8.32-1991416/firmware/vpu/wave633c_codec_fw.bin";
           installPath = "wave633c_codec_fw.bin";
           installPaths = ["wave633c_codec_fw.bin"];
-          identity = "derived-from-fixed-distribution";
+          expectedSize = 524672;
+          expectedSha256 = "279960869a8e6f736f4199217454993a2c8bdad4d934d823c6500da99f5fe647";
+          identity = "pinned-operator-extracted-member";
           identityRationale = ''
-            The exact member hash and size have not been inspected by an
-            operator. The enclosing distribution has a fixed identity and the
-            package selects this single release-recipe member. Do not invent a
-            member identity; add one only after licensed local inspection.
+            Size and digest were verified from the existing registered output
+            selecting this member from the release-pinned distribution. The
+            operator approved that member pin and an explicit operator-only
+            extraction/import boundary. This is not an independent vendor
+            reacquisition or a grant beyond the recorded NXP terms.
           '';
         };
         localImport = {
-          storePayload = "complete-fixed-distribution";
+          storePayload = "pinned-selected-member";
           packageOutput = "selected-member-only";
           runtimeClosureContainsDistribution = false;
           rationale = ''
-            The standalone member hash and size are not yet available, so the
-            declarative requireFile boundary must identify the complete
-            operator-accepted distribution. The helper therefore adds that
-            fixed distribution to the local store as a build source. The
-            firmware derivation copies only the selected member; its output
-            contains no store-path reference to the source distribution, so
-            systems and images close over only the member package.
+            The operator invokes the helper after reviewing and accepting the
+            terms. It validates the fixed distribution, extracts and verifies
+            the pinned member, and imports only that member. Derivations use
+            requireFile for the member; no builder invokes the vendor extractor
+            or auto-accepts a license, and no raw distribution is in the runtime
+            closure.
           '';
         };
         publicationPolicy = {

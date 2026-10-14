@@ -55,8 +55,9 @@ nix run github:bryandph/nixos-boards#frdm-imx95-convert-neutron-model -- \
 The derivation verifies the wheel and source-model identities, runs two
 conversions with `--force-determinism`, rejects differing results, asserts the
 converted identity pinned in the release mapping, and imports the verified
-model under its pinned file name. Keep the resulting path local unless
-affirmative redistribution authority is established.
+model under its pinned file name. The recorded operator interpretation permits
+only controlled internal/private copies; it is not an explicit vendor grant to
+converter output. No standalone/public redistribution is cleared.
 
 Compose the module only in a dedicated evaluation configuration:
 
@@ -73,6 +74,13 @@ Compose the module only in a dedicated evaluation configuration:
   users.users.<operator>.extraGroups = ["neutron"];
 }
 ```
+
+Bazel dependency archives include toolchain-dependent content. The default
+`hardware.boards.imx95.tensorflowLiteDepsSha256` matches this repository's
+nixpkgs lock. A consumer changing its nixpkgs/toolchain must reverify independent
+samples and supply that option's SRI pin (the package also exposes
+`fetchDepsSha256` through `override`). This interface does not grant broader
+artifact or cache rights.
 
 Aggregate systems and images inherit the unfree, non-redistributable,
 local-build-preferred, substitute-disabled, and Hydra-disabled policy.

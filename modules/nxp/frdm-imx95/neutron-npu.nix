@@ -28,7 +28,10 @@ in {
             else override
           );
       };
-    inherit (scope) tensorflowLite modelSource delegate;
+    inherit (scope) modelSource delegate;
+    tensorflowLite = scope.tensorflowLite.override {
+      fetchDepsSha256 = config.hardware.boards.imx95.tensorflowLiteDepsSha256;
+    };
     smokeRunner = scope.neutronSmokeRunner;
     runtime = scope.neutronRuntime;
     convertedModel = let
@@ -77,6 +80,11 @@ in {
       };
     });
   in {
+    options.hardware.boards.imx95.tensorflowLiteDepsSha256 = lib.mkOption {
+      type = lib.types.strMatching "sha256-.+";
+      default = "sha256-qnuldxLFIW0hB03Pydo+HhjaIeTDbf6gBhxH0XqxACE=";
+      description = "Bazel dependency archive pin for the consumer toolchain; reverify when changing nixpkgs. Does not change artifact licence/cache permission.";
+    };
     config = {
       boot.kernelPackages = lib.mkForce (pkgs.linuxPackagesFor nixosKernel);
       hardware.boards.identity.provider = lib.mkForce kernel.provider;

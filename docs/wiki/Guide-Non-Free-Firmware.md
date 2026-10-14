@@ -191,8 +191,11 @@ protection.
 Hash scanning is deny evidence, not complete producer provenance. A derived,
 rebuilt, historical or copied output whose digest is unrecorded can pass a
 hash-only scan even when its manifest denies caching. Never treat that success
-as permission: affected Beagle output caching stays denied, and publication
-remains held until consumer admission validates exact approved producer roots
-and authoritative closure coverage, default-refusing uncovered outputs. Known
-NXP aggregate hashes are recorded to deny those forms publicly; that does not
-clear every possible derived form or replace the admission gate.
+as permission: affected Beagle output caching stays denied. A private CI
+consumer can additionally admit only frozen reviewed producer generations,
+exact approved roots and complete authoritative closures, default-refusing
+uncovered outputs. That consumer admission does not clear the public lane,
+which still requires its own separately proven publication boundary. Known
+NXP aggregate hashes and exported all-output identities are additional deny
+evidence, not complete detection of every copied or historical form. The
+public scanner CLI is not a consumer allowlist or an authorization service.

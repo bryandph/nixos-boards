@@ -27,7 +27,7 @@ in {
     boot = {
       kernelPackages = lib.mkDefault (pkgs.linuxPackagesFor (boardsLib.withProvider "mainline" pkgs.linuxPackages_latest.kernel));
       consoleLogLevel = lib.mkDefault 7;
-      supportedFilesystems = [
+      supportedFilesystems = lib.mkDefault [
         "ext4"
         "vfat"
       ];

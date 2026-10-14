@@ -249,9 +249,10 @@ in {
               package = unfreePkgs.stdenvNoCC.mkDerivation {
                 pname = name "operator-tool";
                 version = "1.0";
+                outputs = ["out" "dev"];
                 dontUnpack = true;
                 installPhase = ''
-                  mkdir -p "$out"
+                  mkdir -p "$out" "$dev"
                   ${lib.optionalString hook "runHook postInstall"}
                 '';
               };
@@ -278,6 +279,8 @@ in {
           assert expect (errors licensedBuildOutput != []) "derived licensed build grant cannot be laundered from interpreted inputs";
           assert expect (failsToEval (customInstall false).drvPath) "custom installPhase without notice hook fails closed";
           assert expect (!(failsToEval (customInstall true).drvPath)) "custom installPhase with notice hook validates";
+          assert expect (map (e: e.output) (boardsLib.artifactOutputIdentities [(customInstall true)]) == ["out" "dev"]) "deny identities include every output without a build";
+          assert expect (lib.all (e: !e.redistribution.private && !e.redistribution.cache) (boardsLib.artifactOutputIdentities [(customInstall true)])) "all output identities preserve denied forms";
           assert expect (lib.all (field: errors (changedArtifact {internalUse = interpretation // {${field} = " \t\n";};}) != []) ["target" "rationale" "uncertainty"]) "whitespace-only interpretation text fails closed";
           assert expect (lib.all (field: errors (changedArtifact {internalUse = interpretation // {evidence = interpretation.evidence // {${field} = " \t\n";};};}) != []) ["url" "location"]) "whitespace-only evidence fails closed";
           assert expect (errors privateOutput != []) "derived private permission cannot exceed helper inputs";
@@ -288,6 +291,7 @@ in {
               grep -F 'NOT an express vendor grant' ${a}/share/licenses/test-board-operator-fw/internal-use-interpretation.txt
               grep -F 'NOT an express vendor grant' ${b}/share/licenses/test-board-operator-tool/internal-use-interpretation.txt
               grep -F 'NOT an express vendor grant' ${customInstall true}/share/licenses/test-board-operator-tool/internal-use-interpretation.txt
+              grep -F 'NOT an express vendor grant' ${(customInstall true).dev}/share/licenses/test-board-operator-tool/internal-use-interpretation.txt
               touch "$out"
             '';
 

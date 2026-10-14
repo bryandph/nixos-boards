@@ -9,7 +9,7 @@ in
   pkgs:
     pkgs.lib.makeScope pkgs.newScope (self: {
       frdmArtifact = id: boardsLib.mkArtifact {inherit pkgs manifest id;};
-      frdmBuilt = id: package: boardsLib.mkBuilt {inherit manifest id package;};
+      frdmBuilt = id: package: boardsLib.mkBuilt {inherit pkgs manifest id package;};
       release = import (dir + "/imx95-lf-6.18.20-2.0.0.nix") {inherit (pkgs) lib;};
 
       # Boot chain.
