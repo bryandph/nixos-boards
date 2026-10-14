@@ -31,21 +31,30 @@
   - [Boot and recovery](Turing-RK1-Boot-and-Recovery)
   - [Firmware](Turing-RK1-Firmware)
   - [Free vs non-free](Turing-RK1-Free-vs-NonFree)
+
 - [Orange Pi 5](Orange-Pi-5)
   - [Hardware matrix](Orange-Pi-5-Hardware-Matrix)
   - [Boot and recovery](Orange-Pi-5-Boot-and-Recovery)
   - [Firmware](Orange-Pi-5-Firmware)
   - [Free vs non-free](Orange-Pi-5-Free-vs-NonFree)
+
 - [Orange Pi 5 Plus](Orange-Pi-5-Plus)
   - [Hardware matrix](Orange-Pi-5-Plus-Hardware-Matrix)
   - [Boot and recovery](Orange-Pi-5-Plus-Boot-and-Recovery)
   - [Firmware](Orange-Pi-5-Plus-Firmware)
   - [Free vs non-free](Orange-Pi-5-Plus-Free-vs-NonFree)
+
 - [ROCK 5A](ROCK-5A)
   - [Hardware matrix](ROCK-5A-Hardware-Matrix)
   - [Boot and recovery](ROCK-5A-Boot-and-Recovery)
   - [Firmware](ROCK-5A-Firmware)
   - [Free vs non-free](ROCK-5A-Free-vs-NonFree)
+
+- [Dragon Q8B](Dragon-Q8B)
+  - [Hardware matrix](Dragon-Q8B-Hardware-Matrix)
+  - [Boot and recovery](Dragon-Q8B-Boot-and-Recovery)
+  - [Firmware](Dragon-Q8B-Firmware)
+  - [Free vs non-free](Dragon-Q8B-Free-vs-NonFree)
 
 **SoCs**
 
@@ -55,11 +64,3 @@
 
 - [Adding a board](Guide-Adding-a-Board)
 - [Non-free firmware](Guide-Non-Free-Firmware)
-
-**Radxa Dragon Q8B**
-
-- [Overview](Dragon-Q8B)
-- [Boot and recovery](Dragon-Q8B-Boot-and-Recovery)
-- [Hardware matrix](Dragon-Q8B-Hardware-Matrix)
-- [Firmware](Dragon-Q8B-Firmware)
-- [Free vs non-free](Dragon-Q8B-Free-vs-NonFree)
