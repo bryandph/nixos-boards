@@ -182,6 +182,13 @@
   # free) and redistributable when `redistributable` is true.
   nixpkgsFree = l: builtins.isAttrs l && (l.free or true);
   nixpkgsRedistributable = l: builtins.isAttrs l && (l.redistributable or (l.free or true));
+  # Nixpkgs permits some non-free firmware in allowUnfree=false profiles.
+  # That profile convention does not make a vendor artifact R0/FOSS.
+  fossLicense = l:
+    builtins.isAttrs l
+    && l ? spdxId
+    && nixpkgsFree l
+    && lib.any (known: (known.spdxId or null) == l.spdxId && nixpkgsFree known) (builtins.attrValues lib.licenses);
 
   # nixpkgs configuration of every free profile (D7): nixpkgs' own default.
   freeNixpkgsConfig = {allowUnfree = false;};
@@ -200,7 +207,7 @@
       ++ err (a.size == null) "size is required"
       ++ err (!lib.all isSri a.derivedHashes) "derivedHashes must be SRI sha256 hashes"
       ++ err (a.class != "R0" && a.evidence == null) "non-free artifacts require license evidence"
-      ++ err (a.class == "R0" && a.license != null && !(nixpkgsFree a.license)) "R0 requires a free license"
+      ++ err (a.class == "R0" && a.license != null && !(fossLicense a.license)) "R0 requires a recognized free SPDX license"
       ++ err (a.class == "R1" && a.license != null && !(nixpkgsRedistributable a.license)) "R1 requires a license nixpkgs marks redistributable"
       ++ err (a.class != "R2" && a.url == null) "${a.class} requires a pinned url"
       ++ err (a.class == "R1" && !r.file) "R1 requires redistribution.file"
@@ -275,7 +282,6 @@
         # the generated unfree predicate cover the source too.
         (pkgs.requireFile {
           name = fileName;
-          meta = {inherit license;};
           hash = a.sha256;
           message = ''
             ${pname} is operator-supplied (class R2) and cannot be downloaded
@@ -286,16 +292,22 @@
             Then add it to the Nix store:
               nix-store --add-fixed sha256 ${fileName}
           '';
-        }).overrideAttrs {inherit pname;}
+        }).overrideAttrs (old: {
+          inherit pname;
+          meta = (old.meta or {}) // {inherit license;};
+        })
       else
         fetchFile {
           inherit (a) url;
           hash = a.sha256;
           name = fileName;
         };
+    # Query strings (e.g. cgit's `?id=`) are not part of the file name and
+    # are not valid in FAT boot partitions.
+    noticeName = url: lib.head (lib.splitString "?" (baseNameOf url));
     notices =
       lib.imap0 (i: n: {
-        name = "${toString i}-${baseNameOf n.url}";
+        name = "${toString i}-${noticeName n.url}";
         file = fetchFile {
           inherit (n) url;
           hash = n.sha256;
