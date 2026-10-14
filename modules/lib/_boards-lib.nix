@@ -483,23 +483,24 @@
         dontFixup = true;
         allowSubstitutes = a.class != "R2";
         preferLocalBuild = a.class == "R2";
-        installPhase = ''
-          runHook preInstall
-          test "$(stat -c %s ${src})" = ${toString a.size} \
-            || { echo "${pname}: size differs from the release manifest" >&2; exit 1; }
-          echo "${hex a.sha256}  ${src}" | sha256sum -c --quiet \
-            || { echo "${pname}: sha256 differs from the release manifest" >&2; exit 1; }
-          install -Dm444 ${src} "$out/${a.path}"
-          ${lib.concatMapStrings (n: ''
-              install -Dm444 ${n.file} "$out/share/licenses/${pname}/${n.name}"
-            '')
-            notices}
-          ${lib.optionalString (a.internalUse != null) ''
+        installPhase =
+          ''
+            runHook preInstall
+            test "$(stat -c %s ${src})" = ${toString a.size} \
+              || { echo "${pname}: size differs from the release manifest" >&2; exit 1; }
+            echo "${hex a.sha256}  ${src}" | sha256sum -c --quiet \
+              || { echo "${pname}: sha256 differs from the release manifest" >&2; exit 1; }
+            install -Dm444 ${src} "$out/${a.path}"
+            ${lib.concatMapStrings (n: ''
+                install -Dm444 ${n.file} "$out/share/licenses/${pname}/${n.name}"
+              '')
+              notices}
+            runHook postInstall
+          ''
+          + lib.optionalString (a.internalUse != null) ''
             mkdir -p "$out/share/licenses/${pname}"
             printf '%s' ${lib.escapeShellArg (internalUseText a.internalUse)} > "$out/share/licenses/${pname}/internal-use-interpretation.txt"
-          ''}
-          runHook postInstall
-        '';
+          '';
         passthru.manifestEntry = {
           manifest = manifest.name;
           inherit id;
