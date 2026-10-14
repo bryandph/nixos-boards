@@ -151,8 +151,25 @@ nixpkgs.config.allowUnfreePredicate = inputs.nixos-boards.lib.unfreePredicate "d
 
 ## Publication
 
-The public cache is `bph.cachix.org`. CI publishes to it from the default
-branch after two gates pass:
+The public cache is `bph.cachix.org`. Publication is default-deny. The
+`publish` and `wiki` workflows admit only the current `main` commit whose
+full 40-character SHA exactly matches the operator-controlled repository
+variable `PUBLIC_RELEASE_SHA`. Missing, malformed or mismatched approval
+refuses release. Both native `check` matrix jobs must have succeeded for
+that **same SHA** in a completed `main` push run; PR checks, skipped jobs,
+older green runs superseded by failed retries, and arbitrary-ref manual
+dispatches do not qualify. Actions are pinned to immutable revisions and
+checkout uses the admitted SHA without persisted credentials.
+
+A completed `check` workflow can trigger admission; a manual retry on
+`main` passes the same gates, never bypasses them. Admission is checked
+again immediately before the write. Approval is necessary, not a license
+grant or a replacement for closure policy. Preparing these workflows does
+not approve any commit or authorize publication. Keep the variable unset
+until a separately authorized release; do not use PR-controlled inputs to
+supply it. A new main SHA needs its own approval and successful checks.
+
+After admission, cache publication still requires both content gates:
 
 1. **Evaluation.** The public push set,
    `legacyPackages.<system>.publicPushSet.<board>`, contains:

@@ -3,26 +3,73 @@ name: wiki
 # Mirrors docs/wiki to the GitHub wiki. The wiki repository exists only
 # after its first page has been created in the web interface.
 on:
-  push:
+  workflow_run:
+    workflows: [check]
+    types: [completed]
     branches: [main]
-    paths: ["docs/wiki/**"]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: wiki
   cancel-in-progress: false
 
 jobs:
+  release-gate:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      vars.PUBLIC_RELEASE_SHA != '' &&
+      vars.PUBLIC_RELEASE_SHA == (github.event.workflow_run.head_sha || github.sha) &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      sha: ${{ steps.admit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - name: Admit only approved main with same-SHA successful checks
+        id: admit
+        env:
+          APPROVED_RELEASE_SHA: ${{ vars.PUBLIC_RELEASE_SHA }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          python3 .github/scripts/release_gate.py
   mirror:
+    needs: release-gate
+    permissions:
+      contents: write
+      actions: read
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ needs.release-gate.outputs.sha }}
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
+      - name: Check generated docs and wiki links before mirroring
+        run: nix build -L .#checks.x86_64-linux.docs-drift .#checks.x86_64-linux.wiki-links --no-link --builders '' --option extra-platforms ''
+      - name: Recheck release admission immediately before mirroring
+        env:
+          APPROVED_RELEASE_SHA: ${{ vars.PUBLIC_RELEASE_SHA }}
+          RELEASE_SHA: ${{ needs.release-gate.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/release_gate.py
       - name: Mirror docs/wiki
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.release-gate.outputs.sha }}
         run: |
           git clone "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" wiki
           rsync -a --delete --exclude .git docs/wiki/ wiki/
@@ -34,5 +81,5 @@ jobs:
           fi
           git -c user.name="github-actions[bot]" \
             -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-            commit -m "Mirror docs/wiki from ${GITHUB_SHA}"
+            commit -m "Mirror docs/wiki from ${RELEASE_SHA}"
           git push
