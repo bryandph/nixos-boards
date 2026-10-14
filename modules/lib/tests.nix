@@ -149,6 +149,95 @@ in {
           assert expect (!(failsToEval r2.drvPath)) "R2 artifact must evaluate to a requireFile build";
             pkgs.runCommand "nixos-boards-lib-manifests" {} "touch $out";
 
+        lib-internal-use = let
+          interpretation = {
+            accepted = true;
+            target = "Synthetic TI-device internal build";
+            rationale = "Pinned published build flow; bounded intended-use evidence, not a grant.";
+            uncertainty = "No independently established helper redistribution grant.";
+            evidence = {
+              url = "https://example.invalid/pinned-source";
+              retrieved = "2026-10-14";
+              location = "Synthetic source/use evidence, not license terms.";
+            };
+          };
+          raw =
+            data.valid
+            // {
+              artifacts =
+                data.valid.artifacts
+                // {
+                  operator-fw =
+                    data.valid.artifacts.operator-fw
+                    // {
+                      redistribution = {};
+                      internalUse = interpretation;
+                    };
+                };
+              built =
+                data.valid.built
+                // {
+                  operator-tool = data.valid.built.operator-tool // {internalUse = interpretation;};
+                };
+            };
+          m = boardsLib.evalManifest "test-board" raw;
+          changedArtifact = attrs:
+            boardsLib.evalManifest "test-board" (raw
+              // {
+                artifacts = raw.artifacts // {operator-fw = raw.artifacts.operator-fw // attrs;};
+              });
+          errors = x: boardsLib.manifestErrors x;
+          a = boardsLib.mkArtifact {
+            pkgs = unfreePkgs;
+            manifest = m;
+            id = "operator-fw";
+            inherit fetch;
+          };
+          b = boardsLib.mkBuilt {
+            manifest = m;
+            id = "operator-tool";
+            package = unfreePkgs.runCommand (name "operator-tool") {} ''mkdir -p "$out"'';
+          };
+          privateOutput = boardsLib.evalManifest "test-board" (raw
+            // {
+              built =
+                raw.built
+                // {
+                  operator-tool =
+                    raw.built.operator-tool
+                    // {
+                      internalUse = null;
+                      redistribution.private = true;
+                    };
+                };
+            });
+          noInputAcceptance = changedArtifact {internalUse = null;};
+          system =
+            (inputs.nixpkgs.lib.nixosSystem {
+              modules = [testCore {hardware.boards.artifacts = [a b];}];
+            }).config.hardware.boards.publication;
+        in
+          assert expect (errors m == []) "accepted internal interpretation must validate";
+          assert expect (a.manifestEntry.internalBuild && b.manifestEntry.internalBuild) "interpretation permits internal builds";
+          assert expect (!a.manifestEntry.redistribution.build && !b.manifestEntry.redistribution.build) "interpretation must not masquerade as licensed build permission";
+          assert expect (!a.meta.license.redistributable && !b.meta.license.redistributable) "interpretation must not set license redistributable";
+          assert expect (system.build && !system.private && builtins.length system.blocking == 2) "internal builds remain cache-blocked";
+          assert expect (lib.all (form: !a.manifestEntry.redistribution.${form} && !b.manifestEntry.redistribution.${form}) ["file" "image" "cache" "private"]) "all affected redistribution forms stay denied";
+          assert expect (errors (changedArtifact {internalUse = interpretation // {accepted = false;};}) != []) "missing explicit acceptance fails closed";
+          assert expect (errors (changedArtifact {internalUse = interpretation // {rationale = "";};}) != []) "missing rationale fails closed";
+          assert expect (errors (changedArtifact {internalUse = interpretation // {uncertainty = "";};}) != []) "missing uncertainty fails closed";
+          assert expect (errors (changedArtifact {internalUse = interpretation // {evidence = interpretation.evidence // {url = "";};};}) != []) "missing source evidence fails closed";
+          assert expect (lib.all (form: errors (changedArtifact {redistribution.${form} = true;}) != []) ["file" "image" "cache" "private" "build"]) "interpretation may not coexist with redistribution grants";
+          assert expect (errors privateOutput != []) "derived private permission cannot exceed helper inputs";
+          assert expect (errors noInputAcceptance != []) "derived internal build cannot exceed helper inputs";
+          assert expect (builtins.elem (data.sri data.contents."operator.bin") (boardsLib.nonPrivateHashes [m])) "helper remains in private scanner deny hashes";
+          assert expect (builtins.elem (data.sri data.contents."operator.bin") (boardsLib.nonCacheableHashes [m])) "helper remains in public scanner deny hashes";
+            pkgs.runCommand "nixos-boards-lib-internal-use" {} ''
+              grep -F 'NOT an express vendor grant' ${a}/share/licenses/test-board-operator-fw/internal-use-interpretation.txt
+              grep -F 'NOT an express vendor grant' ${b}/share/licenses/test-board-operator-tool/internal-use-interpretation.txt
+              touch "$out"
+            '';
+
         lib-built = let
           bundle = p:
             boardsLib.mkBuilt {

@@ -61,8 +61,68 @@
     redistributionDescriptions;
   };
 
+  # A recorded risk interpretation is not a copyright-holder grant and never
+  # supplies redistribution forms. It permits only controlled internal builds.
+  internalUseType = types.submodule {
+    options = {
+      accepted = mkOption {
+        type = types.bool;
+        default = false;
+        description = "The operator explicitly accepted this bounded interpretation.";
+      };
+      target = mkOption {
+        type = types.str;
+        description = "Device/use boundary of the interpretation.";
+      };
+      rationale = mkOption {
+        type = types.str;
+        description = "Evidence-based reason for accepting internal use; not an express vendor grant.";
+      };
+      uncertainty = mkOption {
+        type = types.str;
+        description = "Unresolved rights uncertainty retained by the operator.";
+      };
+      evidence = mkOption {
+        type = evidenceType;
+        description = "Pinned source evidence supporting the interpretation, not a grant.";
+      };
+    };
+  };
+  internalUseOption = mkOption {
+    type = types.nullOr internalUseType;
+    default = null;
+    description = "Explicit operator-accepted internal-build interpretation, separate from license grants; no cache or redistribution permission.";
+  };
+  internalBuildPermitted = entry:
+    buildPermitted entry.redistribution
+    || (entry.internalUse != null && entry.internalUse.accepted);
+  internalUseErrors = at: entry: let
+    i = entry.internalUse;
+    r = entry.redistribution;
+    err = cond: msg: lib.optional cond "${at}: ${msg}";
+  in
+    lib.optionals (i != null) (
+      err (!i.accepted) "internal-use interpretation requires explicit operator acceptance"
+      ++ err (entry.class != "R2") "internal-use interpretation is restricted to R2"
+      ++ err (lib.any (form: r.${form}) ["file" "image" "cache" "private" "build"]) "internal-use interpretation cannot supply or accompany redistribution grants"
+      ++ err (i.target == "" || i.rationale == "" || i.uncertainty == "" || i.evidence.url == "" || i.evidence.location == "") "internal-use interpretation requires target, rationale, uncertainty and source evidence"
+    );
+  internalUseText = i: ''
+    Operator-accepted internal-build interpretation (NOT an express vendor grant)
+    Target: ${i.target}
+    Rationale: ${i.rationale}
+    Uncertainty: ${i.uncertainty}
+    Evidence: ${i.evidence.url}
+    Location: ${i.evidence.location}
+    Retrieved: ${i.evidence.retrieved}
+    Controlled internal builders only. No standalone file, image, public cache
+    or private cache permission. Derived output caching remains denied pending
+    a separate rights assessment and approved policy change.
+  '';
+
   artifactType = types.submodule {
     options = {
+      internalUse = internalUseOption;
       status = mkOption {
         type = types.enum ["adopted" "blocked"];
         default = "adopted";
@@ -147,6 +207,7 @@
   # and its class is at least as restrictive as every artifact it uses.
   builtType = types.submodule {
     options = {
+      internalUse = internalUseOption;
       class = mkOption {
         type = types.enum classes;
         description = "Class of the built package; at least the strictest class of `from`.";
@@ -254,7 +315,8 @@
     if a.status == "blocked"
     then err (a.blockedReason == null) "blocked artifacts must name a blockedReason"
     else
-      err (a.license == null) "license is required"
+      internalUseErrors at a
+      ++ err (a.license == null) "license is required"
       ++ err (a.license != null && !(a.license ? free)) "license must state `free`"
       ++ err (!(isSri a.sha256)) "sha256 must be an SRI sha256 hash"
       ++ err (a.size == null) "size is required"
@@ -277,14 +339,15 @@
     r = b.redistribution;
     inputs = map (i: manifest.artifacts.${i} or null) b.from;
   in
-    err (manifest.artifacts ? ${id}) "an artifact and a built package share the identifier"
+    internalUseErrors at b
+    ++ err (manifest.artifacts ? ${id}) "an artifact and a built package share the identifier"
     ++ lib.concatMap (i: err (!(manifest.artifacts ? ${i})) "built from unknown artifact ${i}") b.from
     ++ lib.concatMap (i: err ((manifest.artifacts.${i}.status or "") == "blocked") "built from blocked artifact ${i}") b.from
     ++ err (lib.any (a: a != null && classRank a.class > classRank b.class) inputs) "class ${b.class} is less restrictive than an artifact it is built from"
     ++ lib.concatMap (form:
       err (r.${form} && lib.any (a: a != null && a.class != "R0" && !a.redistribution.${form}) inputs)
       "redistribution.${form} is not permitted by every artifact it is built from") ["file" "image" "cache" "private"]
-    ++ err (buildPermitted r && lib.any (a: a != null && a.class != "R0" && !(buildPermitted a.redistribution)) inputs)
+    ++ err (internalBuildPermitted b && lib.any (a: a != null && a.class != "R0" && !(internalBuildPermitted a)) inputs)
     "internal build copies are not permitted by every artifact it is built from"
     ++ err (b.license == null) "license is required"
     ++ err (b.license != null && !(b.license ? free)) "license must state `free`"
@@ -430,13 +493,18 @@
               install -Dm444 ${n.file} "$out/share/licenses/${pname}/${n.name}"
             '')
             notices}
+          ${lib.optionalString (a.internalUse != null) ''
+            mkdir -p "$out/share/licenses/${pname}"
+            printf '%s' ${lib.escapeShellArg (internalUseText a.internalUse)} > "$out/share/licenses/${pname}/internal-use-interpretation.txt"
+          ''}
           runHook postInstall
         '';
         passthru.manifestEntry = {
           manifest = manifest.name;
           inherit id;
           inherit (manifest) provider;
-          inherit (a) class layer load path sha256 derivedHashes features;
+          inherit (a) class layer load path sha256 derivedHashes features internalUse;
+          internalBuild = internalBuildPermitted a;
           redistribution = {
             inherit (a.redistribution) file image cache private;
             build = buildPermitted a.redistribution;
@@ -470,7 +538,26 @@
     else if lib.getName package != name
     then throw "${manifest.name}.${id}: the package is named ${lib.getName package}, not ${name}"
     else
-      package.overrideAttrs (old: {
+      package.overrideAttrs (old: let
+        notice = lib.optionalString (b.internalUse != null) ''
+          mkdir -p "$out/share/licenses/${name}"
+          printf '%s' ${lib.escapeShellArg (internalUseText b.internalUse)} > "$out/share/licenses/${name}/internal-use-interpretation.txt"
+        '';
+      in {
+        # runCommand uses buildCommand rather than the standard install phase.
+        ${
+          if b.internalUse == null
+          then null
+          else if old ? buildCommand
+          then "buildCommand"
+          else "postInstall"
+        } =
+          (
+            if old ? buildCommand
+            then old.buildCommand
+            else old.postInstall or ""
+          )
+          + notice;
         passthru =
           (old.passthru or {})
           // {
@@ -478,7 +565,8 @@
               manifest = manifest.name;
               inherit id;
               inherit (manifest) provider;
-              inherit (b) class layer load features from;
+              inherit (b) class layer load features from internalUse;
+              internalBuild = internalBuildPermitted b;
               built = true;
               path = null;
               sha256 = null;
@@ -537,6 +625,11 @@
             exit 2
             ;;
         esac
+        ${lib.concatMapStrings (e:
+          lib.optionalString (e.a.internalUse != null) ''
+            printf '%s\n' ${lib.escapeShellArg ("${e.manifest}.${e.id}:\n" + internalUseText e.a.internalUse)}
+          '')
+        entries}
         records=(
         ${lib.concatMapStringsSep "\n" (e: "  ${lib.escapeShellArg (record e)}") entries}
         )
@@ -860,7 +953,14 @@
             ])
             m.built)
         ))
-      manifests;
+      manifests
+      + (let
+        interpretations = lib.filter (a: a.internalUse != null) artifacts;
+      in
+        lib.optionalString (interpretations != []) (
+          "\n## Internal build interpretations\n\nThese are operator-accepted interpretations, not express vendor grants. Only controlled internal builders for the recorded target are permitted. Standalone helper publication and all affected output caching remain denied.\n\n"
+          + lib.concatMapStringsSep "\n" (a: "### `${a.manifest}.${a.id}`\n\n" + internalUseText a.internalUse) interpretations
+        ));
 
     "${page}-Free-vs-NonFree.md" =
       generatedHeader
@@ -954,6 +1054,7 @@ in {
     nonCacheableHashes
     nonPrivateHashes
     buildPermitted
+    internalBuildPermitted
     namePredicate
     mkArtifact
     freeNixpkgsConfig

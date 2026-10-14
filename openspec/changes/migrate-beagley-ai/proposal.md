@@ -8,9 +8,13 @@ TIDL tooling and a compiled model. Much of it is not a single firmware file
 but a package built from SDK archives, tools and TI-licensed source
 repositories. The conventions cover fetched artifacts only, so built
 packages would escape the generated unfree lists and the publication gates.
-Some inputs (the TIDL tools archive, the RegNet model, the `tidlruntime`
-wheel, and patches and scripts from a repository without a license) have no
-established redistribution grant and must be operator-supplied.
+The TIDL tools archive, RegNet model and `tidlruntime` wheel are
+operator-supplied with separately established upstream terms and installed
+notices. Four pinned TI Sandbox patches/helpers remain operator-supplied:
+their independent source/helper grant remains inferential, despite published
+TI-target use and relevant TI source-header/package license evidence. The
+operator accepts only documented internal TI-target use and controlled
+builder copies, not standalone redistribution or affected output caching.
 
 ## What Changes
 
@@ -28,6 +32,23 @@ established redistribution grant and must be operator-supplied.
 - Migrate the BeagleY-AI (TI AM67A/J722S) from `nixos-beagley-ai`, with
   every non-free input classified after a licensing review (recorded on
   LAB-148).
+
+## Internal-build-only closeout
+
+- Manifests record an explicit `internalUse` interpretation separately from
+  license grants: acceptance, TI-device/use boundary, pinned evidence,
+  rationale and unresolved uncertainty. It does not set licensed `build` or
+  license `redistributable=true`.
+- All four helper standalone forms and all eight affected derived-package
+  file/image/public/private-cache forms remain denied. Unaffected established
+  licensed outputs retain their existing eligibility.
+- All input restrictions remain transitive; no build-only/incorporated-input
+  distinction or blanket output clearance is introduced. Generated headers,
+  device trees, models and runtime/dev contents need separate assessment before
+  any future caching decision.
+- Interpretation notices accompany helper and affected package outputs and
+  generated documentation. Fail-closed regressions verify acceptance/evidence,
+  propagation, denied cache forms and unaffected grants. Full features remain.
 
 ## Impact
 

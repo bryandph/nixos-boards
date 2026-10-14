@@ -4,7 +4,17 @@
 Defines how non-free artifacts are admitted: the license is established first, every artifact is classed R0, R1 or R2 and recorded in a release manifest with its provenance and permitted redistribution, and free and full profiles follow nixpkgs' license semantics.
 ## Requirements
 ### Requirement: License established before packaging
-A non-free artifact MUST NOT be packaged until its license has been established from evidence recorded in a release manifest. An artifact without an established license SHALL be listed in the manifest as `blocked: licensing` and SHALL NOT be fetched by any derivation.
+A non-free artifact MUST NOT be packaged until its license has been established from evidence recorded in a release manifest, except for the bounded internal-build interpretation below. Otherwise an artifact without an established license SHALL be listed as `blocked: licensing` and SHALL NOT be fetched by any derivation. Operator acceptance MUST NOT be represented as an express copyright-holder grant.
+
+An R2 entry MAY separately record an explicitly accepted `internalUse` interpretation with a device/use target, evidence-based rationale, pinned source evidence and unresolved rights uncertainty. This permits only controlled internal builders for that target, not licensed redistribution. Every `redistribution` form (`file`, `image`, `cache`, `private`, `build`) MUST remain false for such an entry; its license MUST NOT be promoted to redistributable on the basis of operator acceptance. Built entries using this interpretation remain R2 and cache-denied. No distinction between build-only and incorporated inputs is introduced: internal build eligibility and all redistribution restrictions remain transitive across every `from` input. Any later output permission requires a separately approved rights assessment and policy revision.
+
+#### Scenario: Published TI-target helper with inferential rights
+- **WHEN** the operator explicitly accepts an evidence-backed internal TI-device-use interpretation for an R2 helper whose independent grant remains inferential
+- **THEN** the manifest records that uncertainty separately from grants, controlled target-specific internal builds are eligible, and standalone helper and affected output file/image/public/private-cache forms remain denied
+
+#### Scenario: Interpretation without acceptance or combined with cache clearance
+- **WHEN** an internal-use record lacks acceptance, target, rationale, uncertainty or source evidence, or accompanies any redistribution grant
+- **THEN** manifest validation fails closed
 
 #### Scenario: Vendor firmware with a contradictory license label
 - **WHEN** a vendor package labels proprietary firmware with a free license and no grant from the copyright holder is found

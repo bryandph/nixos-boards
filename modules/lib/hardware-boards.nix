@@ -106,7 +106,9 @@ in {
           description = ''
             Whether this system may be built on the licensee's internal build
             machines other than the one that imported its operator-supplied
-            artifacts. When false, build it where those artifacts were imported
+            artifacts, under recorded grants or a separate operator-accepted
+            internal-use interpretation (not an express vendor grant). Neither
+            route grants output cache permission. When false, build it where those artifacts were imported
             (each build machine may import them itself).
           '';
         };
@@ -116,10 +118,10 @@ in {
           default = map (p: "${p.manifestEntry.manifest}.${p.manifestEntry.id}") (lib.filter (p:
             p ? manifestEntry
             && p.manifestEntry.class != "R0"
-            && !p.manifestEntry.redistribution.build)
+            && !(p.manifestEntry.internalBuild or p.manifestEntry.redistribution.build))
           cfg.artifacts);
           defaultText = lib.literalExpression "non-R0 artifacts without internal build permission";
-          description = "Manifest artifacts and built packages whose licenses do not permit internal build copies.";
+          description = "Manifest artifacts and built packages without licensed internal build permission or an explicit evidence-backed operator-accepted internal-build interpretation. Neither status supplies cache permission.";
         };
         private = mkOption {
           type = types.bool;

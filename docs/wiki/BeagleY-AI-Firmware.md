@@ -59,3 +59,163 @@ Packages built from the artifacts above or from other pinned sources.
 | `uboot-a53` | R1 | LicenseRef-TI-Text-File | `tifs-enc`, `tifs-cert`, `dm-firmware`, BeagleBoard U-Boot 2025.07 (GPL-2.0-or-later), TI TF-A 11.00.09 (BSD-3-Clause), OP-TEE 4.6.0 (BSD-2-Clause) | boot-firmware | boot-image | file, image, private | [LICENSE.ti, Limited License: binary redistribution without modification](https://git.ti.com/cgit/processor-firmware/ti-linux-firmware/plain/LICENSE.ti?id=d528873a75e532075a1fd5d2a53defef98d60437), 2026-10-12 |
 | `uboot-r5` | R1 | LicenseRef-TI-Text-File | `tifs-enc`, `tifs-cert`, `dm-firmware`, BeagleBoard U-Boot 2025.07 (GPL-2.0-or-later) | boot-firmware | boot-image | file, image, private | [LICENSE.ti, Limited License: binary redistribution without modification](https://git.ti.com/cgit/processor-firmware/ti-linux-firmware/plain/LICENSE.ti?id=d528873a75e532075a1fd5d2a53defef98d60437), 2026-10-12 |
 | `wireless-firmware` | R1 | LicenseRef-TI-connectivity | `cc33xx-loader`, `cc33xx-fw`, `cc33xx-conf` | runtime-firmware | firmware | file, image, private | [LICENCE.ti-connectivity, Limited License: binary redistribution without modification](https://gitlab.com/kernel-firmware/linux-firmware/-/raw/20250808/LICENCE.ti-connectivity), 2026-10-12 |
+
+## Internal build interpretations
+
+These are operator-accepted interpretations, not express vendor grants. Only controlled internal builders for the recorded target are permitted. Standalone helper publication and all affected output caching remain denied.
+
+### `beagley-ai.accelerator-firmware`
+
+Operator-accepted internal-build interpretation (NOT an express vendor grant)
+Target: Controlled internal builders producing BeagleY-AI J722S TI-device outputs only
+Rationale: TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.
+Uncertainty: The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.
+Evidence: https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016
+Location: Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.
+Retrieved: 2026-10-14
+Controlled internal builders only. No standalone file, image, public cache
+or private cache permission. Derived output caching remains denied pending
+a separate rights assessment and approved policy change.
+
+### `beagley-ai.accelerator-runtime`
+
+Operator-accepted internal-build interpretation (NOT an express vendor grant)
+Target: Controlled internal builders producing BeagleY-AI J722S TI-device outputs only
+Rationale: TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.
+Uncertainty: The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.
+Evidence: https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016
+Location: Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.
+Retrieved: 2026-10-14
+Controlled internal builders only. No standalone file, image, public cache
+or private cache permission. Derived output caching remains denied pending
+a separate rights assessment and approved policy change.
+
+### `beagley-ai.disable-cpsw-patch`
+
+Operator-accepted internal-build interpretation (NOT an express vendor grant)
+Target: Controlled internal builders producing BeagleY-AI J722S TI-device outputs only
+Rationale: TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.
+Uncertainty: The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.
+Evidence: https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016
+Location: Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.
+Retrieved: 2026-10-14
+Controlled internal builders only. No standalone file, image, public cache
+or private cache permission. Derived output caching remains denied pending
+a separate rights assessment and approved policy change.
+
+### `beagley-ai.edgeai-gstreamer`
+
+Operator-accepted internal-build interpretation (NOT an express vendor grant)
+Target: Controlled internal builders producing BeagleY-AI J722S TI-device outputs only
+Rationale: TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.
+Uncertainty: The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.
+Evidence: https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016
+Location: Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.
+Retrieved: 2026-10-14
+Controlled internal builders only. No standalone file, image, public cache
+or private cache permission. Derived output caching remains denied pending
+a separate rights assessment and approved policy change.
+
+### `beagley-ai.edgeai-libraries`
+
+Operator-accepted internal-build interpretation (NOT an express vendor grant)
+Target: Controlled internal builders producing BeagleY-AI J722S TI-device outputs only
+Rationale: TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.
+Uncertainty: The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.
+Evidence: https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016
+Location: Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.
+Retrieved: 2026-10-14
+Controlled internal builders only. No standalone file, image, public cache
+or private cache permission. Derived output caching remains denied pending
+a separate rights assessment and approved policy change.
+
+### `beagley-ai.imx219-dcc`
+
+Operator-accepted internal-build interpretation (NOT an express vendor grant)
+Target: Controlled internal builders producing BeagleY-AI J722S TI-device outputs only
+Rationale: TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.
+Uncertainty: The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.
+Evidence: https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016
+Location: Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.
+Retrieved: 2026-10-14
+Controlled internal builders only. No standalone file, image, public cache
+or private cache permission. Derived output caching remains denied pending
+a separate rights assessment and approved policy change.
+
+### `beagley-ai.memory-map-patch`
+
+Operator-accepted internal-build interpretation (NOT an express vendor grant)
+Target: Controlled internal builders producing BeagleY-AI J722S TI-device outputs only
+Rationale: TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.
+Uncertainty: The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.
+Evidence: https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016
+Location: Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.
+Retrieved: 2026-10-14
+Controlled internal builders only. No standalone file, image, public cache
+or private cache permission. Derived output caching remains denied pending
+a separate rights assessment and approved policy change.
+
+### `beagley-ai.model-compiler-script`
+
+Operator-accepted internal-build interpretation (NOT an express vendor grant)
+Target: Controlled internal builders producing BeagleY-AI J722S TI-device outputs only
+Rationale: TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.
+Uncertainty: The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.
+Evidence: https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016
+Location: Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.
+Retrieved: 2026-10-14
+Controlled internal builders only. No standalone file, image, public cache
+or private cache permission. Derived output caching remains denied pending
+a separate rights assessment and approved policy change.
+
+### `beagley-ai.osrt`
+
+Operator-accepted internal-build interpretation (NOT an express vendor grant)
+Target: Controlled internal builders producing BeagleY-AI J722S TI-device outputs only
+Rationale: TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.
+Uncertainty: The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.
+Evidence: https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016
+Location: Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.
+Retrieved: 2026-10-14
+Controlled internal builders only. No standalone file, image, public cache
+or private cache permission. Derived output caching remains denied pending
+a separate rights assessment and approved policy change.
+
+### `beagley-ai.regnet-model`
+
+Operator-accepted internal-build interpretation (NOT an express vendor grant)
+Target: Controlled internal builders producing BeagleY-AI J722S TI-device outputs only
+Rationale: TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.
+Uncertainty: The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.
+Evidence: https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016
+Location: Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.
+Retrieved: 2026-10-14
+Controlled internal builders only. No standalone file, image, public cache
+or private cache permission. Derived output caching remains denied pending
+a separate rights assessment and approved policy change.
+
+### `beagley-ai.scrub-workaround`
+
+Operator-accepted internal-build interpretation (NOT an express vendor grant)
+Target: Controlled internal builders producing BeagleY-AI J722S TI-device outputs only
+Rationale: TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.
+Uncertainty: The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.
+Evidence: https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016
+Location: Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.
+Retrieved: 2026-10-14
+Controlled internal builders only. No standalone file, image, public cache
+or private cache permission. Derived output caching remains denied pending
+a separate rights assessment and approved policy change.
+
+### `beagley-ai.tidl`
+
+Operator-accepted internal-build interpretation (NOT an express vendor grant)
+Target: Controlled internal builders producing BeagleY-AI J722S TI-device outputs only
+Rationale: TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.
+Uncertainty: The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.
+Evidence: https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016
+Location: Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.
+Retrieved: 2026-10-14
+Controlled internal builders only. No standalone file, image, public cache
+or private cache permission. Derived output caching remains denied pending
+a separate rights assessment and approved policy change.

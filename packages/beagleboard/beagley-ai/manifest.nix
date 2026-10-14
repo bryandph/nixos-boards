@@ -39,7 +39,7 @@
     };
     noGrant = {
       shortName = "LicenseRef-no-redistribution-grant";
-      fullName = "No license or redistribution grant is published with the file";
+      fullName = "No independently established redistribution grant for the helper or affected output; internal TI-target use is an operator-accepted interpretation";
       free = false;
       redistributable = false;
     };
@@ -233,14 +233,29 @@
     '';
   };
 
+  # Publication/use evidence supports a bounded internal interpretation, not
+  # an express license grant to these root-level patches and build helpers.
+  sandboxInternalUse = {
+    accepted = true;
+    target = "Controlled internal builders producing BeagleY-AI J722S TI-device outputs only";
+    rationale = "TI's Sandbox organization publishes and uses these pinned helpers in its J722S build/release flow; underlying vision_apps source headers permit modification and source-derived objects for TI devices. Internal use and controlled builder copies are accepted on this bounded evidence.";
+    uncertainty = "The package-source Debian Files:* notices do not clearly cover root patches/scripts. An independent grant for the wrapper and explanatory helper text remains inferential. Operator acceptance is not an upstream grant; all affected output caching and standalone helper redistribution remain denied.";
+    evidence = {
+      url = "https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/${sandboxRev}";
+      retrieved = "2026-10-14";
+      location = "Published patches/firmware and scripts/compile-j722s-tidl-model.py, scripts/build-edgeai-firmware.sh and packages/edgeai/* build/debian files; vision_apps @86f71a02f1664e9da9096e90ab4d126f5e71cf71 source-header terms. Evidence of intended internal TI-device use, not an explicit independent helper grant.";
+    };
+  };
+
   sandboxFile = file: path: size: sha256: features:
-    operatorSupplied {
+    (operatorSupplied {
       inherit file size sha256 features;
       url = sandbox path;
       evidence = evidence.sandbox;
       layer = "runtime-firmware";
       load = "remoteproc";
-    };
+    })
+    // {internalUse = sandboxInternalUse;};
 
   tiTextBuilt = attrs:
     {
@@ -257,6 +272,7 @@
       class = "R2";
       license = licenses.noGrant;
       evidence = evidence.sandbox;
+      internalUse = sandboxInternalUse;
       layer = "userspace";
       load = "userspace";
     }
@@ -454,7 +470,8 @@ in {
         evidence = evidence.rogue;
         features = ["beagley-ai-gpu"];
       };
-      # Built against the accelerator runtime, so as restrictive as it.
+      # Internal builds only. Input constraints remain transitive; no distinction
+      # between tool-only and incorporated inputs, and no output cache clearance.
       edgeai-libraries = operatorBuilt {
         from = ["psdk-rtos" "memory-map-patch" "disable-cpsw-patch"];
         sources = ["TI edgeai-tiovx-kernels, edgeai-tiovx-modules, edgeai-apps-utils and imaging (TI Text File License)"];
@@ -521,6 +538,7 @@ in {
         from = ["tidl-tools"];
         sources = ["TI x86 onnxruntime-tidl (MIT) and tflite-runtime (Apache-2.0) wheels"];
         license = licenses.tiText;
+        internalUse = null; # Established licensed tooling remains unaffected.
         redistribution.private = true;
         evidence = evidence.tidlTools;
         features = ["beagley-ai-regnet-model"];

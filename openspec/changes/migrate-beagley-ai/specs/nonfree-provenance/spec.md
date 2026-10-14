@@ -1,3 +1,12 @@
+## MODIFIED Requirements
+
+### Requirement: License established before packaging
+Non-free adoption requires an established grant or a separately recorded explicit operator-accepted internal-use interpretation. An interpretation is not an express vendor grant, is restricted to R2 controlled internal builds for its recorded target, and MUST retain pinned source evidence, rationale and unresolved rights uncertainty. Every redistribution form stays denied. Absent this bounded evidence and acceptance, unestablished artifacts remain `blocked: licensing` and are not fetched.
+
+#### Scenario: Internal TI-target use only
+- **WHEN** the operator accepts the documented internal-use interpretation for the four TI Sandbox helpers
+- **THEN** controlled TI-target builders are permitted without changing the license to redistributable, and all helper and affected output file/image/public/private-cache forms remain denied
+
 ## ADDED Requirements
 
 ### Requirement: Built packages
