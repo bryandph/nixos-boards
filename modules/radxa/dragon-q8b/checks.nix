@@ -140,7 +140,7 @@ in {
             test ! -e calls
             touch "$out"
           '';
-        dragon-q8b-root-growth = assert fixture.fileSystems."/".autoResize;
+        dragon-q8b-root-growth-options = assert fixture.fileSystems."/".autoResize;
         assert fixture.fileSystems."/".device == "/dev/disk/by-label/NIXOS_Q8B";
         assert fixture.fileSystems."/".fsType == "ext4";
         assert overriddenRoot.fileSystems."/".device == "/dev/fixture-root";
@@ -155,22 +155,31 @@ in {
         assert !(builtins.elem "x-systemd.growfs" optedOutRoot.fileSystems."/".options);
         assert fixture.boot.initrd.systemd.enable;
         assert builtins.elem "systemd-growfs-root.service" fixture.systemd.services.growpart.before;
-          pkgs.runCommand "dragon-q8b-root-growth" {} ''
-            # This fixture uses systemd stage 1, not the scripted resize2fs path.
-            # Its sysroot fstab carries the growth option; upstream growpart is
-            # ordered before the stage-2 root growfs unit and executable.
-            grep -E '^/dev/disk/by-label/NIXOS_Q8B / ext4 .*x-systemd.growfs' ${fixture.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
-            grep -E '^/dev/fixture-root / ext4 .*x-systemd.growfs' ${overriddenRoot.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
-            ! grep -F 'x-systemd.growfs' ${optedOutRoot.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
-            test -x ${fixture.systemd.package}/lib/systemd/systemd-growfs
-            grep -F 'systemd-growfs' ${fixture.environment.etc."systemd/system".source}/systemd-growfs-root.service
-            touch "$out"
-          '';
-        dragon-q8b-initrd-tpm = assert builtins.elem "tpm_qcom_qsee" fixture.boot.initrd.availableKernelModules;
+          pkgs.writeText "dragon-q8b-root-growth-options" "Root growth defaults, overrides and unit ordering are evaluated.\n";
+        dragon-q8b-initrd-tpm-options = assert builtins.elem "tpm_qcom_qsee" fixture.boot.initrd.availableKernelModules;
         assert builtins.elem "tpm_qcom_qsee" appendedInitrdModules.boot.initrd.availableKernelModules;
         assert builtins.elem "loop" appendedInitrdModules.boot.initrd.availableKernelModules;
         assert fixture.boot.initrd.systemd.tpm2.enable;
         assert fixture.boot.initrd.compressor == "zstd";
+          pkgs.writeText "dragon-q8b-initrd-tpm-options" "Early TPM availability, module merging and TPM2 are evaluated.\n";
+        dragon-q8b-provider-contract = assert rejects "dragon-q8b: DT package" badDT;
+        assert rejects "dragon-q8b: the kernel's provider" badKernel;
+        assert rejects "dragon-q8b: DT source" badSource;
+          pkgs.writeText "dragon-q8b-provider-contract" "Mismatched DT and unlabelled kernels are rejected.\n";
+      }
+      // lib.optionalAttrs (system == "aarch64-linux") {
+        # Inspect actual ARM assets only on native ARM CI. Option assertions
+        # above remain checked on every platform without foreign build inputs.
+        dragon-q8b-root-growth = pkgs.runCommand "dragon-q8b-root-growth" {} ''
+          # The fixture uses systemd stage 1, not scripted resize2fs.
+          grep -E '^/dev/disk/by-label/NIXOS_Q8B / ext4 .*x-systemd.growfs' ${fixture.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
+          grep -E '^/dev/fixture-root / ext4 .*x-systemd.growfs' ${overriddenRoot.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
+          ! grep -F 'x-systemd.growfs' ${optedOutRoot.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
+          test -x ${fixture.systemd.package}/lib/systemd/systemd-growfs
+          grep -F 'systemd-growfs' ${fixture.environment.etc."systemd/system".source}/systemd-growfs-root.service
+          touch "$out"
+        '';
+        dragon-q8b-initrd-tpm =
           pkgs.runCommand "dragon-q8b-initrd-tpm" {
             nativeBuildInputs = [pkgs.zstd pkgs.cpio];
           } ''
@@ -187,10 +196,6 @@ in {
             test -s deps
             touch "$out"
           '';
-        dragon-q8b-provider-contract = assert rejects "dragon-q8b: DT package" badDT;
-        assert rejects "dragon-q8b: the kernel's provider" badKernel;
-        assert rejects "dragon-q8b: DT source" badSource;
-          pkgs.writeText "dragon-q8b-provider-contract" "Mismatched DT and unlabelled kernels are rejected.\n";
       }
       // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
         dragon-q8b-rootfs-store-topology = let
