@@ -24,12 +24,13 @@
       };
       serial = {
         status = "verified";
+        reason = "recorded 2026-10-13 full-profile headless consumer; not current public-fixture hardware acceptance";
         evidence = "Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance";
         features = ["dragon-q8b-core"];
       };
       ethernet = {
         status = "verified";
-        reason = "one PCIe Ethernet link during ordinary warm boots";
+        reason = "recorded 2026-10-13 full-profile headless consumer, one PCIe link/warm boots; not current public-fixture hardware acceptance";
         evidence = "Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance";
         features = ["dragon-q8b-core"];
       };
@@ -67,7 +68,7 @@
       };
       nvme = {
         status = "verified";
-        reason = "512-byte logical sectors; full-profile headless acceptance";
+        reason = "recorded 2026-10-13 full-profile headless consumer, 512-byte sectors; not current public-fixture or physical 4Kn acceptance";
         evidence = "Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance";
         features = ["dragon-q8b-core"];
       };

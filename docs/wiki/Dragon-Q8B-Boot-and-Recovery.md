@@ -70,7 +70,11 @@ The receipt changed documentation/status bookkeeping, not the kernel/system/
 512/4096 image derivation identities at that source baseline. It is not a claim
 that the public fixture was the operator consumer or that later stack relocks
 were physically retested. Current consumers require separate exact derivation
-identity proof before carrying this historical evidence forward:
+identity proof before carrying this historical evidence forward. Such proof
+was revalidated for the retained accepted full/headless consumer's kernel,
+initrd and complete system; it is not equality to this repository's public
+free/full fixtures. Matrix `verified` rows refer to that dated recorded
+configuration and its limits, not a new public-fixture hardware test:
 
 - Full-profile 512-byte-sector NVMe boot, UART output and one PCIe Ethernet link
   with DHCP/default route worked. Persistent NVMe selection survived ordinary

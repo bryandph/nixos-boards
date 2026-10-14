@@ -57,6 +57,8 @@
       in
         base
         // {
+          key = "${modulesPath}/profiles/base.nix";
+          _file = "${modulesPath}/profiles/base.nix";
           # Retain exactly the installer's recovery tools/host-id defaults, but
           # make its filesystem suggestions lower priority than board/consumer
           # definitions. No consumer definition is filtered or forced away.

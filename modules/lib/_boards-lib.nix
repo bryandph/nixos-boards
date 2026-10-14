@@ -949,6 +949,8 @@
     statusText = fn:
       if fn.status == "blocked" && fn.reason != null
       then "blocked: ${fn.reason}"
+      else if fn.reason != null
+      then "${fn.status}: ${fn.reason}"
       else fn.status;
     # Gaps follow nixpkgs: what allowUnfree = false excludes, plus blocked.
     gaps = lib.filter (a: a.status == "blocked" || !(nixpkgsFree a.license)) artifacts;
