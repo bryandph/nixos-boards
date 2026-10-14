@@ -4,7 +4,9 @@ name: publish
 # its closure for artifacts not cleared for the cache (gate 2), and only
 # then pushes to bph.cachix.org. Nothing else built in the job is pushed.
 on:
-  push:
+  workflow_run:
+    workflows: [check]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -16,37 +18,90 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  release-gate:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      vars.PUBLIC_RELEASE_SHA != '' &&
+      vars.PUBLIC_RELEASE_SHA == (github.event.workflow_run.head_sha || github.sha) &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      sha: ${{ steps.admit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - name: Admit only approved main with same-SHA successful checks
+        id: admit
+        env:
+          APPROVED_RELEASE_SHA: ${{ vars.PUBLIC_RELEASE_SHA }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          python3 .github/scripts/release_gate.py
   publish:
+    needs: release-gate
+    permissions:
+      contents: read
+      actions: read
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+        runner: [ubuntu-26.04, ubuntu-26.04-arm]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: cachix/install-nix-action@v31
-      - uses: cachix/cachix-action@v16
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ needs.release-gate.outputs.sha }}
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      - uses: cachix/cachix-action@3ba601ff5bbb07c7220846facfa2cd81eeee15a1 # v16
         with:
           name: bph
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
           skipPush: true
       - name: Build public push sets (gate 1)
         run: |
-          system=$(nix eval --raw --impure --expr builtins.currentSystem)
-          mapfile -t boards < <(nix eval --json ".#legacyPackages.$system.publicPushSet" --apply builtins.attrNames | jq -r '.[]')
+          system=$(nix config show system)
+          case "$RUNNER_ARCH" in
+            X64) test "$(uname -m)" = x86_64; test "$system" = x86_64-linux ;;
+            ARM64) test "$(uname -m)" = aarch64; test "$system" = aarch64-linux ;;
+            *) exit 1 ;;
+          esac
+          # A failed evaluation must fail the job, not look like an empty list.
+          names=$(nix eval --json ".#legacyPackages.$system.publicPushSet" --apply builtins.attrNames)
+          list=$(jq -r '.[]' <<<"$names")
+          mapfile -t boards <<<"$list"
+          [ -n "$list" ] || boards=()
           if [ "${#boards[@]}" -eq 0 ]; then
             echo "No boards publish on $system."
             exit 0
           fi
           for board in "${boards[@]}"; do
-            nix build -L ".#legacyPackages.$system.publicPushSet.$board" --out-link "push-set-$board"
+            nix build -L ".#legacyPackages.$system.publicPushSet.$board" --out-link "push-set-$board" --builders '' --option extra-platforms ''
           done
       - name: Scan closures (gate 2)
         run: |
           shopt -s nullglob
           sets=(push-set-*)
           [ "${#sets[@]}" -gt 0 ] || exit 0
-          nix run .#cache-scan -- "${sets[@]}"
+          # The scan takes store paths, not the out-links that point to them.
+          roots=()
+          for set in "${sets[@]}"; do roots+=("$(readlink -f "$set")"); done
+          nix run .#cache-scan -- "${roots[@]}"
+      - name: Recheck release admission immediately before publication
+        env:
+          APPROVED_RELEASE_SHA: ${{ vars.PUBLIC_RELEASE_SHA }}
+          RELEASE_SHA: ${{ needs.release-gate.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/release_gate.py
       - name: Push to bph.cachix.org
         env:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
