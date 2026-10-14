@@ -72,7 +72,10 @@ as `boards.manifests.<name>`. The values below are illustrative:
 
 `checks.release-manifests` validates every entry. It requires:
 
-- a non-free license for R1 and R2;
+- a recognized free SPDX license for R0; nixpkgs' special
+  `unfreeRedistributableFirmware` profile allowance does not make an artifact R0;
+- recorded license semantics for R1/R2 (a vendor firmware license may be
+  permitted in nixpkgs' free profile but still needs R1 provenance/clearance);
 - evidence for every non-free artifact;
 - a pinned URL and at least one notice file for R1;
 - import instructions for R2, which may never be publicly redistributable;

@@ -1,5 +1,3 @@
-Tracked as LAB-145 (subtask of the LAB-144 epic) in the maintainer's work tracker.
-
 ## Why
 
 Board support for the maintainer's boards is spread across separate flakes
