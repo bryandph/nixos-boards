@@ -106,7 +106,7 @@
       ++ err (entry.class != "R2") "internal-use interpretation is restricted to R2"
       ++ err (entry.license != null && nixpkgsRedistributable entry.license) "internal-use interpretation must not label the license redistributable"
       ++ err (lib.any (form: r.${form}) ["file" "image" "cache" "private" "build"]) "internal-use interpretation cannot supply or accompany redistribution grants"
-      ++ err (i.target == "" || i.rationale == "" || i.uncertainty == "" || i.evidence.url == "" || i.evidence.location == "") "internal-use interpretation requires target, rationale, uncertainty and source evidence"
+      ++ err (lib.any (text: builtins.match "[[:space:]]*" text != null) [i.target i.rationale i.uncertainty i.evidence.url i.evidence.location]) "internal-use interpretation requires nonblank target, rationale, uncertainty and source evidence"
     );
   internalUseText = i: ''
     Operator-accepted internal-build interpretation (NOT an express vendor grant)
@@ -348,6 +348,8 @@
     ++ lib.concatMap (form:
       err (r.${form} && lib.any (a: a != null && a.class != "R0" && !a.redistribution.${form}) inputs)
       "redistribution.${form} is not permitted by every artifact it is built from") ["file" "image" "cache" "private"]
+    ++ err (buildPermitted r && lib.any (a: a != null && a.class != "R0" && !(buildPermitted a.redistribution)) inputs)
+    "licensed internal build permission is not granted by every artifact it is built from; interpretation is not a license grant"
     ++ err (internalBuildPermitted b && lib.any (a: a != null && a.class != "R0" && !(internalBuildPermitted a)) inputs)
     "internal build copies are not permitted by every artifact it is built from"
     ++ err (b.license == null) "license is required"
@@ -539,6 +541,13 @@
     then throw "invalid release manifest:\n${lib.concatStringsSep "\n" errors}"
     else if lib.getName package != name
     then throw "${manifest.name}.${id}: the package is named ${lib.getName package}, not ${name}"
+    else if
+      b.internalUse
+      != null
+      && !(package.drvAttrs ? buildCommand)
+      && package.drvAttrs ? installPhase
+      && !(lib.hasInfix "runHook postInstall" package.drvAttrs.installPhase)
+    then throw "${manifest.name}.${id}: internal-use notice requires a custom installPhase to runHook postInstall"
     else
       package.overrideAttrs (old: let
         notice = lib.optionalString (b.internalUse != null) ''
@@ -617,59 +626,60 @@
     pkgs.writeShellApplication {
       inherit name;
       runtimeInputs = [pkgs.coreutils pkgs.curl pkgs.nix];
-      text = ''
-        accept=0
-        case "''${1:-}" in
-          --accept-license) accept=1 ;;
-          "") ;;
-          *)
-            echo "usage: ${name} [--accept-license]" >&2
-            exit 2
-            ;;
-        esac
-        ${lib.concatMapStrings (e:
+      text =
+        lib.concatMapStrings (e:
           lib.optionalString (e.a.internalUse != null) ''
             printf '%s\n' ${lib.escapeShellArg ("${e.manifest}.${e.id}:\n" + internalUseText e.a.internalUse)}
           '')
-        entries}
-        records=(
-        ${lib.concatMapStringsSep "\n" (e: "  ${lib.escapeShellArg (record e)}") entries}
-        )
-        status=0
-        work=$(mktemp -d)
-        trap 'rm -rf "$work"' EXIT
-        for entry in "''${records[@]}"; do
-          IFS='|' read -r label file hash size url terms <<< "$entry"
-          path=$(nix-store --print-fixed-path sha256 "$hash" "$file")
-          if nix-store --check-validity "$path" 2>/dev/null; then
-            echo "$label: already imported ($path)"
-            continue
+        entries
+        + ''
+          accept=0
+          case "''${1:-}" in
+            --accept-license) accept=1 ;;
+            "") ;;
+            *)
+              echo "usage: ${name} [--accept-license]" >&2
+              exit 2
+              ;;
+          esac
+          records=(
+          ${lib.concatMapStringsSep "\n" (e: "  ${lib.escapeShellArg (record e)}") entries}
+          )
+          status=0
+          work=$(mktemp -d)
+          trap 'rm -rf "$work"' EXIT
+          for entry in "''${records[@]}"; do
+            IFS='|' read -r label file hash size url terms <<< "$entry"
+            path=$(nix-store --print-fixed-path sha256 "$hash" "$file")
+            if nix-store --check-validity "$path" 2>/dev/null; then
+              echo "$label: already imported ($path)"
+              continue
+            fi
+            echo "$label: $file"
+            echo "  terms: $terms"
+            if [ "$url" = "-" ]; then
+              echo "  obtain it as described on the board's firmware page, then: nix-store --add-fixed sha256 $file"
+              status=1
+              continue
+            fi
+            echo "  source: $url"
+            if [ "$accept" -ne 1 ]; then
+              status=1
+              continue
+            fi
+            curl -fL --retry 3 -o "$work/$file" "$url"
+            test "$(stat -c %s "$work/$file")" = "$size" \
+              || { echo "$label: size differs from the release manifest" >&2; exit 1; }
+            echo "$hash  $work/$file" | sha256sum -c --quiet \
+              || { echo "$label: sha256 differs from the release manifest" >&2; exit 1; }
+            nix-store --add-fixed sha256 "$work/$file"
+            rm -f "$work/$file"
+          done
+          if [ "$accept" -ne 1 ] && [ "$status" -ne 0 ]; then
+            echo "Review the terms above, then rerun with --accept-license to download and import." >&2
           fi
-          echo "$label: $file"
-          echo "  terms: $terms"
-          if [ "$url" = "-" ]; then
-            echo "  obtain it as described on the board's firmware page, then: nix-store --add-fixed sha256 $file"
-            status=1
-            continue
-          fi
-          echo "  source: $url"
-          if [ "$accept" -ne 1 ]; then
-            status=1
-            continue
-          fi
-          curl -fL --retry 3 -o "$work/$file" "$url"
-          test "$(stat -c %s "$work/$file")" = "$size" \
-            || { echo "$label: size differs from the release manifest" >&2; exit 1; }
-          echo "$hash  $work/$file" | sha256sum -c --quiet \
-            || { echo "$label: sha256 differs from the release manifest" >&2; exit 1; }
-          nix-store --add-fixed sha256 "$work/$file"
-          rm -f "$work/$file"
-        done
-        if [ "$accept" -ne 1 ] && [ "$status" -ne 0 ]; then
-          echo "Review the terms above, then rerun with --accept-license to download and import." >&2
-        fi
-        exit "$status"
-      '';
+          exit "$status"
+        '';
     };
 
   # Label a kernel with its provider (D3). passthru is not part of the

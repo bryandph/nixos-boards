@@ -274,9 +274,11 @@ in {
     "invalid.blocked-no-reason: blocked artifacts must name a blockedReason"
     "invalid.weaker-than-input: class R1 is less restrictive than an artifact it is built from"
     "invalid.weaker-than-input: redistribution.file is not permitted by every artifact it is built from"
+    "invalid.weaker-than-input: licensed internal build permission is not granted by every artifact it is built from; interpretation is not a license grant"
     "invalid.weaker-than-input: internal build copies are not permitted by every artifact it is built from"
     "invalid.unknown-input: built from unknown artifact missing"
     "invalid.leaky-built: redistribution.private is not permitted by every artifact it is built from"
+    "invalid.leaky-built: licensed internal build permission is not granted by every artifact it is built from; interpretation is not a license grant"
     "invalid.leaky-built: internal build copies are not permitted by every artifact it is built from"
   ];
 }

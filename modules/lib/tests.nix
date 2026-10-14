@@ -211,6 +211,33 @@ in {
                     };
                 };
             });
+          licensedBuildOutput = boardsLib.evalManifest "test-board" (raw
+            // {
+              built =
+                raw.built
+                // {
+                  operator-tool =
+                    raw.built.operator-tool
+                    // {
+                      internalUse = null;
+                      redistribution.build = true;
+                    };
+                };
+            });
+          customInstall = hook:
+            boardsLib.mkBuilt {
+              manifest = m;
+              id = "operator-tool";
+              package = unfreePkgs.stdenvNoCC.mkDerivation {
+                pname = name "operator-tool";
+                version = "1.0";
+                dontUnpack = true;
+                installPhase = ''
+                  mkdir -p "$out"
+                  ${lib.optionalString hook "runHook postInstall"}
+                '';
+              };
+            };
           noInputAcceptance = changedArtifact {internalUse = null;};
           system =
             (inputs.nixpkgs.lib.nixosSystem {
@@ -230,6 +257,11 @@ in {
           assert expect (errors (changedArtifact {internalUse = interpretation // {uncertainty = "";};}) != []) "missing uncertainty fails closed";
           assert expect (errors (changedArtifact {internalUse = interpretation // {evidence = interpretation.evidence // {url = "";};};}) != []) "missing source evidence fails closed";
           assert expect (lib.all (form: errors (changedArtifact {redistribution.${form} = true;}) != []) ["file" "image" "cache" "private" "build"]) "interpretation may not coexist with redistribution grants";
+          assert expect (errors licensedBuildOutput != []) "derived licensed build grant cannot be laundered from interpreted inputs";
+          assert expect (failsToEval (customInstall false).drvPath) "custom installPhase without notice hook fails closed";
+          assert expect (!(failsToEval (customInstall true).drvPath)) "custom installPhase with notice hook validates";
+          assert expect (lib.all (field: errors (changedArtifact {internalUse = interpretation // {${field} = " \t\n";};}) != []) ["target" "rationale" "uncertainty"]) "whitespace-only interpretation text fails closed";
+          assert expect (lib.all (field: errors (changedArtifact {internalUse = interpretation // {evidence = interpretation.evidence // {${field} = " \t\n";};};}) != []) ["url" "location"]) "whitespace-only evidence fails closed";
           assert expect (errors privateOutput != []) "derived private permission cannot exceed helper inputs";
           assert expect (errors noInputAcceptance != []) "derived internal build cannot exceed helper inputs";
           assert expect (builtins.elem (data.sri data.contents."operator.bin") (boardsLib.nonPrivateHashes [m])) "helper remains in private scanner deny hashes";
@@ -237,6 +269,7 @@ in {
             pkgs.runCommand "nixos-boards-lib-internal-use" {} ''
               grep -F 'NOT an express vendor grant' ${a}/share/licenses/test-board-operator-fw/internal-use-interpretation.txt
               grep -F 'NOT an express vendor grant' ${b}/share/licenses/test-board-operator-tool/internal-use-interpretation.txt
+              grep -F 'NOT an express vendor grant' ${customInstall true}/share/licenses/test-board-operator-tool/internal-use-interpretation.txt
               touch "$out"
             '';
 
