@@ -130,6 +130,23 @@ in {
         m7Board = boards.frdm-imx95-m7-remoteproc;
         multimediaBoard = boards.frdm-imx95-multimedia;
         neutronBoard = boards.frdm-imx95-neutron-npu;
+        consumerListsBoard = mkBoard {
+          imageBaseName = "nixos-frdm-imx95-consumer-lists";
+          modules = [
+            {
+              boot.kernelParams = ["quiet"];
+              boot.supportedFilesystems = ["btrfs"];
+            }
+          ];
+        };
+        incompleteCombinedBoard = mkBoard {
+          imageBaseName = "nixos-frdm-imx95-incomplete-combined";
+          modules = [config.flake.modules.nixos.frdm-imx95-all-features];
+        };
+        unsafeM7Override = mkBoard {
+          imageBaseName = "nixos-frdm-imx95-unsafe-m7";
+          modules = [config.flake.modules.nixos.frdm-imx95-m7-remoteproc {hardware.boards.imx95.bootContainer = (frdm pkgs).completeBootContainer;}];
+        };
         neutronRuntime = neutronBoard.config.system.build.runtime;
         neutronSdImage = neutronBoard.config.system.build.frdmImx95SdImage.overrideAttrs (old: {
           allowSubstitutes = false;
@@ -249,6 +266,15 @@ in {
 
         frdmChecks =
           {
+            review-composition-regressions = assert failedAssertions neutronBoard == [];
+            assert builtins.elem "quiet" consumerListsBoard.config.boot.kernelParams;
+            assert consumerListsBoard.config.boot.supportedFilesystems.btrfs;
+            assert !lib.any (lib.hasInfix "z /sys/kernel/debug ") neutronBoard.config.systemd.tmpfiles.rules;
+            assert failedAssertions incompleteCombinedBoard != [];
+            assert failedAssertions missingMetadataBoard != [];
+            assert failedAssertions unsafeM7Override != [];
+              pkgs.writeText "frdm-imx95-review-composition-regressions" "Standalone Neutron assertions, additive consumer lists, debugfs isolation and invalid composition/provider rejection evaluated.\n";
+
             neutron-default-closure-independence =
               pkgs.runCommand "frdm-imx95-neutron-default-closure-independence" {
                 exportReferencesGraph = [

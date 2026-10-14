@@ -5,7 +5,7 @@
 {config, ...}: let
   inherit (config.flake.modules.nixos) soc-rk3588;
 in {
-  flake.modules.nixos.orangepi5-core = {
+  flake.modules.nixos.orangepi5-core = {lib, ...}: {
     imports = [soc-rk3588];
 
     hardware.boards.identity = {
@@ -16,6 +16,11 @@ in {
       provider = "mainline";
       statusPage = "https://github.com/bryandph/nixos-boards/wiki/Orange-Pi-5";
     };
+
+    # The pinned upstream board DTS chooses serial2:1500000n8 and enables
+    # uart2m0. Put the board UART after sd-image's generic console defaults,
+    # without discarding unrelated consumer kernel parameters.
+    boot.kernelParams = lib.mkAfter ["earlycon" "console=ttyS2,1500000n8"];
 
     hardware.deviceTree = {
       enable = true;

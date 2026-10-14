@@ -16,6 +16,12 @@ in {
       expectedBootContainerSha256 = config.hardware.boards.imx95.sourceBootContainerSha256;
     });
     hardware.boards.artifacts = lib.optional (config.hardware.boards.imx95.bootContainer ? manifestEntry) config.hardware.boards.imx95.bootContainer;
+    assertions = [
+      {
+        assertion = config.hardware.boards.imx95.bootContainer ? manifestEntry;
+        message = "FRDM-i.MX95 boot containers must be registered with a release manifest; unregistered consumer containers are not publication-safe.";
+      }
+    ];
   };
 
   flake.nixosModules.frdm-imx95-boot-container = config.flake.modules.nixos.frdm-imx95-boot-container;

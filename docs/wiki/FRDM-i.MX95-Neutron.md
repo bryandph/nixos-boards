@@ -69,6 +69,7 @@ Compose the module only in a dedicated evaluation configuration:
     inputs.nixos-boards.nixosModules.frdm-imx95-neutron-npu
   ];
 
+  # Device access only; performance-counter acceptance requires root.
   users.users.<operator>.extraGroups = ["neutron"];
 }
 ```
@@ -118,7 +119,7 @@ operator:
 
 ```console
 frdm-imx95-neutron-smoke --cpu-only
-frdm-imx95-neutron-smoke
+sudo frdm-imx95-neutron-smoke
 ```
 
 The CPU run must explicitly report non-acceptance. The Neutron run is accepted

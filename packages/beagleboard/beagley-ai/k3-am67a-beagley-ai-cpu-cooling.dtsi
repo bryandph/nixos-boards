@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only OR MIT
 /*
  * BeagleY-AI CPU DFS, adapted from TI's AM67 SDK 11 cooling example.
- * See docs/cpu-cooling.md for source provenance and frequency limits.
+ * See docs/wiki/BeagleY-AI-CPU-Cooling.md for source provenance and frequency limits.
  * Keep voltage unchanged and never exceed this board's 1.2 GHz boot clock.
  */
 

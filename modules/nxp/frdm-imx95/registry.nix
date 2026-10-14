@@ -49,8 +49,31 @@ in {
         text = builtins.readFile (scripts + "/${script}");
       });
     };
-    common = [pkgs.coreutils pkgs.nix];
+    common = [pkgs.coreutils pkgs.nix pkgs.gawk pkgs.gnutar pkgs.gzip pkgs.xz];
   in {
+    checks.frdm-imx95-import-acceptance-guards = pkgs.runCommand "frdm-imx95-import-acceptance-guards" {} ''
+      mkdir bin
+      for command in nix-store curl unzip; do
+        printf '#!${pkgs.runtimeShell}\nprintf touched >> "$CALLS"\nexit 99\n' > "bin/$command"
+        chmod +x "bin/$command"
+      done
+      export CALLS=$PWD/calls
+      export PATH="$PWD/bin:$PATH"
+      for script in ${scripts}/import-nxp-{firmware,wave6-firmware,m7-power-mode-demo,boot-container}; do
+        for mode in absent invalid; do
+          status=0
+          if [ "$mode" = absent ]; then
+            ${pkgs.runtimeShell} "$script" > output 2>&1 || status=$?
+          else
+            ${pkgs.runtimeShell} "$script" --not-accepted > output 2>&1 || status=$?
+          fi
+          test "$status" -eq 2
+          grep -F -- '--accept-license' output
+          test ! -e calls
+        done
+      done
+      touch "$out"
+    '';
     apps =
       lib.optionalAttrs (system == "x86_64-linux") {
         frdm-imx95-convert-neutron-model = {

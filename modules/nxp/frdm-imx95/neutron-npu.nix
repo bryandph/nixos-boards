@@ -97,7 +97,6 @@ in {
         SUBSYSTEM=="neutron", KERNEL=="neutron[0-9]*", GROUP="neutron", MODE="0660"
       '';
       systemd.tmpfiles.rules = [
-        "z /sys/kernel/debug 0710 root neutron - -"
         "z /sys/kernel/debug/neutron 0750 root neutron - -"
         "z /sys/kernel/debug/neutron/perf_counters 0640 root neutron - -"
       ];

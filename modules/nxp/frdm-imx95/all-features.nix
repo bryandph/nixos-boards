@@ -50,7 +50,7 @@ in {
     system.build = {
       allFeaturesKernel = kernel;
       deviceTreePackage = lib.mkOverride 40 config.hardware.deviceTree.package;
-      smoke = lib.mkOverride 40 config.system.build.neutronSmoke;
+      smoke = lib.mkIf (config.system.build ? neutronSmoke) (lib.mkOverride 40 config.system.build.neutronSmoke);
     };
 
     assertions = [
@@ -95,11 +95,11 @@ in {
         message = "The combined NXP DT already owns the M7 node and must not apply the mainline overlay.";
       }
       {
-        assertion = config.system.build.runtime.allowSubstitutes == false;
+        assertion = config.system.build ? runtime && config.system.build.runtime.allowSubstitutes == false;
         message = "The combined role must keep the licensed Neutron runtime local-only.";
       }
       {
-        assertion = config.system.build.firmware.allowSubstitutes == false;
+        assertion = config.system.build ? firmware && config.system.build.firmware.allowSubstitutes == false;
         message = "The combined role must keep Wave6 firmware out of substitutes.";
       }
     ];

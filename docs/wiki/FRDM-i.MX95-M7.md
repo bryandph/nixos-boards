@@ -31,3 +31,14 @@ assigns the M7 to Linux (`m7-remoteproc-lmm`) through its own boot container,
 claims `remoteproc:m7`, and installs `frdm-imx95-m7-ctl`, a guarded lifecycle
 and UART test tool. Test only from removable media; nothing starts the M7
 automatically.
+
+## Isolation trade-off
+
+The selected `m7-remoteproc-lmm` System Manager patch moves the M7 logical
+machine from the secure to the nonsecure domain, removes the secure-environment
+constraint, and gives its Linux-controlled policy broad API, LMM and M7 power-
+domain access. This is an intentional remoteproc handoff, not an isolation or
+least-privilege guarantee. Do not run untrusted M7 firmware under this policy.
+Consumer boot-container overrides must preserve that policy and contain no
+preloaded M7 application; the feature asserts both conditions. Hardware
+isolation and failure containment have not been physically validated here.

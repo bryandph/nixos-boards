@@ -124,30 +124,48 @@ in {
   in {
     checks =
       {
-        lib-manifests = assert expect (boardsLib.manifestErrors valid == []) "valid manifest has errors: ${toString (boardsLib.manifestErrors valid)}";
-        assert expect (sortedEq (boardsLib.manifestErrors invalid) data.expectedErrors)
-        "invalid manifest errors differ: ${builtins.toJSON (boardsLib.manifestErrors invalid)}";
-        assert expect (sortedEq (boardsLib.unfreePackages [valid]) (map name ["redist-fw" "operator-fw" "runtime-bundle" "operator-tool"])) "unfree package list follows nixpkgs license semantics";
-        assert expect (boardsLib.cacheablePackages [valid] == [(name "cached-fw")]) "cacheable package list";
-        assert expect (sortedEq (boardsLib.nonCacheableHashes [valid])
-          (map data.sri [data.contents."redist.bin" data.contents."operator.bin" data.contents."nocache.bin" data.contents."mystery.bin"])) "non-cacheable hashes";
-        assert expect (!(failsToEval (artifact pkgs "nocache-fw").drvPath)) "nixpkgs counts unfreeRedistributableFirmware as free";
-        assert expect (sortedEq (boardsLib.nonPrivateHashes [valid])
-          (map data.sri [data.contents."redist.bin" data.contents."cached.bin" data.contents."nocache.bin" data.contents."mystery.bin"])) "non-private hashes";
-        assert expect (failsToEval (artifact unfreePkgs "mystery-fw").drvPath) "blocked artifact must not package";
-        assert expect (failsToEval (artifact pkgs "redist-fw").drvPath) "R1 artifact must need an unfree allowance";
-        assert expect (!(failsToEval (artifact pkgs "free-blob").drvPath)) "R0 artifact must not need an unfree allowance";
-        assert expect (failsToEval (artifact cachePkgs "redist-fw").drvPath) "gate 1: R1 without cache clearance must fail under the cache predicate";
-        assert expect (!(failsToEval (artifact cachePkgs "cached-fw").drvPath)) "gate 1: cache-cleared R1 must evaluate under the cache predicate"; let
-          r2 = boardsLib.mkArtifact {
+        lib-manifests = let
+          mislabeledFirmware = boardsLib.evalManifest "test-board" (data.valid
+            // {
+              artifacts =
+                data.valid.artifacts
+                // {
+                  free-blob = data.valid.artifacts.free-blob // {license = lib.licenses.unfreeRedistributableFirmware;};
+                };
+            });
+          rejectedFirmware = boardsLib.mkArtifact {
             pkgs = unfreePkgs;
-            manifest = valid;
-            id = "operator-fw";
+            manifest = mislabeledFirmware;
+            id = "free-blob";
+            inherit fetch;
           };
         in
-          assert expect (!r2.allowSubstitutes && r2.preferLocalBuild) "R2 artifact must not be substituted";
-          assert expect (!(failsToEval r2.drvPath)) "R2 artifact must evaluate to a requireFile build";
-            pkgs.runCommand "nixos-boards-lib-manifests" {} "touch $out";
+          assert expect (boardsLib.manifestErrors mislabeledFirmware != []) "non-free redistributable firmware is not R0/FOSS";
+          assert expect (failsToEval rejectedFirmware.drvPath) "R0 vendor firmware misclassification must not package";
+          assert expect (boardsLib.manifestErrors valid == []) "valid manifest has errors: ${toString (boardsLib.manifestErrors valid)}";
+          assert expect (sortedEq (boardsLib.manifestErrors invalid) data.expectedErrors)
+          "invalid manifest errors differ: ${builtins.toJSON (boardsLib.manifestErrors invalid)}";
+          assert expect (sortedEq (boardsLib.unfreePackages [valid]) (map name ["redist-fw" "operator-fw" "runtime-bundle" "operator-tool"])) "unfree package list follows nixpkgs license semantics";
+          assert expect (boardsLib.cacheablePackages [valid] == [(name "cached-fw")]) "cacheable package list";
+          assert expect (sortedEq (boardsLib.nonCacheableHashes [valid])
+            (map data.sri [data.contents."redist.bin" data.contents."operator.bin" data.contents."nocache.bin" data.contents."mystery.bin" data.contents."derived.bin"])) "non-cacheable hashes";
+          assert expect (!(failsToEval (artifact pkgs "nocache-fw").drvPath)) "nixpkgs counts unfreeRedistributableFirmware as free";
+          assert expect (sortedEq (boardsLib.nonPrivateHashes [valid])
+            (map data.sri [data.contents."redist.bin" data.contents."cached.bin" data.contents."nocache.bin" data.contents."mystery.bin" data.contents."derived.bin"])) "non-private hashes";
+          assert expect (failsToEval (artifact unfreePkgs "mystery-fw").drvPath) "blocked artifact must not package";
+          assert expect (failsToEval (artifact pkgs "redist-fw").drvPath) "R1 artifact must need an unfree allowance";
+          assert expect (!(failsToEval (artifact pkgs "free-blob").drvPath)) "R0 artifact must not need an unfree allowance";
+          assert expect (failsToEval (artifact cachePkgs "redist-fw").drvPath) "gate 1: R1 without cache clearance must fail under the cache predicate";
+          assert expect (!(failsToEval (artifact cachePkgs "cached-fw").drvPath)) "gate 1: cache-cleared R1 must evaluate under the cache predicate"; let
+            r2 = boardsLib.mkArtifact {
+              pkgs = unfreePkgs;
+              manifest = valid;
+              id = "operator-fw";
+            };
+          in
+            assert expect (!r2.allowSubstitutes && r2.preferLocalBuild) "R2 artifact must not be substituted";
+            assert expect (!(failsToEval r2.drvPath)) "R2 artifact must evaluate to a requireFile build";
+              pkgs.runCommand "nixos-boards-lib-manifests" {} "touch $out";
 
         lib-internal-use = let
           interpretation = {
@@ -456,6 +474,10 @@ in {
             mkdir -p $out/share
             cp ${pkgs.writeText "x" data.contents."redist.bin"} $out/share/innocent.dat
           '';
+          derivedLeak = pkgs.runCommand "copied-compiled-output" {} ''
+            mkdir -p "$out/share"
+            cp ${pkgs.writeText "compiled" data.contents."derived.bin"} "$out/share/compiled-copy.dat"
+          '';
           clean = [(artifact unfreePkgs "cached-fw") (artifact pkgs "free-blob")];
           privateScan = boardsLib.mkCacheScan {
             inherit pkgs;
@@ -466,6 +488,7 @@ in {
           pkgs.runCommand "nixos-boards-lib-cache-scan" {
             nativeBuildInputs = [scan privateScan];
             leakClosure = pkgs.closureInfo {rootPaths = [leak];};
+            derivedClosure = pkgs.closureInfo {rootPaths = [derivedLeak];};
             cleanClosure = pkgs.closureInfo {rootPaths = clean;};
             # cached-fw is cleared for the public cache, not the private one.
             privateCleanClosure = pkgs.closureInfo {rootPaths = [(artifact pkgs "free-blob")];};
@@ -473,7 +496,7 @@ in {
             # A stub store: registered paths and the requisites a query returns.
             mkdir bin
             export MOCK=$PWD
-            cat "$leakClosure/store-paths" "$cleanClosure/store-paths" "$privateCleanClosure/store-paths" > registered
+            cat "$leakClosure/store-paths" "$derivedClosure/store-paths" "$cleanClosure/store-paths" "$privateCleanClosure/store-paths" > registered
             cat > bin/nix-store <<'SH'
             #!${pkgs.runtimeShell}
             case "$1" in
@@ -514,6 +537,9 @@ in {
               export PATH=$MOCK/bin:$PATH
 
 
+              answer "$derivedClosure/store-paths"
+              expect 1 compiled-copy.dat --closure-file "$derivedClosure/store-paths"
+              expect 1 compiled-copy.dat ${derivedLeak}
               answer "$leakClosure/store-paths"
               expect 1 innocent.dat --closure-file "$leakClosure/store-paths"
               answer "$clean"

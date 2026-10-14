@@ -1,6 +1,6 @@
 # Radxa Dragon Q8B
 
-SC8280XP ARM64 board support, tracked by LAB-152.
+SC8280XP ARM64 board support.
 Maintainers have hardware. Bounded full-profile NVMe headless acceptance is recorded
 in [boot/recovery](Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance);
 vendor Ubuntu observations alone do **not** verify NixOS images.

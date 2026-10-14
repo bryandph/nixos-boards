@@ -8,7 +8,7 @@ member_sha256="70844083f9ab300aaa25ac2f456fe42bf159742b15b4fb86bda4530de6728529"
 member_size="2976768"
 
 usage() {
-  echo "usage: $0 /path/to/$archive_name" >&2
+  echo "usage: $0 --accept-license /path/to/$archive_name" >&2
 }
 
 hash_file() {
@@ -19,12 +19,12 @@ hash_file() {
   fi
 }
 
-if [ "$#" -ne 1 ]; then
+if [ "$#" -ne 2 ] || [ "$1" != "--accept-license" ]; then
   usage
   exit 2
 fi
 
-archive=$1
+archive=$2
 if [ ! -f "$archive" ]; then
   echo "NXP BSP archive not found: $archive" >&2
   exit 1
@@ -71,4 +71,4 @@ store_path=$(nix-store --add-fixed sha256 "$boot_container")
 echo "Imported licensed NXP boot container into the local Nix store:"
 echo "$store_path"
 echo
-echo "Do not publish this store path, upload it to a binary cache, or attach it to a release."
+echo "No public publication, public cache upload or release attachment. Only manifest-cleared controlled internal/private forms are eligible; consumer pre-push gates still apply."

@@ -208,6 +208,16 @@
   # and its class is at least as restrictive as every artifact it uses.
   builtType = types.submodule {
     options = {
+      derivedHashes = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        description = "Verified SRI hashes of derived regular-file forms. Deny evidence only, not complete provenance or cache admission.";
+      };
+      provider = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Explicit package provider override, e.g. any for a runtime shared by this board's kernel providers. Null inherits the release provider.";
+      };
       internalUse = internalUseOption;
       class = mkOption {
         type = types.enum classes;
@@ -304,6 +314,13 @@
   # free) and redistributable when `redistributable` is true.
   nixpkgsFree = l: builtins.isAttrs l && (l.free or true);
   nixpkgsRedistributable = l: builtins.isAttrs l && (l.redistributable or (l.free or true));
+  # Nixpkgs permits some non-free firmware in allowUnfree=false profiles.
+  # That profile convention does not make a vendor artifact R0/FOSS.
+  fossLicense = l:
+    builtins.isAttrs l
+    && l ? spdxId
+    && nixpkgsFree l
+    && lib.any (known: (known.spdxId or null) == l.spdxId && nixpkgsFree known) (builtins.attrValues lib.licenses);
 
   # nixpkgs configuration of every free profile (D7): nixpkgs' own default.
   freeNixpkgsConfig = {allowUnfree = false;};
@@ -323,7 +340,7 @@
       ++ err (a.size == null) "size is required"
       ++ err (!lib.all isSri a.derivedHashes) "derivedHashes must be SRI sha256 hashes"
       ++ err (a.class != "R0" && a.evidence == null) "non-free artifacts require license evidence"
-      ++ err (a.class == "R0" && a.license != null && !(nixpkgsFree a.license)) "R0 requires a free license"
+      ++ err (a.class == "R0" && a.license != null && !(fossLicense a.license)) "R0 requires a recognized free SPDX license"
       ++ err (a.class == "R1" && a.license != null && !(nixpkgsRedistributable a.license)) "R1 requires a license nixpkgs marks redistributable"
       ++ err (a.class != "R2" && a.url == null) "${a.class} requires a pinned url"
       ++ err (a.class == "R1" && !r.file) "R1 requires redistribution.file"
@@ -352,10 +369,11 @@
     "licensed internal build permission is not granted by every artifact it is built from; interpretation is not a license grant"
     ++ err (internalBuildPermitted b && lib.any (a: a != null && a.class != "R0" && !(internalBuildPermitted a)) inputs)
     "internal build copies are not permitted by every artifact it is built from"
+    ++ err (!lib.all isSri b.derivedHashes) "derivedHashes must be SRI sha256 hashes"
     ++ err (b.license == null) "license is required"
     ++ err (b.license != null && !(b.license ? free)) "license must state `free`"
     ++ err (b.class != "R0" && b.evidence == null) "non-free built packages require license evidence"
-    ++ err (b.class == "R0" && b.license != null && !(nixpkgsFree b.license)) "R0 requires a free license"
+    ++ err (b.class == "R0" && b.license != null && !(fossLicense b.license)) "R0 requires a recognized free SPDX license"
     ++ err (b.class == "R1" && b.license != null && !(nixpkgsRedistributable b.license)) "R1 requires a license nixpkgs marks redistributable"
     ++ err (b.class == "R2" && (r.file || r.image || r.cache)) "R2 packages cannot be publicly redistributable"
     ++ err (r.cache && !r.file) "redistribution.cache requires redistribution.file";
@@ -388,7 +406,10 @@
       lib.concatLists (lib.mapAttrsToList (_: a:
         lib.optionals (a.class != "R0" && !(a.class == "R1" && a.redistribution.cache))
         (lib.filter (h: h != null) ([a.sha256] ++ a.derivedHashes)))
-      m.artifacts))
+      m.artifacts)
+      ++ lib.concatLists (lib.mapAttrsToList (_: b:
+        lib.optionals (b.class != "R0" && !(b.class == "R1" && b.redistribution.cache)) b.derivedHashes)
+      m.built))
     manifests;
 
   # Hashes of files, adopted or blocked, not cleared for the private cache.
@@ -397,7 +418,10 @@
       lib.concatLists (lib.mapAttrsToList (_: a:
         lib.optionals (a.class != "R0" && !a.redistribution.private)
         (lib.filter (h: h != null) ([a.sha256] ++ a.derivedHashes)))
-      m.artifacts))
+      m.artifacts)
+      ++ lib.concatLists (lib.mapAttrsToList (_: b:
+        lib.optionals (b.class != "R0" && !b.redistribution.private) b.derivedHashes)
+      m.built))
     manifests;
 
   namePredicate = names: pkg: builtins.elem (lib.getName pkg) names;
@@ -575,13 +599,16 @@
             manifestEntry = {
               manifest = manifest.name;
               inherit id;
-              inherit (manifest) provider;
+              provider =
+                if b.provider == null
+                then manifest.provider
+                else b.provider;
               inherit (b) class layer load features from internalUse;
               internalBuild = internalBuildPermitted b;
               built = true;
               path = null;
               sha256 = null;
-              derivedHashes = [];
+              derivedHashes = b.derivedHashes;
               redistribution = {
                 inherit (b.redistribution) file image cache private;
                 build = buildPermitted b.redistribution;

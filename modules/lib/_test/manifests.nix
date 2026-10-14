@@ -3,6 +3,7 @@
 {lib}: let
   contents = {
     "free.bin" = "free firmware\n";
+    "derived.bin" = "compiled runtime form\n";
     "redist.bin" = "redistributable firmware\n";
     "cached.bin" = "cache-cleared firmware\n";
     "operator.bin" = "operator-supplied firmware\n";
@@ -139,6 +140,7 @@ in {
     built = {
       # Built from a redistributable artifact; not cleared for caches.
       runtime-bundle = {
+        derivedHashes = [sri contents."derived.bin"];
         class = "R1";
         from = ["redist-fw"];
         sources = ["synthetic runtime sources (test license)"];
@@ -264,7 +266,7 @@ in {
   };
 
   expectedErrors = [
-    "invalid.r0-unfree: R0 requires a free license"
+    "invalid.r0-unfree: R0 requires a recognized free SPDX license"
     "invalid.r1-no-evidence: non-free artifacts require license evidence"
     "invalid.r1-not-redistributable: R1 requires a license nixpkgs marks redistributable"
     "invalid.r1-cache-only: R1 requires redistribution.file"

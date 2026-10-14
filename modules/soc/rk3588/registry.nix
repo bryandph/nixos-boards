@@ -75,13 +75,24 @@ in {
     system,
     ...
   }: {
-    checks = lib.optionalAttrs (system == "aarch64-linux") (lib.genAttrs' ["turing-rk1" "orangepi5" "orangepi5plus" "rock5a"] (board:
-      lib.nameValuePair "${board}-device-tree" (let
-        c = config.flake.nixosConfigurations."${board}-free".config;
-      in
-        pkgs.runCommand "${board}-device-tree" {} ''
-          test -s ${c.hardware.deviceTree.package}/${c.hardware.deviceTree.name}
-          touch "$out"
-        '')));
+    checks =
+      {
+        orangepi5-console-contract = let
+          c = config.flake.nixosConfigurations.orangepi5-free.config;
+          consoles = lib.filter (lib.hasPrefix "console=") c.boot.kernelParams;
+        in
+          assert lib.last consoles == "console=ttyS2,1500000n8";
+          assert builtins.elem "earlycon" c.boot.kernelParams;
+          assert builtins.elem "phy-rockchip-naneng-combphy" c.boot.initrd.availableKernelModules;
+            pkgs.writeText "orangepi5-console-contract" "Pinned upstream UART2/1.5M console and PCIe2 PHY initrd request evaluated; no hardware acceptance.\n";
+      }
+      // lib.optionalAttrs (system == "aarch64-linux") (lib.genAttrs' ["turing-rk1" "orangepi5" "orangepi5plus" "rock5a"] (board:
+        lib.nameValuePair "${board}-device-tree" (let
+          c = config.flake.nixosConfigurations."${board}-free".config;
+        in
+          pkgs.runCommand "${board}-device-tree" {} ''
+            test -s ${c.hardware.deviceTree.package}/${c.hardware.deviceTree.name}
+            touch "$out"
+          '')));
   };
 }

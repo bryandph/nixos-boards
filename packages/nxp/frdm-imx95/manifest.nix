@@ -1,7 +1,8 @@
 # FRDM-i.MX95 release manifest (D6) for NXP Linux Factory 6.18.20-2.0.0.
 # Every NXP-licensed file is operator-supplied (R2): the NXP Software
 # License Agreement permits distribution only as part of an authorized
-# NXP-based system (section 2.3), not as standalone files or caches.
+# NXP-based system (section 2.3), not as standalone public files or caches.
+# Documented licensed internal build/private-cache copies remain separate.
 # Each file is imported by a board app after the operator accepts NXP's
 # license; the store names match the files, so earlier imports are reused.
 _: let
@@ -32,22 +33,22 @@ _: let
     agreement = {
       url = nxpAgreement;
       inherit retrieved;
-      location = "§2.2(a): use and reproduce solely for developing an Authorized System, no distribution to others (internal copies only); §2.3: distribution only within an Authorized System; ELE and firmware-imx recipes share COPYING md5 bc649096ad3928ec06a8713b8d787eac; LF6.18.20 Software Content Register";
+      location = "§2.2(a): use and reproduce solely in combination with an NXP Product to develop an Authorized System, no distribution to others (internal copies only); §2.3: distribution only within an Authorized System; ELE and firmware-imx recipes share COPYING md5 bc649096ad3928ec06a8713b8d787eac; LF6.18.20 Software Content Register";
     };
     neutron = {
       url = "https://github.com/nxp-imx/neutron/blob/${neutronRev}/LICENSE.txt";
       inherit retrieved;
-      location = "LICENSE.txt (LA_OPT_NXP_Software_License v63, git blob 37ddcbd5) §2.2(a) internal reproduction only; SW-Content-Register.txt at the pinned revision";
+      location = "LICENSE.txt (LA_OPT_NXP_Software_License v63, git blob 37ddcbd5) §2.2(a): reproduction solely in combination with an NXP Product for developing an Authorized System; SW-Content-Register.txt at the pinned revision additionally grants distribution under §2.3. Manifest clearance remains controlled internal/private only, not standalone public distribution.";
     };
     eiqWheel = {
-      url = "https://eiq.nxp.com/repository/eiq-neutron-sdk/eiq_neutron_sdk-3.1.2-cp311-cp311-manylinux_2_31_x86_64.whl";
+      url = "https://raw.githubusercontent.com/nxp-imx/neutron/${neutronRev}/LICENSE.txt";
       retrieved = "2026-10-13";
-      location = "eiq_neutron_sdk-3.1.2.dist-info/licenses/LA_OPT_NXP_Software_License.txt (v63, May 2025; same text as the Neutron repository's LICENSE.txt) and Software-Content-Register.txt: \"Package License: … Standard use - Section 2.2 applies\" (converter, runner and quantization tool §2.2; driver and firmware §2.3). §2.2(a): use and reproduce solely for developing an Authorized System, no distribution to others";
+      location = "eiq_neutron_sdk-3.1.2.dist-info/licenses/LA_OPT_NXP_Software_License.txt (v63, May 2025; same text as the Neutron repository's LICENSE.txt) and Software-Content-Register.txt: \"Package License: … Standard use - Section 2.2 applies\" (converter, runner and quantization tool §2.2; driver and firmware §2.3). §2.2(a): use and reproduce solely in combination with an NXP Product for developing an Authorized System, no distribution to others";
     };
     converterOutput = {
       url = licenses.eiqOutput.url;
       retrieved = "2026-10-13";
-      location = "The converter is licensed under NXP SLA v63 §2.2 (see eiqWheel), which has no clause on converter output; the input is TensorFlow's MobileNet v1. Interpreted as §2.2(a) internal reproduction for an Authorized System: internal build and private-cache copies only, never public. Interpretation approved by the operator on 2026-10-13 (LAB-144)";
+      location = "The converter is licensed under NXP SLA v63 §2.2 (see eiqWheel), which has no clause on converter output; the input is TensorFlow's MobileNet v1. Interpreted as §2.2(a) internal reproduction for an Authorized System: internal build and private-cache copies only, never public. Interpretation approved by the operator on 2026-10-13";
     };
   };
 
@@ -80,7 +81,8 @@ _: let
     evidence = evidenceFor;
     instructions = how;
     # NXP SLA §2.2(a) permits the licensee to reproduce the software for
-    # developing an Authorized System, but not to distribute it to others:
+    # developing an Authorized System solely in combination with an NXP Product,
+    # but not to distribute it to others:
     # internal build and private-cache copies only, never public forms.
     redistribution.private = license == licenses.nxp;
   };
@@ -160,7 +162,7 @@ in {
           recovery. Download LF_v6.18.20-2.0.0_images_IMX95EVK.zip after
           accepting NXP's license, then run:
 
-            nix run github:bryandph/nixos-boards#frdm-imx95-import-nxp-boot-container -- <LF_v6.18.20-2.0.0_images_IMX95EVK.zip>
+            nix run github:bryandph/nixos-boards#frdm-imx95-import-nxp-boot-container -- --accept-license <LF_v6.18.20-2.0.0_images_IMX95EVK.zip>
         '';
       };
       neutron-firmware = neutronMember "NeutronFirmware.elf" 46388 "sha256-+hBYhYPQsQw63LZd5LZIg+kieWc3rzKEaHtij8+Ev04=";
@@ -207,6 +209,16 @@ in {
 
     built = {
       source-boot-container = built {
+        # Historical accepted aggregate pins: deny them in the public hash
+        # scan as well as their raw inputs. This is not complete admission.
+        derivedHashes = [
+          "sha256-5s1YjWQg/daHJI2gwb1A7JR539qJWhuqfo8SM821g5g="
+          (builtins.convertHash {
+            hash = "0dd1b75a176c4135d744d708f8629842599aebc600ab9444e9509ccec82230a4";
+            hashAlgo = "sha256";
+            toHashFormat = "sri";
+          })
+        ];
         from = ["ele-firmware" "lpddr4x-dmem" "lpddr4x-dmem-qb" "lpddr4x-imem" "lpddr4x-imem-qb"];
         sources = ["NXP U-Boot (GPL-2.0-or-later)" "imx-atf (BSD-3-Clause)" "imx-optee-os (BSD-2-Clause)" "imx-sm (BSD-3-Clause)" "imx-oei (BSD-3-Clause)" "imx-mkimage (GPL-2.0-only)"];
         layer = "boot-firmware";
@@ -232,6 +244,9 @@ in {
         features = ["frdm-imx95-m7-remoteproc"];
       };
       neutron-runtime = built {
+        # The pinned 3.1.2 runtime is shared by the reduced Neutron and full
+        # LF providers; do not falsely bind this runtime to the LF kernel.
+        provider = "any";
         from = ["neutron-firmware" "neutron-driver" "neutron-driver-header" "neutron-errors-header"];
         evidence = evidence.neutron;
         layer = "runtime-firmware";

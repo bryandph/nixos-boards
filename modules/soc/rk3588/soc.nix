@@ -36,6 +36,7 @@ in {
       initrd.includeDefaultModules = lib.mkForce false;
       initrd.availableKernelModules = lib.mkForce [
         "nvme"
+        "phy-rockchip-naneng-combphy" # PCIe2 PHY for RK3588S NVMe roots
         "mmc_block"
         "hid" # USB keyboards for recovery and LUKS prompts
         "dm_mod" # LVM and LUKS

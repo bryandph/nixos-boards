@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only OR MIT
 /* BeagleY-AI header routes adapted from BeagleBoard.org DeviceTrees.
  * Copyright (C) BeagleBoard.org Foundation
- * See docs/expansion.md for the pinned source and connector identities.
+ * See docs/wiki/BeagleY-AI-Expansion.md for the pinned source and connector identities.
  */
 /dts-v1/;
 /plugin/;

@@ -27,7 +27,7 @@ in {
     boot = {
       kernelPackages = lib.mkDefault (pkgs.linuxPackagesFor (boardsLib.withProvider "mainline" pkgs.linuxPackages_latest.kernel));
       consoleLogLevel = lib.mkDefault 7;
-      supportedFilesystems = lib.mkForce [
+      supportedFilesystems = [
         "ext4"
         "vfat"
       ];
@@ -38,7 +38,7 @@ in {
         "sdhci-esdhc-imx"
       ];
 
-      kernelParams = lib.mkForce [
+      kernelParams = lib.mkAfter [
         "rootwait"
         "earlycon"
         "keep_bootcon"

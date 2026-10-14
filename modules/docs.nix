@@ -57,9 +57,13 @@ in {
       # docs/wiki, which CI mirrors to the GitHub wiki.
       wiki-links = pkgs.runCommand "nixos-boards-wiki-links" {inherit wiki;} ''
         cd "$wiki"
+        # Dotted board page names must be parsed, including a missing target.
+        dotted=$(printf '%s\n' '[probe](FRDM-i.MX95-Definitely-Missing#section)' | grep -oE '\]\([A-Za-z0-9_.-]+(#[A-Za-z0-9_-]+)?\)' | sed -E 's/^\]\(([^)#]+).*/\1/')
+        test "$dotted" = 'FRDM-i.MX95-Definitely-Missing'
+        test ! -f "$dotted.md"
         status=0
         for page in *.md; do
-          for target in $(grep -oE '\]\([A-Za-z0-9_-]+(#[A-Za-z0-9_-]+)?\)' "$page" | sed -E 's/^\]\(([^)#]+).*/\1/' | sort -u); do
+          for target in $(grep -oE '\]\([A-Za-z0-9_.-]+(#[A-Za-z0-9_-]+)?\)' "$page" | sed -E 's/^\]\(([^)#]+).*/\1/' | sort -u); do
             if [ ! -f "$target.md" ]; then
               echo "$page links to missing wiki page $target" >&2
               status=1

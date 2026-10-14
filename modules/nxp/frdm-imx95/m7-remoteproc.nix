@@ -70,6 +70,13 @@ in {
     assertions = [
       {
         assertion =
+          (config.hardware.boards.imx95.bootContainer.systemManagerPolicy or null)
+          == "m7-remoteproc-lmm"
+          && !(config.hardware.boards.imx95.bootContainer.containsM7Application or false);
+        message = "FRDM-i.MX95 M7 remoteproc requires the m7-remoteproc-lmm System Manager policy and no preloaded M7 application; consumer overrides must retain that contract.";
+      }
+      {
+        assertion =
           usesCombinedNxpProvider
           || (
             providerKind

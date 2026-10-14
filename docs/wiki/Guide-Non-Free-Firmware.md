@@ -74,7 +74,10 @@ as `boards.manifests.<name>`. The values below are illustrative:
 
 `checks.release-manifests` validates every entry. It requires:
 
-- a non-free license for R1 and R2;
+- a recognized free SPDX license for R0; nixpkgs' special
+  `unfreeRedistributableFirmware` profile allowance does not make an artifact R0;
+- recorded license semantics for R1/R2 (a vendor firmware license may be
+  permitted in nixpkgs' free profile but still needs R1 provenance/clearance);
 - evidence for every non-free artifact;
 - a pinned URL and at least one notice file for R1;
 - import instructions for R2, which may never be publicly redistributable;
@@ -155,7 +158,8 @@ branch after two gates pass:
    because nixpkgs counts some non-free firmware as free.
 2. **Pre-push scan.** `nix run .#cache-scan -- <store paths>` hashes every
    file in their closure. It refuses if any file matches a non-cacheable
-   artifact, or one of its `derivedHashes`, from any manifest.
+   artifact, or a recorded artifact/built-package `derivedHashes` form, from
+   any manifest.
 
 An R2 artifact leaves the machine that imported it only in the forms its
 manifest entry permits, and never publicly. Internal build machines may hold
@@ -183,3 +187,12 @@ The scan matches exact file contents. NixOS compresses firmware by default
 (`hardware.firmwareCompression`), so compressed copies only match if their
 hashes are recorded in `derivedHashes`. The evaluation gate is the primary
 protection.
+
+Hash scanning is deny evidence, not complete producer provenance. A derived,
+rebuilt, historical or copied output whose digest is unrecorded can pass a
+hash-only scan even when its manifest denies caching. Never treat that success
+as permission: affected Beagle output caching stays denied, and publication
+remains held until consumer admission validates exact approved producer roots
+and authoritative closure coverage, default-refusing uncovered outputs. Known
+NXP aggregate hashes are recorded to deny those forms publicly; that does not
+clear every possible derived form or replace the admission gate.
