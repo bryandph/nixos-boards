@@ -69,8 +69,10 @@ in
       runHook postBuild
     '';
     installPhase = ''
+      runHook preInstall
       mkdir -p "$out/share/beagley-ai"
       cp ${./multimedia-edgeai-sources.json} "$out/share/beagley-ai/edgeai-sources.json"
+      runHook postInstall
     '';
     passthru = {inherit runtime sources;};
     meta = {
