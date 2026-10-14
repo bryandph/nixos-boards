@@ -42,7 +42,14 @@ echo 0x0104 >idProduct
 echo 0x0200 >bcdUSB
 echo 0x0100 >bcdDevice
 mkdir strings/0x409 configs/c.1 configs/c.1/strings/0x409
-serial=$(cat /etc/machine-id)
+# Device identity: application-specific USB serial; preserve existing ECM MACs.
+machine_id=$(cat /etc/machine-id)
+serial_hash=$(printf '%s\0%s' 'nixos-boards/beagley-ai/usb-serial-v1' "$machine_id" | sha256sum)
+serial=${serial_hash:0:32}
+hash=$(printf '%s' "$machine_id" | sha256sum)
+suffix=${hash:0:2}:${hash:2:2}:${hash:4:2}:${hash:6:2}:${hash:8:2}
+unset machine_id serial_hash
+# End device identity.
 printf '%s\n' "$serial" >strings/0x409/serialnumber
 echo Linux >strings/0x409/manufacturer
 echo 'BeagleY-AI serial and Ethernet' >strings/0x409/product
@@ -51,8 +58,6 @@ echo 'ACM + ECM' >configs/c.1/strings/0x409/configuration
 echo 0xc0 >configs/c.1/bmAttributes
 echo 2 >configs/c.1/MaxPower
 mkdir functions/acm.usb0 functions/ecm.usb0
-hash=$(printf '%s' "$serial" | sha256sum)
-suffix=${hash:0:2}:${hash:2:2}:${hash:4:2}:${hash:6:2}:${hash:8:2}
 echo "02:$suffix" >functions/ecm.usb0/dev_addr
 echo "06:$suffix" >functions/ecm.usb0/host_addr
 echo bgyusb0 >functions/ecm.usb0/ifname

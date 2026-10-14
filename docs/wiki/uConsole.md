@@ -22,6 +22,11 @@ AXP228 battery PMIC. This repository supports it with a Raspberry Pi
 | `uconsole-expansion-aio-v1` | HackerGadgets AIO v1 board: GPS with PPS, RTL-SDR, SX1262 LoRa, PCF85063A RTC |
 | `uconsole-expansion-nvme` | HackerGadgets NVMe adapter: PCIe x1 for the M.2 slot |
 
+The AIO GPS daemon listens locally by default; consumers explicitly opt into
+remote access. GPS/PPS device nodes use `dialout` group access, not world-write
+permissions. The core also claims the overlay's I2C/PMIC, reset and backlight
+GPIOs (2/3/8/9 in addition to 10–13).
+
 The two expansion features claim the GPIOs, buses and PCIe lane they use,
 so an add-on that needs the same resources fails evaluation. Status of
 each function: [hardware matrix](uConsole-Hardware-Matrix).
@@ -33,6 +38,7 @@ each function: [hardware matrix](uConsole-Hardware-Matrix).
   inputs.nixos-boards.url = "github:bryandph/nixos-boards";
   outputs = {nixpkgs, nixos-boards, ...}: {
     nixosConfigurations.uconsole = nixpkgs.lib.nixosSystem {
+      system = "aarch64-linux";
       modules = with nixos-boards.nixosModules; [
         uconsole-core
         uconsole-image

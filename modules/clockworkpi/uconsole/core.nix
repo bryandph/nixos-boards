@@ -48,7 +48,7 @@ in {
       claims = map (resource: {
         inherit resource;
         owner = "uconsole-core";
-      }) ["gpio:10" "gpio:11" "gpio:12" "gpio:13"];
+      }) ["gpio:2" "gpio:3" "gpio:8" "gpio:9" "gpio:10" "gpio:11" "gpio:12" "gpio:13"];
     };
 
     # mkForce over the SoC's mkDefault of the unpatched kernel.

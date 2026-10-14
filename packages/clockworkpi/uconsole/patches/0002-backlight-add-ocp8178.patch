@@ -229,7 +229,7 @@ index 0000000..1946880
 +	struct device_node *np = dev->of_node;
 +	enum gpiod_flags flags;
 +	int ret = 0;
-+	u32 value32;
++	u32 value32 = 0;
 +
 +	of_property_read_u32(np, "default-brightness", &value32);
 +	if(value32 > MAX_BRIGHTNESS_VALUE)

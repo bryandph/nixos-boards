@@ -3,6 +3,25 @@
 in {
   perSystem = {pkgs, ...}: {
     checks = {
+      beagley-ai-usb-identity-privacy = pkgs.runCommand "beagley-ai-usb-identity-privacy" {} ''
+        # Execute only the production identity block with a synthetic ID;
+        # never read the build machine's machine-id or configfs.
+        id=00112233445566778899aabbccddeeff
+        sed -n '/^# Device identity:/,/^# End device identity\./p' ${../../../packages/beagleboard/beagley-ai/usb-gadget.sh} \
+          | sed "s|^machine_id=.*|machine_id=$id|" > identity.sh
+        . ./identity.sh
+        test -n "$serial" && test "$serial" != "$id"
+        test "''${#serial}" -eq 32
+        expected=$(printf '%s\0%s' 'nixos-boards/beagley-ai/usb-serial-v1' "$id" | sha256sum)
+        test "$serial" = "''${expected:0:32}"
+        oldHash=$(printf '%s' "$id" | sha256sum)
+        test "$hash" = "$oldHash"
+        test "$suffix" = "''${oldHash:0:2}:''${oldHash:2:2}:''${oldHash:4:2}:''${oldHash:6:2}:''${oldHash:8:2}"
+        first=$serial
+        . ./identity.sh
+        test "$first" = "$serial"
+        touch "$out"
+      '';
       beagley-ai-usb-gadget-cleanup = let
         script = ../../../packages/beagleboard/beagley-ai/usb-gadget.sh;
       in

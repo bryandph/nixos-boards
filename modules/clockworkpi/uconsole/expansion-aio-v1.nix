@@ -47,18 +47,20 @@
       gpsd = {
         enable = true;
         devices = ["/dev/ttyAMA0"];
-        listenany = true;
+        listenany = lib.mkDefault false;
         nowait = true;
       };
       udev = {
         extraRules = ''
-          KERNEL=="ttyAMA0", SYMLINK+="gps0", MODE="0666"
-          KERNEL=="pps0", SYMLINK+="gpspps0", MODE="0666"
+          KERNEL=="ttyAMA0", SYMLINK+="gps0", GROUP="dialout", MODE="0660"
+          KERNEL=="pps0", SYMLINK+="gpspps0", GROUP="dialout", MODE="0660"
         '';
         # mkDefault: a radio stack may provide its own rules.
         packages = lib.mkDefault [pkgs.rtl-sdr];
       };
     };
+
+    systemd.services.gpsd.serviceConfig.SupplementaryGroups = ["dialout"];
 
     # Let the userspace rtl-sdr driver claim the RTL2832U instead of the
     # DVB driver. mkDefault: a radio stack may blacklist more modules.

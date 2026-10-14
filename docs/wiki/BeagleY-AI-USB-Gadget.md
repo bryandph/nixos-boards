@@ -14,8 +14,9 @@ host enumeration has not been physically tested.
 The service creates `/dev/ttyGS0` and interface `bgyusb0`. It does not assign an
 IP address, enable routing or start an unauthenticated console. Consumers can
 configure ordinary NixOS networking and an authenticated serial getty as needed.
-The USB serial and locally administered Ethernet addresses derive from the
-runtime machine ID. Stopping `beagley-usb-gadget.service` unbinds and removes
+The USB serial is an application-specific, domain-separated SHA256 identifier
+(32 hex characters), not the raw runtime machine ID. The locally administered
+Ethernet addresses retain their existing hashed machine-ID mapping. Stopping `beagley-usb-gadget.service` unbinds and removes
 only its own configfs gadget.
 
 With an independently powered fixture, verify host ACM and ECM enumeration,
