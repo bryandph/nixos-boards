@@ -140,7 +140,7 @@ in {
     built = {
       # Built from a redistributable artifact; not cleared for caches.
       runtime-bundle = {
-        derivedHashes = [sri contents."derived.bin"];
+        derivedHashes = [(sri contents."derived.bin")];
         class = "R1";
         from = ["redist-fw"];
         sources = ["synthetic runtime sources (test license)"];
