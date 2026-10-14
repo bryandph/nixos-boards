@@ -11,12 +11,12 @@ Maintainers have this board, so functions can be verified on hardware.
 | adsp | implemented-unverified | full | dragon-q8b-adsp |  |
 | audio | blocked: licensing (topology) | blocked: licensing | dragon-q8b-audio |  |
 | compute-dsp | blocked: licensing | blocked: licensing | dragon-q8b-compute-dsp |  |
-| ethernet | verified | free | dragon-q8b-core | [evidence](Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance) |
+| ethernet | verified: recorded 2026-10-13 full-profile headless consumer, one PCIe link/warm boots; not current public-fixture hardware acceptance | free | dragon-q8b-core | [evidence](Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance) |
 | gpu | implemented-unverified | full | dragon-q8b-gpu |  |
 | mainline | blocked: compatible native Q8B DTS or reviewed backport required | blocked: compatible native Q8B DTS or reviewed backport required | dragon-q8b-provider-mainline |  |
-| nvme | verified | free | dragon-q8b-core | [evidence](Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance) |
+| nvme | verified: recorded 2026-10-13 full-profile headless consumer, 512-byte sectors; not current public-fixture or physical 4Kn acceptance | free | dragon-q8b-core | [evidence](Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance) |
 | qup | blocked: licensing | blocked: licensing | dragon-q8b-qup |  |
 | sd | implemented-unverified | free | dragon-q8b-core |  |
-| serial | verified | free | dragon-q8b-core | [evidence](Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance) |
+| serial | verified: recorded 2026-10-13 full-profile headless consumer; not current public-fixture hardware acceptance | free | dragon-q8b-core | [evidence](Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance) |
 | ufs | implemented-unverified | free | dragon-q8b-core |  |
 | video | blocked: licensing | blocked: licensing | dragon-q8b-video |  |
