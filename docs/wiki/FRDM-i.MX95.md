@@ -35,8 +35,9 @@ lists the status of each function.
 | `frdm-imx95-full` | full | All of the above |
 
 Features that need NXP's licensed files are R2: every file is imported by
-the operator after accepting NXP's license, and nothing built from them is
-published to any cache. See [firmware](FRDM-i.MX95-Firmware).
+the operator after accepting NXP's license. Only the manifest-recorded
+controlled internal/private forms are permitted; no public cache or
+standalone redistribution is cleared. See [firmware](FRDM-i.MX95-Firmware).
 
 ## Using it
 

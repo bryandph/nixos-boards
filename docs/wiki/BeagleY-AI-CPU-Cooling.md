@@ -1,5 +1,9 @@
 # CPU frequency and passive cooling
 
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
 The board device tree supplies one shared A53 frequency policy at 200, 400,
 600, 800, 1000 and 1200 MHz. The main0 thermal zone requests CPU cooling at
 85°C with 5°C hysteresis; the existing critical trips remain intact.

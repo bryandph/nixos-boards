@@ -1,4 +1,4 @@
-Tracked as LAB-145 (subtask of the LAB-144 epic) in the maintainer's work tracker.
+Public change: establish board-support conventions.
 
 ## Why
 

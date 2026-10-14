@@ -1,5 +1,9 @@
 # CC3301 Wi-Fi and Bluetooth LE
 
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
 Import `nixosModules.beagley-ai-wireless` alongside the consumer's network
 policy. It provides the matched firmware, SDIO and UART drivers, Bluetooth
 daemon and CC33xx BLE initialization service. It does not select an SSID,
@@ -15,7 +19,7 @@ The package preserves the vendor configuration without editing firmware bytes.
 
 ## Frozen tuple
 
-`packages/wireless-release.nix` owns the URLs, sizes, hashes and ABI evidence:
+`packages/beagleboard/beagley-ai/wireless-release.nix` owns the URLs, sizes, hashes and ABI evidence:
 
 - Kernel driver: BeagleBoard `8fb21420a704ea36aaf66df8288ed8ee9da2762d`.
 - CC33xx SDK 1.0.2.10, firmware/configuration 1.7.0.316, from the official

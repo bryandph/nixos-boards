@@ -60,8 +60,6 @@
       };
     };
 
-    systemd.services.gpsd.serviceConfig.SupplementaryGroups = ["dialout"];
-
     # Let the userspace rtl-sdr driver claim the RTL2832U instead of the
     # DVB driver. mkDefault: a radio stack may blacklist more modules.
     boot.blacklistedKernelModules = lib.mkDefault ["dvb_usb_rtl28xxu"];

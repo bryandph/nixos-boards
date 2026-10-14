@@ -1,4 +1,4 @@
-Tracked as LAB-153 (subtask of the LAB-144 epic) in the maintainer's work tracker.
+Public change: controlled private-cache lane.
 
 ## Why
 
@@ -28,9 +28,9 @@ board that runs it is use, not publication.
 - Consumers: cache-push tooling should skip blocked systems and scan before
   pushing.
 
-## Revision: internal builders and the private cache (operator decision, LAB-144)
+## Revision: internal builders and the private cache (operator decision)
 
-The operator allowed internal build machines and the private ncps cache for non-free artifacts wherever the vendor's terms permit. Operator authorization cannot grant a vendor license, so each manifest records what its license allows:
+The operator allowed internal build machines and the controlled private cache for non-free artifacts wherever the vendor's terms permit. Operator authorization cannot grant a vendor license, so each manifest records what its license allows:
 
 - **Internal build copies.** A new `build` form, implied by `file` and `private`, and the status `hardware.boards.publication.build`. A system that is not build-cleared is built where its R2 files were imported; each build machine may import them itself.
 - **Private cache.** `private` now explicitly requires a cache that serves only the licensee's own systems. Enforcing that read boundary, through authentication or network isolation, belongs to the consumer configuration, not this repository.

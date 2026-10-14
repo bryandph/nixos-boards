@@ -1,10 +1,14 @@
 # Multimedia and GPU
 
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
 Import `nixosModules.beagley-ai-multimedia` for the Wave521C firmware and V4L2
 tools. The provider kernel supplies Wave5 and E5010 drivers. E5010 needs no
 separate firmware. The kernel includes TI's fix for the pinctrl wake interrupt
 incorrectly claiming the JPEG encoder's SPI 98; see the source and patch hashes
-in `packages/multimedia-release.nix`.
+in `packages/beagleboard/beagley-ai/multimedia-release.nix`.
 
 Discover functions by driver and V4L2 capabilities, rather than assuming a
 particular `/dev/videoN` number:
@@ -90,7 +94,7 @@ the connector profile to `beagley-ai-full`. The camera tooling feature installs
 `beagley-ai-camera-inference`; it does not select a sensor connector or start
 capture automatically.
 
-`packages/multimedia-edgeai-sources.json` pins the four source components to
+`packages/beagleboard/beagley-ai/multimedia-edgeai-sources.json` pins the four source components to
 TI's meta-edgeai `04db1a86f468b1072eaf72cb723b0d1b76a505ce` recipes. The
 GStreamer plugin links the same OpenVX runtime used by the vision firmware.
 The ISP implementation contains J722S paths; the BSP extends its AM62A-only
@@ -100,7 +104,7 @@ and links its algorithms from the matched MPU runtime. The separate C++ DL-infer
 disabled; inference uses the matched Python ONNX/TIDL runtime instead.
 
 IMX219 tuning comes from the pinned imaging component, with unchanged bytes,
-member sizes and SHA256 recorded in `packages/multimedia-imx219-dcc.json`.
+member sizes and SHA256 recorded in `packages/beagleboard/beagley-ai/multimedia-imx219-dcc.json`.
 The reference pipeline accepts RAW10 only and pairs VISS/2A tuning for
 320×240, 640×480, 1280×720, 1640×1232, or 1920×1080. A different resolution
 or bit depth requires its own reviewed tuning profile.

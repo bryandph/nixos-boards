@@ -14,7 +14,7 @@
 - [x] 2.4 Resource claims through `hardware.boards.claims`
 - [x] 2.5 Registry, fixtures, CI checks and hardware checks
 - [x] 2.6 Wiki pages: board page, Boot and Recovery, and the BSP's topic pages
-- [x] 2.7 nixspace consumes nixos-boards for the beagleyai host
+- [x] 2.7 The downstream consumer uses nixos-boards for its BeagleY-AI configuration
 
 ## 3. Close
 

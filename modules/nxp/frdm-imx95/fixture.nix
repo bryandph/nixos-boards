@@ -139,6 +139,15 @@ in {
             }
           ];
         };
+        consumerConsoleBoard = mkBoard {
+          imageBaseName = "nixos-frdm-imx95-consumer-console";
+          modules = [
+            {
+              boot.consoleLogLevel = 3;
+              boot.kernelParams = ["quiet" "console=ttyS1,9600"];
+            }
+          ];
+        };
         consumerZfsBoard = mkBoard {
           imageBaseName = "nixos-frdm-imx95-consumer-zfs";
           modules = [{boot.supportedFilesystems = ["zfs"];}];
@@ -272,8 +281,26 @@ in {
           {
             review-composition-regressions = assert failedAssertions neutronBoard == [];
             assert builtins.elem "quiet" consumerListsBoard.config.boot.kernelParams;
-            assert consumerListsBoard.config.boot.supportedFilesystems.btrfs;
-            assert !board.config.boot.supportedFilesystems.zfs;
+            assert lib.filterAttrs (_: enabled: enabled) board.config.boot.supportedFilesystems
+            == {
+              ext4 = true;
+              vfat = true;
+            };
+            assert lib.filterAttrs (_: enabled: enabled) allFeaturesBoard.config.boot.supportedFilesystems
+            == {
+              ext4 = true;
+              vfat = true;
+            };
+            assert lib.sort lib.lessThan (lib.unique (map lib.getName board.config.system.fsPackages)) == ["dosfstools" "e2fsprogs" "mtools"];
+            assert lib.sort lib.lessThan (lib.unique (map lib.getName allFeaturesBoard.config.system.fsPackages)) == ["dosfstools" "e2fsprogs" "mtools"];
+            assert lib.all (fs: consumerListsBoard.config.boot.supportedFilesystems.${fs} or false) ["btrfs" "ext4" "vfat"];
+            assert !(board.config.boot.supportedFilesystems.zfs or false);
+            assert lib.filter (lib.hasPrefix "console=") board.config.boot.kernelParams == ["console=ttyLP0,115200"];
+            assert builtins.length (lib.filter (lib.hasPrefix "loglevel=") board.config.boot.kernelParams) == 1;
+            assert builtins.elem "quiet" consumerConsoleBoard.config.boot.kernelParams;
+            assert builtins.elem "console=ttyS1,9600" consumerConsoleBoard.config.boot.kernelParams;
+            assert builtins.elem "loglevel=3" consumerConsoleBoard.config.boot.kernelParams;
+            assert !(builtins.elem "loglevel=7" consumerConsoleBoard.config.boot.kernelParams);
             assert consumerZfsBoard.config.boot.supportedFilesystems.zfs;
             assert !lib.any (lib.hasInfix "z /sys/kernel/debug ") neutronBoard.config.systemd.tmpfiles.rules;
             assert failedAssertions incompleteCombinedBoard != [];

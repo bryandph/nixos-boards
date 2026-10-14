@@ -1016,6 +1016,7 @@
           m.artifacts)
         + lib.optionalString (m.built != {}) (
           "\n### Built packages\n\nPackages built from the artifacts above or from other pinned sources.\n\n"
+          + lib.concatStrings (lib.mapAttrsToList (id: b: lib.optionalString (b.provider != null) "Package `${id}` uses provider `${b.provider}` rather than the release provider `${m.provider}`; this is a compatibility label, not a redistribution grant.\n\n") m.built)
           + table ["Package" "Class" "License" "Built from" "Layer" "Load" "Redistribution" "Evidence"]
           (lib.mapAttrsToList (id: b: [
               "`${id}`"

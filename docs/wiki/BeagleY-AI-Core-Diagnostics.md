@@ -1,5 +1,9 @@
 # Core runtime diagnostics
 
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
 The fleet board exposes OP-TEE 4.6 with dynamic shared memory. Read-only
 `TEE_IOC_VERSION` identified OP-TEE (implementation 1, implementation caps 1,
 generic caps 0xd); `/dev/tee0` and `/dev/teepriv0` were root-only, mode 0600.

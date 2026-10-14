@@ -1,6 +1,6 @@
 # BeagleY-AI release manifest (D6) for the BeagleBoard 6.12 kernel and TI
 # Processor SDK 11.02. Every non-free input is an artifact or a built
-# package; the licensing review is recorded on LAB-148.
+# package; licence evidence and bounded interpretation are recorded below.
 {}: let
   tiFirmwareRev = "d528873a75e532075a1fd5d2a53defef98d60437";
   tiFirmware = path: "https://git.ti.com/cgit/processor-firmware/ti-linux-firmware/plain/${path}?id=${tiFirmwareRev}";

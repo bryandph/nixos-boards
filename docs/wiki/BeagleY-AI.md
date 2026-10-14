@@ -1,5 +1,9 @@
 # BeagleY-AI
 
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
 The [BeagleY-AI](https://www.beagleboard.org/boards/beagley-ai) (4 GB) uses
 the TI AM67A (J722S): four Cortex-A53 cores, R5F cores, two C7x DSP/MMA
 accelerators, a PowerVR Rogue GPU and the Wave5 video codec.
@@ -71,8 +75,13 @@ nix run github:bryandph/nixos-boards#beagley-ai-import-artifacts -- --accept-lic
 ```
 
 The first command lists the files and their terms; the second downloads,
-verifies and imports them. Packages built from R2 files permit neither
-public nor private cache copies, so each build machine builds them itself.
+verifies and imports them. The three reviewed TI tool/model downloads and
+`model-tools` have separately recorded controlled private-copy permission.
+The four Sandbox helpers permit controlled TI-target builder use only through
+the explicit operator-accepted interpretation; they and all affected derived
+outputs remain denied for public/private caches. This is not an express helper
+grant and does not require each controlled builder to invent a new grant.
+See [firmware](BeagleY-AI-Firmware) for exact per-entry forms.
 
 Build the image (`beagleyAiSdImage` applies the FAT corrections the K3 ROM
 needs; the generic `sdImage` does not):

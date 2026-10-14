@@ -1,5 +1,9 @@
 # J722S model compilation
 
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
 `legacyPackages.x86_64-linux.beagley-ai.model-tools` packages TI 11.02.16.00's x86
 TIDL compiler and matching CPython 3.10 ONNX/TFLite wheels. Vendor executables
 and libraries remain byte-for-byte intact under `lib/original`; adjacent
@@ -66,12 +70,15 @@ This accepts synthetic inference integration; it does not measure classifier
 accuracy on a representative dataset.
 
 `packages/beagleboard/beagley-ai/model-release.nix` records every URL/hash and
-the reference revision. The model archive and tools archive contain no
-standalone redistribution license file, and the reference repository has no
-LICENSE at the pinned revision. Public availability is not a redistribution
-grant, so the archives and the compiler script are R2: import them with
-`nix run .#beagley-ai-import-artifacts -- --accept-license`. The tools and the
-compiled model are never published. See [firmware](BeagleY-AI-Firmware). Wheel notices remain in their extracted dist-info
+the reference revision. The model/tools archives carry no embedded notice,
+but their separately reviewed upstream TI/modelzoo/pycls terms and installed
+notices permit the recorded controlled private copies. They remain R2 for
+operator acquisition. The independent compiler-wrapper grant remains
+inferential: it is R2 under the documented internal TI-target interpretation,
+not an express vendor grant. Import with
+`nix run .#beagley-ai-import-artifacts -- --accept-license`. Model tools retain
+their established private permission; the affected compiled model and wrapper
+remain denied for both public and private caches. See [firmware](BeagleY-AI-Firmware). Wheel notices remain in their extracted dist-info
 metadata, original vendor files remain intact, and any model notice files are
 retained. This package does not relicense TI binaries, downloaded model weights,
 or the reference compiler script.

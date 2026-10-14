@@ -1,5 +1,9 @@
 # Real-time clocks
 
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
 BeagleY-AI has an external DS1340 on I2C and a separate TI K3 internal RTC.
 The board's base DT assigns `rtc0` to the DS1340. Linux 6.12 allocates an
 unaliased RTC the first free number, so the earlier-probed internal RTC could

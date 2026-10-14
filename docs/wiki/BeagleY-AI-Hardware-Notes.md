@@ -1,5 +1,17 @@
 # Hardware coverage
 
+## Historical observation scope
+
+The detailed results below describe historical operator sessions of runtime
+predecessors/standalone support, not a fresh acceptance run of the current
+public candidate. They are retained as bounded history, not promoted to a
+whole-profile verdict. The generated [hardware matrix](BeagleY-AI-Hardware-Matrix)
+is the authoritative conservative status for this repository and remains
+implemented-unverified where exact current-candidate evidence is absent.
+Carrying an old observation forward needs explicit source/derivation identity
+and its original fixture limits; source presence and successful builds alone
+are insufficient. No hardware work was repeated for this documentation update.
+
 The NixOS server milestone has passed cold and warm boot with a consumer's
 declarative SSH identity and firewall. Complete acceptance of every interface
 below remains open. `pending` means implementation
@@ -44,7 +56,7 @@ share one memory ABI. BeagleY has split physical RAM banks: an address above
 
 ## Source authority
 
-- Boot/provider tuple: `packages/release.nix`, pinned
+- Boot/provider tuple: `packages/beagleboard/beagley-ai/release.nix`, pinned
   [Armbian family recipe](https://github.com/armbian/build/blob/d3298cac2223892b668ab27e95237448eeb75f26/config/sources/families/k3-beagle.conf).
 - Board design and connectors: [BeagleBoard documentation](https://docs.beagleboard.org/boards/beagley/ai/03-design.html).
 - 4 GB vision firmware and Linux ABI patches: [BeagleY Edge AI builder](https://github.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/tree/be3a57d2760691f6b4f5cc7cae6e00ccddef7016).

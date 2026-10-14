@@ -1,5 +1,9 @@
 # SD boot diagnosis
 
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
 Keep the original Debian SD available as the serial and boot-chain control.
 Power off before swapping cards. Initial NixOS images leave NVMe unmounted.
 The public fixture enables serial root autologin and disables SSH; consumer

@@ -1,4 +1,4 @@
-Tracked as LAB-148 (subtask of the LAB-144 epic) in the maintainer's work tracker.
+Public change: migrate BeagleY-AI support.
 
 ## Why
 
@@ -31,7 +31,7 @@ builder copies, not standalone redistribution or affected output caching.
   `legacyPackages.<system>.hardwareChecks.<board>`.
 - Migrate the BeagleY-AI (TI AM67A/J722S) from `nixos-beagley-ai`, with
   every non-free input classified after a licensing review (recorded on
-  LAB-148).
+  the release manifest).
 
 ## Internal-build-only closeout
 

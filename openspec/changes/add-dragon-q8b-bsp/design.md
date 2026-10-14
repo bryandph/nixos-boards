@@ -1,6 +1,6 @@
 # Dragon Q8B BSP design
 
-Work: LAB-152; provenance/acquisition: LAB-151.
+Scope: Dragon Q8B BSP implementation and evidence-backed artifact provenance/acquisition.
 
 ## Provider boundary
 

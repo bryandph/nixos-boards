@@ -11,6 +11,7 @@ member_size="524672"
 if [ "$#" -ne 2 ] || [ "$1" != "--accept-license" ]; then
   echo "usage: $0 --accept-license /path/to/$distribution_name" >&2
   echo "Operator-only: review NXP's terms before accepting and extracting." >&2
+  echo "Terms: https://raw.githubusercontent.com/nxp-imx/neutron/d0ff138390aeba2b6c5169d8f0ca13f6a6b8219a/LICENSE.txt (NXP SLA v63)" >&2
   exit 2
 fi
 

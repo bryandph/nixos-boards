@@ -1,5 +1,9 @@
 # Header expansion
 
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
 Import the core board module and the desired `nixosModules.beagley-ai-header-*`
 profile. These are opt-in routes; the server profile leaves them inactive.
 GPIO numbers below are header aliases, not Linux GPIO offsets.

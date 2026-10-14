@@ -51,7 +51,8 @@ No default profile pulls all of linux-firmware or radxa-firmware into its closur
 
 Core targets microSD, NVMe, UFS, serial and dual Toshiba PCIe Ethernet.
 Full-profile NixOS headless boot on 512-byte-sector NVMe, UART output and one
-PCIe Ethernet link were observed on the vendor BSP. Free-fixture boot, 4096-sector
+PCIe Ethernet link were observed using this BSP with its Radxa vendor-kernel
+provider, not merely the vendor OS. Free-fixture boot, 4096-sector
 hardware, UFS and NixOS microSD operation remain unverified. See the bounded
 [hardware acceptance](Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance).
 The Toshiba switch power-control node uses I2C21. The vendor GENI I2C driver reuses

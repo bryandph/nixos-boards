@@ -6,6 +6,14 @@ provider and reviewed device tree, then adds the locally imported runtime,
 operator-supplied converted model, least-privilege device access, and bounded
 smoke interface. The accepted boot container is unchanged.
 
+The reduced delta's source comparison is pinned to upstream v7.1, while its
+builder still uses the consumer's `linuxPackages_latest`. At this repository's
+7.2.9 lock the pre-existing DMA-coherency API drift remains a standalone-image
+build limitation; the reduced role is not currently build/hardware accepted.
+A compatible base or reviewed port is required before that image is accepted.
+The separately built LF6.18.20 combined full-profile kernel does not resolve
+or prove this reduced-mainline gap.
+
 Treat `packages/nxp/frdm-imx95/imx95-lf-6.18.20-2.0.0.nix` as the authority for source
 pointers, immutable identities, member paths, license authorities, and the
 release-label reconciliation. Do not copy proprietary runtime, converter, or
@@ -122,8 +130,8 @@ Verify six online A55 CPUs, the expected memory delta from the reusable Neutron
 DMA pool, SCMI, OP-TEE, Ethernet/SSH, root and boot-medium identity, the
 selected kernel/device tree, firmware loading, and no unexpected failed units.
 
-Run the negative control and accelerator proof as the authorized non-root
-operator:
+Run the CPU negative control as the authorized non-root operator; the full
+accelerator/counter proof requires root access to debugfs:
 
 ```console
 frdm-imx95-neutron-smoke --cpu-only
@@ -159,6 +167,6 @@ Before repinning, compare `pkgs/build-support/build-bazel-package/default.nix`
 at both nixpkgs revisions and obtain two independent dependency builds with the
 new revision. Only accept a new hash when both samples agree. Align this
 flake's nixpkgs lock with the consuming parent's revision in the same change;
-then build `.#packages.aarch64-linux.tensorflow-lite-imx95.deps` and compare its
+then build `.#legacyPackages.aarch64-linux.frdm-imx95.tensorflow-lite-imx95.deps` and compare its
 `drvPath` between standalone and parent evaluation. Finish by building the
 runtime and affected host. Repeat this validation when updating nixpkgs.

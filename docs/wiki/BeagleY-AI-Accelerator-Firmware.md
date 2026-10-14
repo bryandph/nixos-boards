@@ -1,6 +1,10 @@
 # Offline accelerator firmware
 
-`packages/accelerator-release.nix` pins the TI J722S RTOS SDK, three host
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
+`packages/beagleboard/beagley-ai/accelerator-release.nix` pins the TI J722S RTOS SDK, three host
 tool installers, the security-development helper source and the BeagleY-AI
 reference patches. The x86_64-linux outputs are
 `beagley-ai-accelerator-{armllvm,c7000,sysconfig,firmware}`. Build firmware with
@@ -42,10 +46,14 @@ propagates DSP sub-build failures. Upstream invokes both through a semicolon,
 which otherwise hides the irrelevant ARM target's empty-combination error.
 
 The output preserves SDK license notices and ELF checksums. The build applies
-patches from TexasInstruments-Sandbox/ti-edgeai-armbian-build, which publishes
-no license, so the firmware is R2: import those inputs first with
-`nix run .#beagley-ai-import-artifacts -- --accept-license`, and it is never
-published. See [firmware](BeagleY-AI-Firmware). A successful offline build
+the four pinned TI Sandbox helpers under an explicitly recorded operator-
+accepted internal TI-target-use interpretation. Published build/release use
+and TI source terms support that bounded interpretation; an independent helper
+grant remains inferential, and Debian package notices do not clearly cover the
+root helpers. R2 acquisition, controlled builder copies and interpretation
+notices do not grant standalone helper or affected firmware output caching.
+Import inputs with `nix run .#beagley-ai-import-artifacts -- --accept-license`;
+all affected public/private cache forms remain denied. See [firmware](BeagleY-AI-Firmware). A successful offline build
 does not establish remoteproc, IPC, accelerator execution or workload
 acceptance on the board.
 

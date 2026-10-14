@@ -1,5 +1,9 @@
 # Application remote processors
 
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
 Compose `nixosModules.beagley-ai-remoteproc-ipc` for the narrow TI IPC echo firmware, or
 `nixosModules.beagley-ai-vision` for source-built Vision Apps main R5/C7x firmware.
 Compose core explicitly; the vision runtime is a separate feature. Importing

@@ -139,9 +139,11 @@ remain separate and buildable.
 
 The Wave6 firmware and Neutron runtime/model boundaries remain unfree,
 non-redistributable, local-build preferred, substitute-disabled, and excluded
-from Hydra. Never publish the composed closure, SD image, imported source
-distribution, converted model, or a hardware report containing licensed
-bytes. The image output is
+from Hydra. No public publication of the composed closure, SD image,
+operator-extracted pinned member or converted model is cleared. Only the
+manifest-recorded controlled internal/private forms are eligible under the
+recorded terms and consumer gates. NXP's separate report restrictions remain
+applicable; this does not authorize public hardware reports or vendor bytes. The image output is
 `legacyPackages.aarch64-linux.frdm-imx95.all-features-sd-image`.
 Validate this feature image only from removable media. Do not write eMMC or
 persistent boot-selection state; rollback is booting the untouched known-good

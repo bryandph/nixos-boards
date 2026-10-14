@@ -1,5 +1,9 @@
 # USB host reset ownership
 
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
 The USB-A ports use one physical TI hub with USB2 (`0451:8142`) and USB3
 (`0451:8140`) peers. Both DT nodes describe the same active-low reset GPIO,
 `main_gpio0` line 32. Their reciprocal `peer-hub` properties let Linux create

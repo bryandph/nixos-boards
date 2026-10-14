@@ -61,8 +61,16 @@ timing on hardware; archive/module checks are not TPM attestation evidence.
 
 ## Headless hardware acceptance
 
-Observed on 2026-10-13 with BSP integration baseline `20b3d062`, vendor kernel
-7.0.11 and its matching native Q8B DT, using an operator full-profile consumer:
+Historical operator observations on 2026-10-13 used a full-profile consumer,
+the Radxa 7.0.11 kernel and its matching native Q8B DT. The publicly reachable
+immutable [acceptance receipt and source](https://github.com/bryandph/nixos-boards/commit/622e47f75dc9a3888cbd6b8f8c12231b17a3c2e2)
+records these bounded observations; its runtime-source parent is
+[`2a25462`](https://github.com/bryandph/nixos-boards/commit/2a254620c8cab3eec4d75c4ef0cdf1c266d66f06).
+The receipt changed documentation/status bookkeeping, not the kernel/system/
+512/4096 image derivation identities at that source baseline. It is not a claim
+that the public fixture was the operator consumer or that later stack relocks
+were physically retested. Current consumers require separate exact derivation
+identity proof before carrying this historical evidence forward:
 
 - Full-profile 512-byte-sector NVMe boot, UART output and one PCIe Ethernet link
   with DHCP/default route worked. Persistent NVMe selection survived ordinary

@@ -2,7 +2,7 @@
 
 ## Why
 
-LAB-152 brings Radxa Dragon Q8B support into the already merged public conventions without depending on the unmerged board migration stack. LAB-151 owns artifact licensing and acquisition research.
+This change brings Radxa Dragon Q8B support into the already merged public conventions without depending on the unmerged board migration stack. Artifact licensing and acquisition research is recorded in provider manifests.
 
 ## What Changes
 
@@ -17,4 +17,4 @@ LAB-152 brings Radxa Dragon Q8B support into the already merged public conventio
 - New capability: dragon-q8b-board-support.
 - No migration/retirement of existing BSPs or changes to PRs #1–#5.
 - Hardware verification remains independent of software build checks; vendor OS observations are not NixOS verification.
-- Work: LAB-152; licensing: LAB-151.
+- Scope: BSP implementation and provider-manifest licensing evidence.

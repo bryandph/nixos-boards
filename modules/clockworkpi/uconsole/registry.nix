@@ -53,7 +53,6 @@ in {
         uconsole-security-contract = assert !nixosCfg.services.gpsd.listenany;
         assert lib.hasInfix ''GROUP="dialout", MODE="0660"'' nixosCfg.services.udev.extraRules;
         assert !(lib.hasInfix ''MODE="0666"'' nixosCfg.services.udev.extraRules);
-        assert builtins.elem "dialout" nixosCfg.systemd.services.gpsd.serviceConfig.SupplementaryGroups;
         assert lib.all (resource: lib.any (claim: claim.resource == resource && claim.owner == "uconsole-core") nixosCfg.hardware.boards.claims) ["gpio:2" "gpio:3" "gpio:8" "gpio:9" "gpio:10" "gpio:11" "gpio:12" "gpio:13"];
           pkgs.writeText "uconsole-security-contract" "GPS defaults local-only/group access and core overlay GPIO claims evaluated; no hardware acceptance.\n";
         # The speaker switch against mocked GPIO tools: it must follow every

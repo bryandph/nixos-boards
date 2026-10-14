@@ -1,13 +1,17 @@
 # J722S accelerator runtime
 
+> Hardware results described here are historical observations, not fresh
+> current-candidate acceptance. See [historical scope](BeagleY-AI-Hardware-Notes#historical-observation-scope);
+> the generated hardware matrix retains conservative current status.
+
 `nixosModules.beagley-ai-accelerator-runtime` provides the MPU OpenVX runtime,
 TIDL libraries and the TI Python OSRT environment. Compose it with the matching
 application firmware and 4 GB EdgeAI device tree. It does not replace or stop
 the system Device Manager.
 
-The runtime sources are pinned in `packages/accelerator-runtime-sources.json`
-and `packages/accelerator-tidl-sources.json`; the RTOS SDK and board memory-map
-patches are pinned in `packages/accelerator-release.nix`. The generated MPU
+The runtime sources are pinned in `packages/beagleboard/beagley-ai/accelerator-runtime-sources.json`
+and `packages/beagleboard/beagley-ai/accelerator-tidl-sources.json`; the RTOS SDK and board memory-map
+patches are pinned in `packages/beagleboard/beagley-ai/accelerator-release.nix`. The generated MPU
 memory header and reserved-memory DTS must match the application firmware
 byte-for-byte. The hardware check `legacyPackages.aarch64-linux.hardwareChecks.beagley-ai.accelerator-memory-map` enforces that contract.
 The runtime and firmware builds disable Ethernet firmware ownership so Linux

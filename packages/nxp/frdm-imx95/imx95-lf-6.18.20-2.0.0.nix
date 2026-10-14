@@ -407,7 +407,7 @@
           System, with no distribution to others: internal build and private
           cache copies only. The agreement has no clause on converter output;
           treating converted models the same way is an interpretation the
-          operator approved on 2026-10-13 (LAB-144).
+          operator approved on 2026-10-13.
         '';
       };
       convertedOutputRedistribution = "none-internal-use-only";

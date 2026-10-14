@@ -49,7 +49,23 @@
     # Imported by the features that set the boot container.
     key = "nixos-boards#frdm-imx95-image";
     imports = [
-      "${modulesPath}/installer/sd-card/sd-image-aarch64.nix"
+      # Use the generic assembler: the aarch64 installer profile adds Tegra/
+      # QEMU consoles and broad filesystem choices unrelated to this board.
+      "${modulesPath}/installer/sd-card/sd-image.nix"
+      (let
+        base = import "${modulesPath}/profiles/base.nix" {inherit config lib pkgs;};
+      in
+        base
+        // {
+          # Retain exactly the installer's recovery tools/host-id defaults, but
+          # make its filesystem suggestions lower priority than board/consumer
+          # definitions. No consumer definition is filtered or forced away.
+          boot =
+            base.boot
+            // {
+              supportedFilesystems = lib.mkDefault base.boot.supportedFilesystems;
+            };
+        })
     ];
 
     options.hardware.boards.imx95 = {

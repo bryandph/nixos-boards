@@ -12,7 +12,7 @@
 - [x] 2.2 BeagleY-AI: TIDL tools, the tidlruntime wheel and the RegNet archive permit `private` only (R2, no public form; reviewed upstream grants, operator decision of 2026-10-13). The four TexasInstruments-Sandbox files have no license and permit neither `build` nor `private`, so the packages built from them stay blocked.
 - [x] 2.3 Dragon Q8B: unchanged. LICENSE.qcom §1.1 already permits `private`.
 
-## 3. Consumer (nixspace)
+## 3. Consumer integration
 
 - [x] 3.1 push-cache and deploy-batch skip blocked systems and scan before pushing
 - [x] 3.2 Host closure checks skip blocked systems
