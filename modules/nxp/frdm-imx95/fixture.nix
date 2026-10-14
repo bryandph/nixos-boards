@@ -139,6 +139,10 @@ in {
             }
           ];
         };
+        consumerZfsBoard = mkBoard {
+          imageBaseName = "nixos-frdm-imx95-consumer-zfs";
+          modules = [{boot.supportedFilesystems = ["zfs"];}];
+        };
         incompleteCombinedBoard = mkBoard {
           imageBaseName = "nixos-frdm-imx95-incomplete-combined";
           modules = [config.flake.modules.nixos.frdm-imx95-all-features];
@@ -269,6 +273,8 @@ in {
             review-composition-regressions = assert failedAssertions neutronBoard == [];
             assert builtins.elem "quiet" consumerListsBoard.config.boot.kernelParams;
             assert consumerListsBoard.config.boot.supportedFilesystems.btrfs;
+            assert !board.config.boot.supportedFilesystems.zfs;
+            assert consumerZfsBoard.config.boot.supportedFilesystems.zfs;
             assert !lib.any (lib.hasInfix "z /sys/kernel/debug ") neutronBoard.config.systemd.tmpfiles.rules;
             assert failedAssertions incompleteCombinedBoard != [];
             assert failedAssertions missingMetadataBoard != [];

@@ -27,9 +27,12 @@ in {
     boot = {
       kernelPackages = lib.mkDefault (pkgs.linuxPackagesFor (boardsLib.withProvider "mainline" pkgs.linuxPackages_latest.kernel));
       consoleLogLevel = lib.mkDefault 7;
-      supportedFilesystems = lib.mkDefault [
-        "ext4"
-        "vfat"
+      supportedFilesystems = lib.mkMerge [
+        (lib.mkDefault ["ext4" "vfat"])
+        # The generic image profile enables ZFS by default. Avoid adding its
+        # kernel module unless the consumer explicitly requests it; ordinary
+        # consumer definitions (priority 100) still win over this default.
+        {zfs = lib.mkOverride 999 false;}
       ];
 
       initrd.availableKernelModules = [
