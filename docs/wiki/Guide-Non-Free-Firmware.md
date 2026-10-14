@@ -169,6 +169,11 @@ not approve any commit or authorize publication. Keep the variable unset
 until a separately authorized release; do not use PR-controlled inputs to
 supply it. A new main SHA needs its own approval and successful checks.
 
+Admission requires both native jobs in the selected run attempt's API
+response. If a partial "re-run failed jobs" attempt does not include both,
+admission refuses it; use "re-run all jobs" to produce complete evidence.
+Partial-rerun API behaviour is not assumed or established by offline fixtures.
+
 After admission, cache publication still requires both content gates:
 
 1. **Evaluation.** The public push set,
