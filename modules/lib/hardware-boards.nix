@@ -86,6 +86,17 @@ in {
         description = "Resource claims; a resource claimed by two owners fails evaluation.";
       };
 
+      image.layoutVersion = mkOption {
+        type = types.nullOr types.ints.positive;
+        default = null;
+        description = ''
+          Version of the image layout set by the board's `<board>-image`
+          feature (D9). Increment it on any change to partitioning,
+          filesystem labels or boot-file placement, and document the
+          upgrade path on the board's Boot and Recovery page.
+        '';
+      };
+
       artifacts = mkOption {
         type = types.listOf types.package;
         default = [];

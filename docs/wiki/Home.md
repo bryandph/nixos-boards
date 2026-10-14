@@ -23,9 +23,11 @@ See the [Glossary](Glossary) for the terms used throughout this wiki.
 
 The conventions are approved and the shared library is in place: board
 options, release manifests, artifact packaging, free and full test
-configurations, publication gates and generated documentation. No board is
-supported yet. Board pages will appear here as boards are migrated or
-added.
+configurations, publication gates and generated documentation.
+
+| Board | SoC | Profiles | Provider |
+| --- | --- | --- | --- |
+| [uConsole](uConsole) (ClockworkPi, CM5) | BCM2712 | free | `rpi-<release>` |
 
 To contribute a board, start with [Adding a board](Guide-Adding-a-Board)
 and [Non-free firmware](Guide-Non-Free-Firmware).

@@ -414,14 +414,64 @@
       name = "nixos-boards-cache-scan";
       runtimeInputs = [pkgs.coreutils pkgs.findutils pkgs.gnugrep];
       text = ''
-        if [ "''${1:-}" = --closure-file ]; then
-          mapfile -t paths < "$2"
-        else
-          [ "$#" -gt 0 ] || { echo "usage: nixos-boards-cache-scan STORE-PATH... | --closure-file FILE" >&2; exit 2; }
-          mapfile -t paths < <(nix-store --query --requisites "$@")
-        fi
+        usage() {
+          echo "usage: nixos-boards-cache-scan STORE-PATH... | --closure-file FILE" >&2
+          exit 2
+        }
+        refuse() {
+          echo "Refusing to publish: $1" >&2
+          exit 2
+        }
+        # Only canonical top-level store paths: no nested, dot or relative
+        # paths, which would let a list skip the rest of a store path, and
+        # no reliance on Nix normalising a path to its store root.
+        canonical='^${builtins.storeDir}/[0-9a-z]{32}-[A-Za-z0-9+_?=-][A-Za-z0-9+._?=-]*$'
+        roots() {
+          for p in "$@"; do
+            [[ "$p" =~ $canonical ]] || refuse "$p is not a top-level store path"
+            [ -e "$p" ] || [ -L "$p" ] || refuse "$p does not exist"
+          done
+          # Existing is not enough: every path must be registered in the store.
+          nix-store --check-validity "$@" || refuse "the closure lists paths that are not valid in the Nix store"
+        }
+        # Only the Nix store can say whether a path is registered and what its
+        # closure is; without it nothing can be validated.
+        command -v nix-store >/dev/null || refuse "nix-store is needed to validate store paths"
+        closure=$(mktemp)
         hashes=$(mktemp)
-        trap 'rm -f "$hashes"' EXIT
+        trap 'rm -f "$closure" "$closure".* "$hashes"' EXIT
+        # The closure must be complete: a failed query, an empty closure or a
+        # path that is not in the store fails the scan instead of passing it.
+        if [ "''${1:-}" = --closure-file ]; then
+          [ "$#" -eq 2 ] || usage
+          [ -s "$2" ] || refuse "closure file $2 is missing or empty"
+          cp "$2" "$closure"
+        else
+          [ "$#" -gt 0 ] || usage
+          roots "$@"
+          nix-store --query --requisites "$@" > "$closure" || refuse "could not query the closure of $*"
+          # The store's answer must include every root it was asked about.
+          for root in "$@"; do
+            grep -qxF -- "$root" "$closure" || refuse "the queried closure does not include $root"
+          done
+        fi
+        mapfile -t paths < "$closure"
+        [ "''${#paths[@]}" -gt 0 ] || refuse "the closure is empty"
+        roots "''${paths[@]}"
+        # A closure file must be complete: every reference of every listed
+        # path must be listed too.
+        if [ "''${1:-}" = --closure-file ]; then
+          nix-store --query --requisites "''${paths[@]}" > "$closure.full" ||
+            refuse "could not query the closure of the listed paths"
+          [ -s "$closure.full" ] || refuse "the store returned no closure for the listed paths"
+          sort -u "$closure" > "$closure.listed"
+          sort -u "$closure.full" > "$closure.needed"
+          # The list must be exactly the closure the store reports.
+          comm -13 "$closure.listed" "$closure.needed" > "$closure.missing"
+          [ ! -s "$closure.missing" ] || refuse "the closure file omits $(wc -l < "$closure.missing") referenced store paths"
+          comm -23 "$closure.listed" "$closure.needed" > "$closure.extra"
+          [ ! -s "$closure.extra" ] || refuse "the store does not report $(wc -l < "$closure.extra") listed paths in their closure"
+        fi
         for p in "''${paths[@]}"; do
           find "$p" -type f -print0 | xargs -0 -r sha256sum >> "$hashes"
         done
@@ -511,7 +561,11 @@
     "${page}-Firmware.md" =
       generatedHeader
       + "# ${page} firmware\n\n"
-      + "Every artifact below is pinned in a release manifest. Classes: R0 free, R1 redistributable, R2 operator-supplied; see [Glossary](Glossary).\n"
+      + (
+        if lib.all (m: m.artifacts == {}) manifests
+        then "This board uses no artifacts from release manifests. The firmware it needs comes from nixpkgs or an upstream flake; see [${page}](${page}).\n"
+        else "Every artifact below is pinned in a release manifest. Classes: R0 free, R1 redistributable, R2 operator-supplied; see [Glossary](Glossary).\n"
+      )
       + lib.concatMapStrings (m:
         "\n## ${m.name}\n\nProvider `${m.provider}`, version ${m.version}: ${m.source}.\n\n"
         + table ["Artifact" "Status" "Class" "License" "Layer" "Load" "Redistribution" "Evidence"]
