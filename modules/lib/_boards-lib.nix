@@ -104,6 +104,7 @@
     lib.optionals (i != null) (
       err (!i.accepted) "internal-use interpretation requires explicit operator acceptance"
       ++ err (entry.class != "R2") "internal-use interpretation is restricted to R2"
+      ++ err (entry.license != null && nixpkgsRedistributable entry.license) "internal-use interpretation must not label the license redistributable"
       ++ err (lib.any (form: r.${form}) ["file" "image" "cache" "private" "build"]) "internal-use interpretation cannot supply or accompany redistribution grants"
       ++ err (i.target == "" || i.rationale == "" || i.uncertainty == "" || i.evidence.url == "" || i.evidence.location == "") "internal-use interpretation requires target, rationale, uncertainty and source evidence"
     );

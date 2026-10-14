@@ -224,6 +224,8 @@ in {
           assert expect (system.build && !system.private && builtins.length system.blocking == 2) "internal builds remain cache-blocked";
           assert expect (lib.all (form: !a.manifestEntry.redistribution.${form} && !b.manifestEntry.redistribution.${form}) ["file" "image" "cache" "private"]) "all affected redistribution forms stay denied";
           assert expect (errors (changedArtifact {internalUse = interpretation // {accepted = false;};}) != []) "missing explicit acceptance fails closed";
+          assert expect (errors (changedArtifact {internalUse = interpretation // {target = "";};}) != []) "missing target fails closed";
+          assert expect (errors (changedArtifact {license = raw.artifacts.operator-fw.license // {redistributable = true;};}) != []) "interpretation cannot promote license redistributability";
           assert expect (errors (changedArtifact {internalUse = interpretation // {rationale = "";};}) != []) "missing rationale fails closed";
           assert expect (errors (changedArtifact {internalUse = interpretation // {uncertainty = "";};}) != []) "missing uncertainty fails closed";
           assert expect (errors (changedArtifact {internalUse = interpretation // {evidence = interpretation.evidence // {url = "";};};}) != []) "missing source evidence fails closed";
