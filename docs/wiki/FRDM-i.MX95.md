@@ -72,6 +72,10 @@ sets `hardware.boards.imx95.sourceBootContainerSha256` (and
 `m7BootContainerSha256`) to the identity it has accepted; a mismatch fails
 the build.
 
+The image profile defaults to ext4/vfat filesystem support. Importing
+`profiles/base.nix` yourself restores its full filesystem list, including
+ZFS; that explicit consumer choice is not overridden by the board profile.
+
 Build the image with `config.system.build.frdmImx95SdImage`, not the generic
 `sdImage`, which lacks the boot container and environment. Read
 [boot and recovery](FRDM-i.MX95-Boot-and-Recovery) before writing a card.
