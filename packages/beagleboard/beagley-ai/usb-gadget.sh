@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root=/sys/kernel/config/usb_gadget/beagley-ai
+cleanup() {
+  [ -d "$root" ] || return 0
+  # configfs attributes always report a non-zero size, so read the value:
+  # an unbound gadget reads as an empty line, and unbinding it fails.
+  local udc
+  udc=$(<"$root/UDC")
+  if [ -n "$udc" ]; then echo '' >"$root/UDC"; fi
+  for function in acm.usb0 ecm.usb0; do
+    [ ! -L "$root/configs/c.1/$function" ] || rm "$root/configs/c.1/$function"
+    [ ! -d "$root/functions/$function" ] || rmdir "$root/functions/$function"
+  done
+  [ ! -d "$root/configs/c.1/strings/0x409" ] || rmdir "$root/configs/c.1/strings/0x409"
+  [ ! -d "$root/configs/c.1" ] || rmdir "$root/configs/c.1"
+  [ ! -d "$root/strings/0x409" ] || rmdir "$root/strings/0x409"
+  rmdir "$root"
+}
+case "${1:-}" in
+stop)
+  cleanup
+  exit 0
+  ;;
+start) ;;
+*)
+  echo 'Expected start or stop' >&2
+  exit 2
+  ;;
+esac
+cleanup
+for ((attempt = 0; attempt < 30; attempt++)); do
+  [ ! -d /sys/class/udc/31000000.usb ] || break
+  sleep 1
+done
+test -d /sys/class/udc/31000000.usb
+mkdir "$root"
+trap cleanup ERR
+cd "$root"
+echo 0x1d6b >idVendor
+echo 0x0104 >idProduct
+echo 0x0200 >bcdUSB
+echo 0x0100 >bcdDevice
+mkdir strings/0x409 configs/c.1 configs/c.1/strings/0x409
+# Device identity: application-specific USB serial; preserve existing ECM MACs.
+machine_id=$(cat /etc/machine-id)
+serial_hash=$(printf '%s\0%s' 'nixos-boards/beagley-ai/usb-serial-v1' "$machine_id" | sha256sum)
+serial=${serial_hash:0:32}
+hash=$(printf '%s' "$machine_id" | sha256sum)
+suffix=${hash:0:2}:${hash:2:2}:${hash:4:2}:${hash:6:2}:${hash:8:2}
+unset machine_id serial_hash
+# End device identity.
+printf '%s\n' "$serial" >strings/0x409/serialnumber
+echo Linux >strings/0x409/manufacturer
+echo 'BeagleY-AI serial and Ethernet' >strings/0x409/product
+echo 'ACM + ECM' >configs/c.1/strings/0x409/configuration
+# The configuration describes a self-powered board, not host-supplied board power.
+echo 0xc0 >configs/c.1/bmAttributes
+echo 2 >configs/c.1/MaxPower
+mkdir functions/acm.usb0 functions/ecm.usb0
+echo "02:$suffix" >functions/ecm.usb0/dev_addr
+echo "06:$suffix" >functions/ecm.usb0/host_addr
+echo bgyusb0 >functions/ecm.usb0/ifname
+ln -s "$root/functions/acm.usb0" configs/c.1/acm.usb0
+ln -s "$root/functions/ecm.usb0" configs/c.1/ecm.usb0
+echo 31000000.usb >UDC

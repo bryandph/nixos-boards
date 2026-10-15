@@ -7,15 +7,17 @@ modules and carriers. Every board follows the same conventions:
   `modules/soc/<soc>`, and every feature is a composable NixOS module.
 - Named kernel, device tree and firmware providers. Mainline comes first;
   vendor providers are opt-in and emit a warning.
-- Licensing is established before any non-free artifact is packaged. A
-  release manifest records the provenance and permitted redistribution of
-  every artifact.
-- A free profile with as much hardware support as free software allows,
-  and a full profile that adds the non-free pieces. The gaps between the
-  two are documented for every board.
-- Only artifacts whose licenses permit it are published to the binary
-  cache, `bph.cachix.org`. Import `nixosModules.nixos-boards-cache` to
-  use it.
+- Non-free artifacts need established license evidence or a separately
+  recorded, explicitly accepted R2 internal-build interpretation bounded to
+  its target and controlled builders. That interpretation is not a vendor
+  grant and never clears caching or redistribution. Release manifests record
+  provenance and permitted forms.
+- Free profiles follow nixpkgs' license semantics; full profiles add the
+  board's additional non-free pieces. This is not a publication grant. The
+  gaps between profiles are documented for every board.
+- Binary publication is default-deny until an exact reviewed main SHA is
+  approved and passes native checks. Manifest and closure gates still apply.
+  Import `nixosModules.nixos-boards-cache` to use `bph.cachix.org`.
 
 See the [Glossary](Glossary) for the terms used throughout this wiki.
 
@@ -23,10 +25,11 @@ See the [Glossary](Glossary) for the terms used throughout this wiki.
 
 The conventions are approved and the shared library is in place: board
 options, release manifests, artifact packaging, free and full test
-configurations, ordinary CI and generated documentation.
+configurations, publication gates and generated documentation.
 
 | Board | SoC | Profiles | Provider |
 | --- | --- | --- | --- |
+| [BeagleY-AI](BeagleY-AI) (BeagleBoard.org) | AM67A / J722S | free, full | `beagle-ti-6.12-psdk-11.02` |
 | [uConsole](uConsole) (ClockworkPi, CM5) | BCM2712 | free | `rpi-<release>` |
 
 To contribute a board, start with [Adding a board](Guide-Adding-a-Board)

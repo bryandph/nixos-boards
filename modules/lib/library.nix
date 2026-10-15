@@ -1,5 +1,6 @@
 {
   config,
+  flake-parts-lib,
   inputs,
   lib,
   ...
@@ -67,12 +68,7 @@
       publish = mkOption {
         type = types.listOf types.str;
         default = ["toplevel"];
-        description = "Ordinary build targets from the free fixture's `system.build`, e.g. `sdImage`; not a publication-permission decision.";
-      };
-      publishArtifacts = mkOption {
-        type = types.attrsOf (types.listOf types.str);
-        default = {};
-        description = "Explicit standalone artifact targets, keyed by release manifest and artifact identifier; not selected by license flags.";
+        description = "Attributes of the free fixture's `system.build` that enter the public push set (D8), e.g. `sdImage`.";
       };
       haveHardware = mkOption {
         type = types.bool;
@@ -176,6 +172,25 @@ in {
     };
   };
 
+  options.perSystem = flake-parts-lib.mkPerSystemOption {
+    options = {
+      boardPackages = mkOption {
+        type = types.lazyAttrsOf (types.lazyAttrsOf types.raw);
+        default = {};
+        description = "Board packages for maintainers and checks, exposed as `legacyPackages.<system>.<board>`.";
+      };
+      hardwareChecks = mkOption {
+        type = types.lazyAttrsOf (types.lazyAttrsOf types.raw);
+        default = {};
+        description = ''
+          Checks that need operator-supplied (R2) artifacts or build complete
+          full-profile systems, exposed as
+          `legacyPackages.<system>.hardwareChecks.<board>` (board-layout spec).
+        '';
+      };
+    };
+  };
+
   config = {
     flake = {
       lib =
@@ -183,6 +198,7 @@ in {
         // {
           # Generated from manifests (D6/D7); never written by hand.
           unfreePackages = lib.mapAttrs (board: _: boardsLib.unfreePackages (manifestsOf board)) cfg.registry;
+          cacheablePackages = lib.mapAttrs (board: _: boardsLib.cacheablePackages (manifestsOf board)) cfg.registry;
           unfreePredicate = board: boardsLib.namePredicate config.flake.lib.unfreePackages.${board};
         };
       nixosConfigurations = lib.concatMapAttrs (board: f:
@@ -191,13 +207,20 @@ in {
       fixtures;
     };
 
-    perSystem = {pkgs, ...}: let
+    perSystem = {
+      config,
+      pkgs,
+      ...
+    }: let
       unknown = lib.concatLists (lib.mapAttrsToList (board: b:
         map (m: "${board}: unknown release manifest ${m}")
         (lib.filter (m: !(cfg.manifests ? ${m})) b.manifests))
       cfg.registry);
       errors = unknown ++ lib.concatMap boardsLib.manifestErrors (lib.attrValues cfg.manifests);
     in {
+      legacyPackages =
+        config.boardPackages
+        // {inherit (config) hardwareChecks;};
       checks =
         {
           release-manifests = pkgs.runCommand "nixos-boards-release-manifests" {} (
