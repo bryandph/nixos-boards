@@ -80,20 +80,18 @@ in {
   in {
     checks =
       {
-        beagley-ai-internal-build-policy = let
+        beagley-ai-provenance = let
           helpers = map (id: manifest.artifacts.${id}) ["memory-map-patch" "disable-cpsw-patch" "scrub-workaround" "model-compiler-script"];
           affected = map (id: manifest.built.${id}) ["edgeai-libraries" "edgeai-gstreamer" "imx219-dcc" "accelerator-firmware" "accelerator-runtime" "tidl" "osrt" "regnet-model"];
           denied = e: lib.all (form: !e.redistribution.${form}) ["file" "image" "cache" "private" "build"];
         in
-          assert full.hardware.boards.publication.build;
-          assert !full.hardware.boards.publication.private;
           assert lib.all (e: e.internalUse.accepted && denied e && !e.license.redistributable) (helpers ++ affected);
           assert manifest.built.model-tools.redistribution.private && manifest.built.model-tools.internalUse == null;
           assert manifest.artifacts.tidl-tools.redistribution.private;
           assert manifest.artifacts.tidlruntime-wheel.redistribution.private;
           assert manifest.artifacts.regnet-archive.redistribution.private;
           assert manifest.artifacts.tifs-enc.redistribution.cache;
-            pkgs.writeText "beagley-ai-internal-build-policy" "Internal TI-target builds only; helper and affected output caching denied. Established unrelated permissions retained.\n";
+            pkgs.writeText "beagley-ai-provenance" "Recorded TI-target interpretation and permission declarations; established unrelated provenance retained.\n";
       }
       // lib.optionalAttrs (system == "aarch64-linux") {
         beagley-ai-sd-identity-guard = pkgs.callPackage (dir + "/sd-identity-check.nix") {};

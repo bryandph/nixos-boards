@@ -7,7 +7,7 @@ TI boot and connectivity firmware, the Processor SDK RTOS, x86 compilers,
 TIDL tooling and a compiled model. Much of it is not a single firmware file
 but a package built from SDK archives, tools and TI-licensed source
 repositories. The conventions cover fetched artifacts only, so built
-packages would escape the generated unfree lists and the publication gates.
+packages would be missing from the generated unfree lists and provenance tables.
 The TIDL tools archive, RegNet model and `tidlruntime` wheel are
 operator-supplied with separately established upstream terms and installed
 notices. Four pinned TI Sandbox patches/helpers remain operator-supplied:
@@ -21,9 +21,9 @@ builder copies, not standalone redistribution or affected output caching.
 - Release manifests gain **built packages**: packages built from manifest
   artifacts or other pinned sources. Each has its own license, evidence and
   redistribution forms, and a class at least as restrictive as its inputs.
-  `mkBuilt` attaches the manifest entry to an existing derivation without
-  changing it, so built packages enter the unfree lists, the push-set gate
-  and the generated pages like artifacts.
+  `mkBuilt` attaches the manifest entry and recorded notices to a package,
+  so built packages appear in the unfree lists and generated provenance pages
+  like artifacts; it does not decide CI publication.
 - A generic **R2 import tool** (`mkImportTool`, exposed per board as
   `apps.<board>-import-artifacts`). It shows each R2 artifact's terms and
   downloads, verifies and adds files only after `--accept-license`.
@@ -53,8 +53,8 @@ builder copies, not standalone redistribution or affected output caching.
 ## Impact
 
 - Library: manifest type, validation, unfree lists, documentation pages and
-  publication gates (`modules/lib/_boards-lib.nix`).
+  provenance rendering (`modules/lib/_boards-lib.nix`).
 - Specs: `nonfree-provenance` (built packages, import tool) and
   `board-layout` (hardware checks).
 - New board: `modules/beagleboard/beagley-ai/`, `packages/beagleboard/beagley-ai/`,
-  `modules/soc/am67a/`.
+  with the existing upstream hardware composition.

@@ -17,6 +17,19 @@ in {
     free = [nixos.beagley-ai-core nixos.beagley-ai-image];
     full = [nixos.beagley-ai-full nixos.beagley-ai-regnet-model];
     manifests = ["beagley-ai"];
+    publishArtifacts.beagley-ai = [
+      "cc33xx-conf"
+      "cc33xx-fw"
+      "cc33xx-loader"
+      "codec-firmware"
+      "dm-firmware"
+      "ipc-c7x-1"
+      "ipc-c7x-2"
+      "ipc-mcu2-0"
+      "ipc-mcu3-0"
+      "tifs-cert"
+      "tifs-enc"
+    ];
     haveHardware = true;
     functions = {
       boot = status "implemented-unverified" ["beagley-ai-boot-bundle"];

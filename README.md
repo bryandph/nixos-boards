@@ -55,7 +55,7 @@ Add the flake as an input and import a board's modules, for example:
 `nix flake show` lists every module. The `<board>-free` and `<board>-full`
 entries under `nixosConfigurations` are reference configurations. CI
 evaluates them and builds the checks that need no operator-supplied files,
-and the gated publish workflow builds each board's public push set, which can
+and ordinary publishing builds each board's configured output set, which can
 include free-profile system images. Full-profile system and image builds,
 and checks that need R2 files, are hardware checks
 (`legacyPackages.<system>.hardwareChecks` and `crossChecks`) that the
@@ -71,11 +71,12 @@ nixpkgs.config.allowUnfreePredicate = nixos-boards.lib.unfreePredicate "beagley-
 
 ## Binary cache
 
-Publication to `bph.cachix.org` is default-deny: an operator must approve an
-exact reviewed main SHA with successful same-SHA native checks before any
-publication. Manifest evaluation and closure scanning remain mandatory;
-internal-build interpretations do not grant cache permission. The public push
-set contains only the free profile's builds and cache-cleared artifacts.
+Ordinary CI publishes configured outputs to `bph.cachix.org` after successful
+main-push checks using normal authentication. The registry explicitly lists
+free-fixture outputs and standalone artifact targets; license flags do not
+select or reject them. No SHA approval, scanner or separate publisher service
+is required. Recorded provenance and terms remain factual; internal-use
+interpretations do not grant additional rights.
 Import `nixosModules.nixos-boards-cache` (or
 `darwinModules.nixos-boards-cache`) to add the substituter and its key.
 

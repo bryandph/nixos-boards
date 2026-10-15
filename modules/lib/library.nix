@@ -68,7 +68,12 @@
       publish = mkOption {
         type = types.listOf types.str;
         default = ["toplevel"];
-        description = "Attributes of the free fixture's `system.build` that enter the public push set (D8), e.g. `sdImage`.";
+        description = "Ordinary build targets from the free fixture's `system.build`, e.g. `sdImage`; not a publication-permission decision.";
+      };
+      publishArtifacts = mkOption {
+        type = types.attrsOf (types.listOf types.str);
+        default = {};
+        description = "Explicit standalone artifact targets, keyed by release manifest and artifact identifier; not selected by license flags.";
       };
       haveHardware = mkOption {
         type = types.bool;
@@ -198,7 +203,6 @@ in {
         // {
           # Generated from manifests (D6/D7); never written by hand.
           unfreePackages = lib.mapAttrs (board: _: boardsLib.unfreePackages (manifestsOf board)) cfg.registry;
-          cacheablePackages = lib.mapAttrs (board: _: boardsLib.cacheablePackages (manifestsOf board)) cfg.registry;
           unfreePredicate = board: boardsLib.namePredicate config.flake.lib.unfreePackages.${board};
         };
       nixosConfigurations = lib.concatMapAttrs (board: f:

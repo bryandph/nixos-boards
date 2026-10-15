@@ -1,6 +1,6 @@
 ## 1. Library
 
-- [x] 1.1 Built packages in release manifests: type, validation, unfree and cacheable lists, `mkBuilt`
+- [x] 1.1 Built packages in release manifests: type, provenance validation, unfree lists, `mkBuilt`
 - [x] 1.2 Built packages in the generated firmware and gap pages
 - [x] 1.3 `mkImportTool` for R2 artifacts
 - [x] 1.4 Library tests for built packages and the import tool

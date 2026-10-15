@@ -3,6 +3,8 @@
 ## Purpose
 Defines how non-free artifacts are admitted: the license is established first, every artifact is classed R0, R1 or R2 and recorded in a release manifest with its provenance and permitted redistribution, and free and full profiles follow nixpkgs' license semantics.
 ## Requirements
+Provenance declarations are factual records, not licensing-based CI admission. Publication uses the explicit targets and ordinary authentication described by binary-publication; no scanner or calculated publication/build-placement status is required.
+
 ### Requirement: License established before packaging
 A non-free artifact MUST NOT be packaged until its license has been established from evidence recorded in a release manifest, except for the bounded internal-build interpretation below. Otherwise an artifact without an established license SHALL be listed as `blocked: licensing` and SHALL NOT be fetched by any derivation. Operator acceptance MUST NOT be represented as an express copyright-holder grant.
 

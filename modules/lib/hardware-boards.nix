@@ -103,7 +103,7 @@ in {
         description = ''
           Artifact packages built from release manifests that this
           configuration uses. Features add every manifest artifact they
-          install here; documentation and publication gates read it.
+          install here; provenance documentation and fixture checks read it.
         '';
       };
     };

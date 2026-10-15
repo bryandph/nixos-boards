@@ -15,8 +15,8 @@ modules and carriers. Every board follows the same conventions:
 - Free profiles follow nixpkgs' license semantics; full profiles add the
   board's additional non-free pieces. This is not a publication grant. The
   gaps between profiles are documented for every board.
-- Binary publication is default-deny until an exact reviewed main SHA is
-  approved and passes native checks. Manifest and closure gates still apply.
+- Ordinary CI publishes configured targets after successful main-push checks
+  using normal authentication, without license-derived selectors or scanners.
   Import `nixosModules.nixos-boards-cache` to use `bph.cachix.org`.
 
 See the [Glossary](Glossary) for the terms used throughout this wiki.
@@ -25,7 +25,7 @@ See the [Glossary](Glossary) for the terms used throughout this wiki.
 
 The conventions are approved and the shared library is in place: board
 options, release manifests, artifact packaging, free and full test
-configurations, publication gates and generated documentation.
+configurations, ordinary CI and generated documentation.
 
 | Board | SoC | Profiles | Provider |
 | --- | --- | --- | --- |
