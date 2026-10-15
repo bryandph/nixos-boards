@@ -145,11 +145,13 @@ in {
           assert expect (boardsLib.manifestErrors valid == []) "valid manifest has errors: ${toString (boardsLib.manifestErrors valid)}";
           assert expect (sortedEq (boardsLib.manifestErrors invalid) data.expectedErrors)
           "invalid manifest errors differ: ${builtins.toJSON (boardsLib.manifestErrors invalid)}";
-          assert expect (sortedEq (boardsLib.unfreePackages [valid]) (map name ["redist-fw" "operator-fw"])) "unfree package list follows nixpkgs license semantics";
+          assert expect (sortedEq (boardsLib.unfreePackages [valid]) (map name ["redist-fw" "operator-fw" "runtime-bundle" "operator-tool"])) "unfree package list follows nixpkgs license semantics";
           assert expect (boardsLib.cacheablePackages [valid] == [(name "cached-fw")]) "cacheable package list";
           assert expect (sortedEq (boardsLib.nonCacheableHashes [valid])
-            (map data.sri [data.contents."redist.bin" data.contents."operator.bin" data.contents."nocache.bin" data.contents."mystery.bin"])) "non-cacheable hashes";
+            (map data.sri [data.contents."redist.bin" data.contents."operator.bin" data.contents."nocache.bin" data.contents."mystery.bin" data.contents."derived.bin"])) "non-cacheable hashes";
           assert expect (!(failsToEval (artifact pkgs "nocache-fw").drvPath)) "nixpkgs counts unfreeRedistributableFirmware as free";
+          assert expect (sortedEq (boardsLib.nonPrivateHashes [valid])
+            (map data.sri [data.contents."redist.bin" data.contents."cached.bin" data.contents."nocache.bin" data.contents."mystery.bin" data.contents."derived.bin"])) "non-private hashes";
           assert expect (failsToEval (artifact unfreePkgs "mystery-fw").drvPath) "blocked artifact must not package";
           assert expect (failsToEval (artifact pkgs "redist-fw").drvPath) "R1 artifact must need an unfree allowance";
           assert expect (!(failsToEval (artifact pkgs "free-blob").drvPath)) "R0 artifact must not need an unfree allowance";
@@ -164,6 +166,165 @@ in {
             assert expect (!r2.allowSubstitutes && r2.preferLocalBuild) "R2 artifact must not be substituted";
             assert expect (!(failsToEval r2.drvPath)) "R2 artifact must evaluate to a requireFile build";
               pkgs.runCommand "nixos-boards-lib-manifests" {} "touch $out";
+
+        lib-internal-use = let
+          interpretation = {
+            accepted = true;
+            target = "Synthetic TI-device internal build";
+            rationale = "Pinned published build flow; bounded intended-use evidence, not a grant.";
+            uncertainty = "No independently established helper redistribution grant.";
+            evidence = {
+              url = "https://example.invalid/pinned-source";
+              retrieved = "2026-10-14";
+              location = "Synthetic source/use evidence, not license terms.";
+            };
+          };
+          raw =
+            data.valid
+            // {
+              artifacts =
+                data.valid.artifacts
+                // {
+                  operator-fw =
+                    data.valid.artifacts.operator-fw
+                    // {
+                      redistribution = {};
+                      internalUse = interpretation;
+                    };
+                };
+              built =
+                data.valid.built
+                // {
+                  operator-tool = data.valid.built.operator-tool // {internalUse = interpretation;};
+                };
+            };
+          m = boardsLib.evalManifest "test-board" raw;
+          changedArtifact = attrs:
+            boardsLib.evalManifest "test-board" (raw
+              // {
+                artifacts = raw.artifacts // {operator-fw = raw.artifacts.operator-fw // attrs;};
+              });
+          errors = x: boardsLib.manifestErrors x;
+          a = boardsLib.mkArtifact {
+            pkgs = unfreePkgs;
+            manifest = m;
+            id = "operator-fw";
+            inherit fetch;
+          };
+          b = boardsLib.mkBuilt {
+            manifest = m;
+            id = "operator-tool";
+            package = unfreePkgs.runCommand (name "operator-tool") {} ''mkdir -p "$out"'';
+          };
+          privateOutput = boardsLib.evalManifest "test-board" (raw
+            // {
+              built =
+                raw.built
+                // {
+                  operator-tool =
+                    raw.built.operator-tool
+                    // {
+                      internalUse = null;
+                      redistribution.private = true;
+                    };
+                };
+            });
+          licensedBuildOutput = boardsLib.evalManifest "test-board" (raw
+            // {
+              built =
+                raw.built
+                // {
+                  operator-tool =
+                    raw.built.operator-tool
+                    // {
+                      internalUse = null;
+                      redistribution.build = true;
+                    };
+                };
+            });
+          customInstall = hook:
+            boardsLib.mkBuilt {
+              manifest = m;
+              id = "operator-tool";
+              package = unfreePkgs.stdenvNoCC.mkDerivation {
+                pname = name "operator-tool";
+                version = "1.0";
+                outputs = ["out" "dev"];
+                dontUnpack = true;
+                installPhase = ''
+                  mkdir -p "$out" "$dev"
+                  ${lib.optionalString hook "runHook postInstall"}
+                '';
+              };
+            };
+          noInputAcceptance = changedArtifact {internalUse = null;};
+          system =
+            (inputs.nixpkgs.lib.nixosSystem {
+              modules = [testCore {hardware.boards.artifacts = [a b];}];
+            }).config.hardware.boards.publication;
+        in
+          assert expect (errors m == []) "accepted internal interpretation must validate";
+          assert expect (a.manifestEntry.internalBuild && b.manifestEntry.internalBuild) "interpretation permits internal builds";
+          assert expect (!a.manifestEntry.redistribution.build && !b.manifestEntry.redistribution.build) "interpretation must not masquerade as licensed build permission";
+          assert expect (!a.meta.license.redistributable && !b.meta.license.redistributable) "interpretation must not set license redistributable";
+          assert expect (system.build && !system.private && builtins.length system.blocking == 2) "internal builds remain cache-blocked";
+          assert expect (lib.all (form: !a.manifestEntry.redistribution.${form} && !b.manifestEntry.redistribution.${form}) ["file" "image" "cache" "private"]) "all affected redistribution forms stay denied";
+          assert expect (errors (changedArtifact {internalUse = interpretation // {accepted = false;};}) != []) "missing explicit acceptance fails closed";
+          assert expect (errors (changedArtifact {internalUse = interpretation // {target = "";};}) != []) "missing target fails closed";
+          assert expect (errors (changedArtifact {license = raw.artifacts.operator-fw.license // {redistributable = true;};}) != []) "interpretation cannot promote license redistributability";
+          assert expect (errors (changedArtifact {internalUse = interpretation // {rationale = "";};}) != []) "missing rationale fails closed";
+          assert expect (errors (changedArtifact {internalUse = interpretation // {uncertainty = "";};}) != []) "missing uncertainty fails closed";
+          assert expect (errors (changedArtifact {internalUse = interpretation // {evidence = interpretation.evidence // {url = "";};};}) != []) "missing source evidence fails closed";
+          assert expect (lib.all (form: errors (changedArtifact {redistribution.${form} = true;}) != []) ["file" "image" "cache" "private" "build"]) "interpretation may not coexist with redistribution grants";
+          assert expect (errors licensedBuildOutput != []) "derived licensed build grant cannot be laundered from interpreted inputs";
+          assert expect (failsToEval (customInstall false).drvPath) "custom installPhase without notice hook fails closed";
+          assert expect (!(failsToEval (customInstall true).drvPath)) "custom installPhase with notice hook validates";
+          assert expect (map (e: e.output) (boardsLib.artifactOutputIdentities [(customInstall true)]) == ["out" "dev"]) "deny identities include every output without a build";
+          assert expect (lib.all (e: !e.redistribution.private && !e.redistribution.cache) (boardsLib.artifactOutputIdentities [(customInstall true)])) "all output identities preserve denied forms";
+          assert expect (lib.all (field: errors (changedArtifact {internalUse = interpretation // {${field} = " \t\n";};}) != []) ["target" "rationale" "uncertainty"]) "whitespace-only interpretation text fails closed";
+          assert expect (lib.all (field: errors (changedArtifact {internalUse = interpretation // {evidence = interpretation.evidence // {${field} = " \t\n";};};}) != []) ["url" "location"]) "whitespace-only evidence fails closed";
+          assert expect (errors privateOutput != []) "derived private permission cannot exceed helper inputs";
+          assert expect (errors noInputAcceptance != []) "derived internal build cannot exceed helper inputs";
+          assert expect (builtins.elem (data.sri data.contents."operator.bin") (boardsLib.nonPrivateHashes [m])) "helper remains in private scanner deny hashes";
+          assert expect (builtins.elem (data.sri data.contents."operator.bin") (boardsLib.nonCacheableHashes [m])) "helper remains in public scanner deny hashes";
+            pkgs.runCommand "nixos-boards-lib-internal-use" {} ''
+              grep -F 'NOT an express vendor grant' ${a}/share/licenses/test-board-operator-fw/internal-use-interpretation.txt
+              grep -F 'NOT an express vendor grant' ${b}/share/licenses/test-board-operator-tool/internal-use-interpretation.txt
+              grep -F 'NOT an express vendor grant' ${customInstall true}/share/licenses/test-board-operator-tool/internal-use-interpretation.txt
+              grep -F 'NOT an express vendor grant' ${(customInstall true).dev}/share/licenses/test-board-operator-tool/internal-use-interpretation.txt
+              touch "$out"
+            '';
+
+        lib-built = let
+          bundle = p:
+            boardsLib.mkBuilt {
+              manifest = valid;
+              id = "runtime-bundle";
+              package = p.runCommand (name "runtime-bundle") {} "touch $out";
+            };
+          entry = (bundle pkgs).manifestEntry;
+          misnamed = boardsLib.mkBuilt {
+            manifest = valid;
+            id = "runtime-bundle";
+            package = pkgs.runCommand "something-else" {} "touch $out";
+          };
+          importTool = boardsLib.mkImportTool {
+            inherit pkgs;
+            name = "test-board-import-artifacts";
+            manifests = [valid];
+          };
+        in
+          assert expect (entry.class == "R1" && entry.built && entry.from == ["redist-fw"]) "built packages carry their manifest entry";
+          assert expect ((bundle pkgs).meta.license.shortName == "LicenseRef-test-board-firmware") "built packages take the manifest license";
+          assert expect (failsToEval (bundle pkgs).drvPath) "a non-free built package needs an unfree allowance";
+          assert expect (!(failsToEval (bundle unfreePkgs).drvPath)) "the generated unfree list admits built packages";
+          assert expect (failsToEval misnamed) "built packages must be named <manifest>-<id>";
+          assert expect (!(builtins.elem (name "runtime-bundle") (boardsLib.cacheablePackages [valid]))) "built packages without cache clearance are not cacheable";
+            pkgs.runCommand "nixos-boards-lib-built" {} ''
+              grep -q -F 'test-board.operator-fw|operator.bin|' ${lib.getExe importTool}
+              ! grep -q -F 'test-board.redist-fw' ${lib.getExe importTool}
+              touch "$out"
+            '';
 
         lib-artifacts = let
           r0 = artifact pkgs "free-blob";
@@ -203,6 +364,18 @@ in {
           leak = fixturesWith [(useArtifacts ["redist-fw"])];
           nixpkgsFirmware = fixturesWith [({pkgs, ...}: {hardware.firmware = [pkgs.linux-firmware];})];
           firmwareFree = fixturesWith [(useArtifacts ["nocache-fw"])];
+          buildOnly =
+            (fixturesWith [
+              ({pkgs, ...}: {
+                hardware.boards.artifacts = [
+                  (boardsLib.mkBuilt {
+                    manifest = valid;
+                    id = "operator-tool";
+                    package = pkgs.runCommand (name "operator-tool") {} "touch $out";
+                  })
+                ];
+              })
+            ]).free;
           pushSet = fixture:
             boardsLib.mkPublicPushSet {
               inherit pkgs fixture;
@@ -221,6 +394,12 @@ in {
         in
           assert expect (!(failsToEval (evaluates ok.free))) "free fixture must evaluate: ${builtins.toJSON (fixtureAssertions ok.free)}";
           assert expect (!(failsToEval (evaluates ok.full))) "full fixture must evaluate: ${builtins.toJSON (fixtureAssertions ok.full)}";
+          assert expect ok.free.config.hardware.boards.publication.private "a fixture with only R0 artifacts may enter the private cache";
+          assert expect (sortedEq ok.full.config.hardware.boards.publication.blocking ["test-board.redist-fw" "test-board.cached-fw"]) "artifacts without redistribution.private block the private cache: ${builtins.toJSON ok.full.config.hardware.boards.publication.blocking}";
+          assert expect (!ok.full.config.hardware.boards.publication.private) "a blocked system is not private-publishable";
+          assert expect ok.full.config.hardware.boards.publication.build "file and private grants imply internal build copies";
+          assert expect (buildOnly.config.hardware.boards.publication.buildBlocking == ["test-board.operator-tool"]) "an R2 package without build permission blocks internal build copies: ${builtins.toJSON buildOnly.config.hardware.boards.publication.buildBlocking}";
+          assert expect (!buildOnly.config.hardware.boards.publication.build) "a build-blocked system reports build = false";
           assert expect (lib.any (lib.hasInfix "uses the test-1.0 provider, not mainline") ok.free.config.warnings) "non-mainline provider warning";
           assert expect (failsToEval (evaluates leak.free)) "an R1 artifact in the free profile must fail";
           assert expect (!(failsToEval (evaluates nixpkgsFirmware.free))) "the free profile follows nixpkgs: linux-firmware evaluates";
@@ -273,6 +452,8 @@ in {
           assert has "Test-Board-Firmware.md" "| `mystery-fw` | blocked: licensing | R1 |";
           assert has "Test-Board-Firmware.md" "| `cached-fw` | adopted | R1 | unfreeRedistributableFirmware | runtime-firmware | firmware | file, image, cache |";
           assert has "Test-Board-Free-vs-NonFree.md" "## boot-firmware";
+          assert has "Test-Board-Firmware.md" "| `runtime-bundle` | R1 | LicenseRef-test-board-firmware | `redist-fw`, synthetic runtime sources (test license) | userspace | userspace | file, image |";
+          assert has "Test-Board-Free-vs-NonFree.md" "| test-board-runtime | `test-board.runtime-bundle` | R1 | full |";
           assert expect (lib.hasInfix "uses no artifacts from release manifests"
             (boardsLib.docPages {
               page = "Empty-Board";
@@ -297,31 +478,29 @@ in {
             mkdir -p $out/share
             cp ${pkgs.writeText "x" data.contents."redist.bin"} $out/share/innocent.dat
           '';
+          derivedLeak = pkgs.runCommand "copied-compiled-output" {} ''
+            mkdir -p "$out/share"
+            cp ${pkgs.writeText "compiled" data.contents."derived.bin"} "$out/share/compiled-copy.dat"
+          '';
           clean = [(artifact unfreePkgs "cached-fw") (artifact pkgs "free-blob")];
+          privateScan = boardsLib.mkCacheScan {
+            inherit pkgs;
+            hashes = boardsLib.nonPrivateHashes [valid];
+            lane = "private";
+          };
         in
           pkgs.runCommand "nixos-boards-lib-cache-scan" {
-            nativeBuildInputs = [scan];
+            nativeBuildInputs = [scan privateScan];
             leakClosure = pkgs.closureInfo {rootPaths = [leak];};
+            derivedClosure = pkgs.closureInfo {rootPaths = [derivedLeak];};
             cleanClosure = pkgs.closureInfo {rootPaths = clean;};
+            # cached-fw is cleared for the public cache, not the private one.
+            privateCleanClosure = pkgs.closureInfo {rootPaths = [(artifact pkgs "free-blob")];};
           } ''
-            # expect STATUS MESSAGE ARGS...: the scan exits with STATUS and says MESSAGE.
-            expect() {
-              want=$1 message=$2
-              shift 2
-              status=0
-              nixos-boards-cache-scan "$@" 2>err || status=$?
-              [ "$status" -eq "$want" ] || { echo "status $status, wanted $want: $*" >&2; cat err >&2; exit 1; }
-              grep -q -- "$message" err || { echo "wanted \"$message\" for: $*" >&2; cat err >&2; exit 1; }
-            }
-
-            # Without nix-store, nothing can be validated.
-            expect 2 "nix-store is needed" --closure-file "$cleanClosure/store-paths"
-            expect 2 "nix-store is needed" "$(head -n 1 "$cleanClosure/store-paths")"
-
             # A stub store: registered paths and the requisites a query returns.
             mkdir bin
-            export PATH=$PWD/bin:$PATH MOCK=$PWD
-            cat "$leakClosure/store-paths" "$cleanClosure/store-paths" > registered
+            export MOCK=$PWD
+            cat "$leakClosure/store-paths" "$derivedClosure/store-paths" "$cleanClosure/store-paths" "$privateCleanClosure/store-paths" > registered
             cat > bin/nix-store <<'SH'
             #!${pkgs.runtimeShell}
             case "$1" in
@@ -338,60 +517,88 @@ in {
             esac
             SH
             chmod +x bin/nix-store
-            answer() { echo "$1" > query; }
+            answer() { echo "$1" > "$MOCK/query"; }
 
-            answer "$leakClosure/store-paths"
-            expect 1 innocent.dat --closure-file "$leakClosure/store-paths"
-            answer "$cleanClosure/store-paths"
-            nixos-boards-cache-scan --closure-file "$cleanClosure/store-paths"
+            # Both lanes share the scan; run every case against each.
+            for lane in nixos-boards-cache-scan:cleanClosure nixos-boards-private-cache-scan:privateCleanClosure; do
+              IFS=: read -r scan cleanVar <<<"$lane"
+              clean=''${!cleanVar}/store-paths
+              (
+              # expect STATUS MESSAGE ARGS...: the scan exits with STATUS and says MESSAGE.
+              expect() {
+                want=$1 message=$2
+                shift 2
+                status=0
+                "$scan" "$@" 2>err || status=$?
+                [ "$status" -eq "$want" ] || { echo "$scan: status $status, wanted $want: $*" >&2; cat err >&2; exit 1; }
+                grep -q -- "$message" err || { echo "wanted \"$message\" for: $*" >&2; cat err >&2; exit 1; }
+              }
 
-            # Malformed, missing, unregistered or incomplete lists fail closed.
-            : > empty
-            expect 2 "missing or empty" --closure-file empty
-            expect 2 "missing or empty" --closure-file absent
-            echo relative/path > relative
-            expect 2 "not a top-level store path" --closure-file relative
-            missing=${builtins.storeDir}/00000000000000000000000000000000-missing
-            echo "$missing" > invalid
-            expect 2 "does not exist" --closure-file invalid
-            { cat "$leakClosure/store-paths"; echo "$missing"; } > mixed
-            expect 2 "does not exist" --closure-file mixed
-            top=$(head -n 1 "$leakClosure/store-paths")
-            for bad in "$top/share" "$top/share/.." "$top/." "${builtins.storeDir}/.$(basename "$top")"; do
-              { cat "$cleanClosure/store-paths"; echo "$bad"; } > nested
-              expect 2 "not a top-level store path" --closure-file nested
+              # Without nix-store, nothing can be validated.
+              expect 2 "nix-store is needed" --closure-file "$cleanClosure/store-paths"
+              expect 2 "nix-store is needed" "$(head -n 1 "$cleanClosure/store-paths")"
+
+              export PATH=$MOCK/bin:$PATH
+
+
+              answer "$derivedClosure/store-paths"
+              expect 1 compiled-copy.dat --closure-file "$derivedClosure/store-paths"
+              expect 1 compiled-copy.dat ${derivedLeak}
+              answer "$leakClosure/store-paths"
+              expect 1 innocent.dat --closure-file "$leakClosure/store-paths"
+              answer "$clean"
+              "$scan" --closure-file "$clean"
+
+              # Malformed, missing, unregistered or incomplete lists fail closed.
+              : > empty
+              expect 2 "missing or empty" --closure-file empty
+              expect 2 "missing or empty" --closure-file absent
+              echo relative/path > relative
+              expect 2 "not a top-level store path" --closure-file relative
+              missing=${builtins.storeDir}/00000000000000000000000000000000-missing
+              echo "$missing" > invalid
+              expect 2 "does not exist" --closure-file invalid
+              { cat "$leakClosure/store-paths"; echo "$missing"; } > mixed
+              expect 2 "does not exist" --closure-file mixed
+              top=$(head -n 1 "$leakClosure/store-paths")
+              for bad in "$top/share" "$top/share/.." "$top/." "${builtins.storeDir}/.$(basename "$top")"; do
+                { cat "$cleanClosure/store-paths"; echo "$bad"; } > nested
+                expect 2 "not a top-level store path" --closure-file nested
+              done
+              # Exists in the store, but is not registered.
+              unregistered=$(dirname "$(dirname ${pkgs.runtimeShell})")
+              echo "$unregistered" > unknown
+              expect 2 "not valid in the Nix store" --closure-file unknown
+              answer "$cleanClosure/store-paths"
+              head -n 1 "$cleanClosure/store-paths" > partial
+              expect 2 "omits" --closure-file partial
+              answer fail
+              expect 2 "could not query" --closure-file "$cleanClosure/store-paths"
+              # A query that succeeds with nothing, or with less than the roots.
+              answer empty
+              expect 2 "returned no closure" --closure-file "$cleanClosure/store-paths"
+              head -n 1 "$cleanClosure/store-paths" > short
+              answer short
+              expect 2 "does not report" --closure-file "$cleanClosure/store-paths"
+
+              # Querying store paths directly: arguments are checked first.
+              for bad in "$top/share" "$top/share/.." relative "$missing"; do
+                expect 2 "Refusing" "$bad"
+              done
+              expect 2 "not valid in the Nix store" "$unregistered"
+              answer fail
+              expect 2 "could not query" "$top"
+              answer empty
+              expect 2 "does not include" "$top"
+              answer "$leakClosure/store-paths"
+              expect 1 innocent.dat "$top"
+              answer "$cleanClosure/store-paths"
+              expect 2 "does not include" "$top"
+              { echo "$top"; echo "$unregistered"; } > unknown-closure
+              answer unknown-closure
+              expect 2 "not valid in the Nix store" "$top"
+              )
             done
-            # Exists in the store, but is not registered.
-            unregistered=$(dirname "$(dirname ${pkgs.runtimeShell})")
-            echo "$unregistered" > unknown
-            expect 2 "not valid in the Nix store" --closure-file unknown
-            head -n 1 "$cleanClosure/store-paths" > partial
-            expect 2 "omits" --closure-file partial
-            answer fail
-            expect 2 "could not query" --closure-file "$cleanClosure/store-paths"
-            # A query that succeeds with nothing, or with less than the roots.
-            answer empty
-            expect 2 "returned no closure" --closure-file "$cleanClosure/store-paths"
-            head -n 1 "$cleanClosure/store-paths" > short
-            answer short
-            expect 2 "does not report" --closure-file "$cleanClosure/store-paths"
-
-            # Querying store paths directly: arguments are checked first.
-            for bad in "$top/share" "$top/share/.." relative "$missing"; do
-              expect 2 "Refusing" "$bad"
-            done
-            expect 2 "not valid in the Nix store" "$unregistered"
-            answer fail
-            expect 2 "could not query" "$top"
-            answer empty
-            expect 2 "does not include" "$top"
-            answer "$leakClosure/store-paths"
-            expect 1 innocent.dat "$top"
-            answer "$cleanClosure/store-paths"
-            expect 2 "does not include" "$top"
-            { echo "$top"; echo "$unregistered"; } > unknown-closure
-            answer unknown-closure
-            expect 2 "not valid in the Nix store" "$top"
             touch $out
           '';
 

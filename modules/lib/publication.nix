@@ -51,8 +51,19 @@ in {
       inherit pkgs;
       hashes = boardsLib.nonCacheableHashes (lib.attrValues cfg.manifests);
     };
+    privateCacheScan = boardsLib.mkCacheScan {
+      inherit pkgs;
+      lane = "private";
+      hashes = boardsLib.nonPrivateHashes (lib.attrValues cfg.manifests);
+    };
   in {
     legacyPackages.publicPushSet = lib.mapAttrs pushSet boardsHere;
+    packages.private-cache-scan = privateCacheScan;
+    apps.private-cache-scan = {
+      type = "app";
+      meta.description = "Scan store paths for artifacts not cleared for the private cache";
+      program = lib.getExe privateCacheScan;
+    };
     packages.cache-scan = cacheScan;
     apps.cache-scan = {
       type = "app";

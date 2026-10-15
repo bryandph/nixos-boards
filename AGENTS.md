@@ -26,8 +26,12 @@ Shared hardware terms are defined in `docs/wiki/Glossary.md`; use them.
 
 ## Non-free artifacts
 
-- Establish the license before packaging any non-free artifact. If it is
-  not established, do not package it; record it as `blocked: licensing`.
+- Establish the license before packaging any non-free artifact. The only
+  alternative is an explicit evidence-backed operator-accepted `internalUse`
+  interpretation recorded under the provenance spec: R2, controlled target-
+  specific internal builds only, all redistribution/cache forms denied. This
+  is not a vendor grant. Otherwise record it as `blocked: licensing` and do
+  not package it. Never infer acceptance or extend its target/permissions.
 - Record every artifact in its provider's release manifest: source, size,
   hash, license, evidence and permitted redistribution.
 - Never auto-accept an EULA, never commit vendor binaries, and never

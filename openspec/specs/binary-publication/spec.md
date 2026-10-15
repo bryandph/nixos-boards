@@ -25,7 +25,7 @@ Before pushing to the public cache, the publisher SHALL hash every regular file 
 - **THEN** the scan matches its hash and the push is aborted
 
 ### Requirement: Private lane
-The private cache MAY additionally receive artifacts whose manifest entries permit `private`. R2 artifacts without that permission MUST NOT leave the machine that imported them.
+The private cache MAY additionally receive artifacts whose manifest entries permit `private`. R2 artifacts without that permission MUST NOT enter a private cache. Controlled internal build copies require either licensed internal-build permission or a separate explicit evidence-backed operator-accepted `internalUse` interpretation as specified by nonfree-provenance. That interpretation is not an express vendor grant and supplies no redistribution forms; all affected output caching remains denied. Without either basis, artifacts stay on a machine that imported them.
 
 #### Scenario: Internal copy permitted
 - **WHEN** an R2 artifact's license permits internal copies

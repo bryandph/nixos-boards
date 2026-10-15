@@ -97,6 +97,57 @@ in {
         '';
       };
 
+      publication = {
+        build = mkOption {
+          type = types.bool;
+          readOnly = true;
+          default = cfg.publication.buildBlocking == [];
+          defaultText = lib.literalExpression "config.hardware.boards.publication.buildBlocking == []";
+          description = ''
+            Whether this system may be built on the licensee's internal build
+            machines other than the one that imported its operator-supplied
+            artifacts, under recorded grants or a separate operator-accepted
+            internal-use interpretation (not an express vendor grant). Neither
+            route grants output cache permission. When false, build it where those artifacts were imported
+            (each build machine may import them itself).
+          '';
+        };
+        buildBlocking = mkOption {
+          type = types.listOf types.str;
+          readOnly = true;
+          default = map (p: "${p.manifestEntry.manifest}.${p.manifestEntry.id}") (lib.filter (p:
+            p ? manifestEntry
+            && p.manifestEntry.class != "R0"
+            && !(p.manifestEntry.internalBuild or p.manifestEntry.redistribution.build))
+          cfg.artifacts);
+          defaultText = lib.literalExpression "non-R0 artifacts without internal build permission";
+          description = "Manifest artifacts and built packages without licensed internal build permission or an explicit evidence-backed operator-accepted internal-build interpretation. Neither status supplies cache permission.";
+        };
+        private = mkOption {
+          type = types.bool;
+          readOnly = true;
+          default = cfg.publication.blocking == [];
+          defaultText = lib.literalExpression "config.hardware.boards.publication.blocking == []";
+          description = ''
+            Whether this system's closure may be copied to the maintainer's
+            private binary cache (D8): true unless an artifact it uses is not
+            cleared for `private`. Deploying the system to the board that runs
+            it is use, not publication, and is always allowed.
+          '';
+        };
+        blocking = mkOption {
+          type = types.listOf types.str;
+          readOnly = true;
+          default = map (p: "${p.manifestEntry.manifest}.${p.manifestEntry.id}") (lib.filter (p:
+            p ? manifestEntry
+            && p.manifestEntry.class != "R0"
+            && !p.manifestEntry.redistribution.private)
+          cfg.artifacts);
+          defaultText = lib.literalExpression "non-R0 artifacts without redistribution.private";
+          description = "Manifest artifacts and built packages that keep this system out of the private cache.";
+        };
+      };
+
       artifacts = mkOption {
         type = types.listOf types.package;
         default = [];
