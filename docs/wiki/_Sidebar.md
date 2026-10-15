@@ -50,6 +50,12 @@
   - [Firmware](ROCK-5A-Firmware)
   - [Free vs non-free](ROCK-5A-Free-vs-NonFree)
 
+- [Dragon Q8B](Dragon-Q8B)
+  - [Hardware matrix](Dragon-Q8B-Hardware-Matrix)
+  - [Boot and recovery](Dragon-Q8B-Boot-and-Recovery)
+  - [Firmware](Dragon-Q8B-Firmware)
+  - [Free vs non-free](Dragon-Q8B-Free-vs-NonFree)
+
 **SoCs**
 
 - [Rockchip RK3588](SoC-RK3588)
