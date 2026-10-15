@@ -10,10 +10,11 @@ Every board follows the same conventions:
 - Kernel, device-tree and firmware sources are named providers. Mainline
   comes first where it supports the board; boards that still need a vendor
   provider say so on their wiki page, and vendor providers emit a warning.
-- Licensing is established before any non-free artifact is adopted. A
-  release manifest records each artifact's provenance, license class (R0
-  free, R1 redistributable, R2 operator-supplied) and permitted
-  redistribution.
+- Non-free artifacts need established license evidence or a separately
+  recorded, explicitly accepted R2 internal-build interpretation bounded to
+  its target and controlled builders. That interpretation is not a vendor
+  grant and never clears caching or redistribution. Release manifests record
+  provenance, license class and permitted redistribution.
 - Each board has a free profile and, where non-free pieces exist, a full
   profile. The gaps between them are documented per board.
 - Only artifacts whose licenses permit it are published to the public
@@ -25,12 +26,6 @@ Every board follows the same conventions:
 | --- | --- | --- |
 | ClockworkPi uConsole (CM5) | BCM2712 | free |
 | BeagleBoard.org BeagleY-AI | AM67A / J722S | free, full |
-| NXP FRDM-i.MX95 | i.MX 95 | free, full |
-| Turing Machines Turing RK1 | RK3588 | free |
-| Xunlong Orange Pi 5 | RK3588S | free |
-| Xunlong Orange Pi 5 Plus | RK3588 | free |
-| Radxa ROCK 5A | RK3588S | free |
-| Radxa Dragon Q8B | SC8280XP | free, full |
 
 Each board's wiki page covers its hardware matrix, boot and recovery,
 firmware, and free versus non-free gaps.
@@ -46,11 +41,11 @@ Add the flake as an input and import a board's modules, for example:
   # inputs.nixos-boards.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs = {nixpkgs, nixos-boards, ...}: {
-    nixosConfigurations.rk1 = nixpkgs.lib.nixosSystem {
+    nixosConfigurations.beagley-ai = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
       modules = [
-        nixos-boards.nixosModules.turing-rk1-core
-        nixos-boards.nixosModules.turing-rk1-image
+        nixos-boards.nixosModules.beagley-ai-core
+        nixos-boards.nixosModules.beagley-ai-image
       ];
     };
   };
@@ -60,7 +55,7 @@ Add the flake as an input and import a board's modules, for example:
 `nix flake show` lists every module. The `<board>-free` and `<board>-full`
 entries under `nixosConfigurations` are reference configurations. CI
 evaluates them and builds the checks that need no operator-supplied files,
-and the publish workflow builds each board's public push set, which can
+and the gated publish workflow builds each board's public push set, which can
 include free-profile system images. Full-profile system and image builds,
 and checks that need R2 files, are hardware checks
 (`legacyPackages.<system>.hardwareChecks` and `crossChecks`) that the
@@ -71,13 +66,16 @@ predicate. R2 artifacts must be imported on the build machine first; the
 board's Firmware wiki page lists them and the import commands.
 
 ```nix
-nixpkgs.config.allowUnfreePredicate = nixos-boards.lib.unfreePredicate "dragon-q8b";
+nixpkgs.config.allowUnfreePredicate = nixos-boards.lib.unfreePredicate "beagley-ai";
 ```
 
 ## Binary cache
 
-CI publishes each board's public push set to `bph.cachix.org`: the free
-profile's builds and the artifacts whose manifests clear them for the cache.
+Publication to `bph.cachix.org` is default-deny: an operator must approve an
+exact reviewed main SHA with successful same-SHA native checks before any
+publication. Manifest evaluation and closure scanning remain mandatory;
+internal-build interpretations do not grant cache permission. The public push
+set contains only the free profile's builds and cache-cleared artifacts.
 Import `nixosModules.nixos-boards-cache` (or
 `darwinModules.nixos-boards-cache`) to add the substituter and its key.
 

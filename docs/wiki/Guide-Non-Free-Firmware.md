@@ -88,9 +88,6 @@ R2 does not waive notice obligations for internal copies. Preserve original
 copyright/proprietary legends and install the applicable pinned notices.
 Built entries can record `notices`; `mkBuilt` receives the consumer's `pkgs`
 when fetching them and installs notices in every output, including `dev`.
-For NXP, the pinned SLA and Neutron Software Content Register supplement,
-not replace, the original component legends. Installing the SLA does not grant
-new redistribution rights or license unrelated third-party content.
 
 ## Redistribution forms
 
@@ -225,7 +222,7 @@ as permission: affected Beagle output caching stays denied. A private CI
 consumer can additionally admit only frozen reviewed producer generations,
 exact approved roots and complete authoritative closures, default-refusing
 uncovered outputs. That consumer admission does not clear the public lane,
-which still requires its own separately proven publication boundary. Known
-NXP aggregate hashes and exported all-output identities are additional deny
-evidence, not complete detection of every copied or historical form. The
+which still requires its own separately proven publication boundary. Exported
+all-output identities are additional deny evidence, not complete detection of
+every copied or historical form. The
 public scanner CLI is not a consumer allowlist or an authorization service.
