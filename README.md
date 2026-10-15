@@ -17,8 +17,8 @@ Every board follows the same conventions:
   provenance, license class and permitted redistribution.
 - Each board has a free profile and, where non-free pieces exist, a full
   profile. The gaps between them are documented per board.
-- Only artifacts whose licenses permit it are published to the public
-  binary cache.
+- Publication uses explicitly configured targets; recorded terms remain
+  the operator's responsibility.
 
 ## Boards
 
