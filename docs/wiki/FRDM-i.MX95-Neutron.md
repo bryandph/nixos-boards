@@ -91,7 +91,8 @@ samples and supply that option's SRI pin (the package also exposes
 artifact or cache rights.
 
 Aggregate systems and images inherit the unfree, non-redistributable,
-local-build-preferred, substitute-disabled, and Hydra-disabled policy.
+local-build-preferred, substitute-disabled, and Hydra-disabled packaging
+attributes.
 
 ### Capture and accept the evaluation
 
