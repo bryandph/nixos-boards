@@ -6,7 +6,7 @@
 }: let
   cfg = config.boards;
   boardsLib = cfg.lib;
-  # Public lane (D8).
+  # Ordinary cache configuration and explicit build targets.
   cache = {
     name = "bph";
     substituter = "https://bph.cachix.org";
@@ -32,32 +32,28 @@ in {
     system,
     ...
   }: let
-    pushSet = board: entry: let
-      manifests = map (n: cfg.manifests.${n}) entry.manifests;
-    in
+    artifactPkgs = import inputs.nixpkgs {
+      inherit system;
+      config.allowUnfree = true;
+    };
+    pushSet = board: entry:
       boardsLib.mkPublicPushSet {
+        inherit pkgs;
         name = "${board}-public-push-set";
         fixture = config.flake.nixosConfigurations."${board}-free";
         inherit (entry) publish;
-        inherit manifests;
-        # Admits only cache-cleared names, so nothing else can evaluate.
-        pkgs = import inputs.nixpkgs {
-          inherit system;
-          config.allowUnfreePredicate = boardsLib.namePredicate (boardsLib.cacheablePackages manifests);
-        };
+        artifacts = lib.concatLists (lib.mapAttrsToList (manifest: ids:
+          map (id:
+            boardsLib.mkArtifact {
+              pkgs = artifactPkgs;
+              manifest = cfg.manifests.${manifest};
+              inherit id;
+            })
+          ids)
+        entry.publishArtifacts);
       };
     boardsHere = lib.filterAttrs (board: _: config.flake.nixosConfigurations."${board}-free".pkgs.stdenv.hostPlatform.system == system) cfg.registry;
-    cacheScan = boardsLib.mkCacheScan {
-      inherit pkgs;
-      hashes = boardsLib.nonCacheableHashes (lib.attrValues cfg.manifests);
-    };
   in {
     legacyPackages.publicPushSet = lib.mapAttrs pushSet boardsHere;
-    packages.cache-scan = cacheScan;
-    apps.cache-scan = {
-      type = "app";
-      meta.description = "Scan store paths for artifacts not cleared for the public cache (gate 2)";
-      program = lib.getExe cacheScan;
-    };
   };
 }

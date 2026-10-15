@@ -1,35 +1,29 @@
 # binary-publication Specification
 
 ## Purpose
-Defines what may be published to the public binary cache (`bph.cachix.org`) and the private cache, and the evaluation and pre-push gates that keep artifacts the licenses do not permit out of the public cache.
+Describes ordinary cache publication, explicit build targets, recorded provenance and opt-in cache configuration. The repository does not implement a license-derived publisher admission service, release approval variable or content scanner.
+
 ## Requirements
-### Requirement: Public lane content
-The public binary cache SHALL receive only the closures of free fixtures and outputs that contain no non-free artifact other than R1 artifacts whose manifest entries permit `cache`, and, for aggregate images, also `image`. R2 artifacts and artifacts not permitted for `cache` MUST NOT be pushed to the public cache.
+### Requirement: Explicit publication targets
+CI SHALL use the board registry's explicit `publish` build attributes and `publishArtifacts` standalone artifact lists. Manifest license or redistribution flags MUST NOT automatically select, reject or add publication targets.
 
-#### Scenario: Firmware allowed as a file but not in a cache
-- **WHEN** an R1 artifact permits `file` and `image` but not `cache`
-- **THEN** outputs containing it are excluded from the public push set
+#### Scenario: A manifest's permission metadata changes
+- **WHEN** recorded permission metadata changes without changing the configured build targets
+- **THEN** the publication target list stays unchanged
 
-### Requirement: Evaluation gate
-The public push set SHALL fail to evaluate when a published configuration installs a non-R0 manifest artifact that is not permitted for `cache`, or for `image` when images are published. Cache-cleared R1 artifacts in the push set SHALL be built with nixpkgs that admits only cache-permitted package names.
+### Requirement: Conventional CI authentication
+Cache CI SHALL run after successful main-branch checks, or a normal manual invocation, using ordinary Cachix authentication. Wiki CI SHALL mirror main-branch documentation pushes after generated-doc and link checks, or a normal manual invocation using the repository token. No exact-SHA approval variable, pre-push scanner or separate publisher service SHALL be required.
 
-#### Scenario: Firmware nixpkgs counts as free but not cleared for caches
-- **WHEN** the free fixture installs an R1 artifact licensed `unfreeRedistributableFirmware` whose entry does not permit `cache`
-- **THEN** evaluation of the push set fails and names the artifact
+#### Scenario: Successful main CI with publication authentication
+- **WHEN** main-branch checks succeed and the normal cache credential is configured
+- **THEN** the publisher builds and pushes the configured targets without a bespoke release-admission step
 
-### Requirement: Pre-push content scan
-Before pushing to the public cache, the publisher SHALL hash every regular file in the closure being pushed and compare the hashes with all manifest artifacts, and their recorded derived forms, that are not permitted for `cache`. Any match SHALL abort the push.
+### Requirement: Retained provenance
+Release manifests SHALL continue recording source identity, license evidence, notices and permitted redistribution. Free and full profiles, pinned-source checks and notice installation SHALL remain independent of publication target selection. Recording metadata does not itself grant additional rights.
 
-#### Scenario: Blob copied into an unrelated derivation
-- **WHEN** a derivation copies a non-cacheable firmware file under another name
-- **THEN** the scan matches its hash and the push is aborted
-
-### Requirement: Private lane
-The private cache MAY additionally receive artifacts whose manifest entries permit `private`. R2 artifacts without that permission MUST NOT leave the machine that imported them.
-
-#### Scenario: Internal copy permitted
-- **WHEN** an R2 artifact's license permits internal copies
-- **THEN** it may be pushed to the private cache and never to the public one
+#### Scenario: Operator reads an artifact's terms
+- **WHEN** an operator inspects the manifest or generated firmware page
+- **THEN** the recorded provenance and terms remain available without a publisher policy engine
 
 ### Requirement: Opt-in consumer cache configuration
 The repository SHALL offer a module that adds the public cache's substituter and key. Board features MUST NOT import it.
@@ -37,4 +31,3 @@ The repository SHALL offer a module that adds the public cache's substituter and
 #### Scenario: Consumer opts in
 - **WHEN** a consumer imports the cache module
 - **THEN** the public substituter and its key are added to the consumer's Nix settings
-

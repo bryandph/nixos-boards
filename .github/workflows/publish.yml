@@ -1,8 +1,7 @@
 name: publish
 
-# Public lane (D8): builds each board's public push set (gate 1), scans
-# its closure for artifacts not cleared for the cache (gate 2), and only
-# then pushes to bph.cachix.org. Nothing else built in the job is pushed.
+# Ordinary publication of explicitly configured build targets after main CI.
+# No release-approval variable, license selector or content scanner.
 on:
   workflow_run:
     workflows: [check]
@@ -18,40 +17,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release-gate:
-    if: >-
-      github.ref == 'refs/heads/main' &&
-      vars.PUBLIC_RELEASE_SHA != '' &&
-      vars.PUBLIC_RELEASE_SHA == (github.event.workflow_run.head_sha || github.sha) &&
-      (github.event_name == 'workflow_dispatch' ||
-       (github.event.workflow_run.event == 'push' &&
-        github.event.workflow_run.head_branch == 'main' &&
-        github.event.workflow_run.head_repository.full_name == github.repository))
-    runs-on: ubuntu-26.04
-    permissions:
-      contents: read
-      actions: read
-    outputs:
-      sha: ${{ steps.admit.outputs.sha }}
-    steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-          persist-credentials: false
-      - name: Admit only approved main with same-SHA successful checks
-        id: admit
-        env:
-          APPROVED_RELEASE_SHA: ${{ vars.PUBLIC_RELEASE_SHA }}
-          RELEASE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
-          python3 .github/scripts/release_gate.py
   publish:
-    needs: release-gate
-    permissions:
-      contents: read
-      actions: read
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     strategy:
       fail-fast: false
       matrix:
@@ -60,14 +31,14 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          ref: ${{ needs.release-gate.outputs.sha }}
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
       - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
       - uses: cachix/cachix-action@3ba601ff5bbb07c7220846facfa2cd81eeee15a1 # v16
         with:
           name: bph
           skipPush: true
-      - name: Build public push sets (gate 1)
+      - name: Build configured targets
         run: |
           system=$(nix config show system)
           case "$RUNNER_ARCH" in
@@ -87,21 +58,6 @@ jobs:
           for board in "${boards[@]}"; do
             nix build -L ".#legacyPackages.$system.publicPushSet.$board" --out-link "push-set-$board" --builders '' --option extra-platforms ''
           done
-      - name: Scan closures (gate 2)
-        run: |
-          shopt -s nullglob
-          sets=(push-set-*)
-          [ "${#sets[@]}" -gt 0 ] || exit 0
-          # The scan takes store paths, not the out-links that point to them.
-          roots=()
-          for set in "${sets[@]}"; do roots+=("$(readlink -f "$set")"); done
-          nix run .#cache-scan -- "${roots[@]}"
-      - name: Recheck release admission immediately before publication
-        env:
-          APPROVED_RELEASE_SHA: ${{ vars.PUBLIC_RELEASE_SHA }}
-          RELEASE_SHA: ${{ needs.release-gate.outputs.sha }}
-          GH_TOKEN: ${{ github.token }}
-        run: python3 .github/scripts/release_gate.py
       - name: Push to bph.cachix.org
         env:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}

@@ -103,10 +103,6 @@ in {
       inherit system;
       config.allowUnfreePredicate = boardsLib.namePredicate (boardsLib.unfreePackages [valid]);
     };
-    cachePkgs = import inputs.nixpkgs {
-      inherit system;
-      config.allowUnfreePredicate = boardsLib.namePredicate (boardsLib.cacheablePackages [valid]);
-    };
     artifact = p: id:
       boardsLib.mkArtifact {
         pkgs = p;
@@ -146,15 +142,10 @@ in {
           assert expect (sortedEq (boardsLib.manifestErrors invalid) data.expectedErrors)
           "invalid manifest errors differ: ${builtins.toJSON (boardsLib.manifestErrors invalid)}";
           assert expect (sortedEq (boardsLib.unfreePackages [valid]) (map name ["redist-fw" "operator-fw"])) "unfree package list follows nixpkgs license semantics";
-          assert expect (boardsLib.cacheablePackages [valid] == [(name "cached-fw")]) "cacheable package list";
-          assert expect (sortedEq (boardsLib.nonCacheableHashes [valid])
-            (map data.sri [data.contents."redist.bin" data.contents."operator.bin" data.contents."nocache.bin" data.contents."mystery.bin"])) "non-cacheable hashes";
           assert expect (!(failsToEval (artifact pkgs "nocache-fw").drvPath)) "nixpkgs counts unfreeRedistributableFirmware as free";
           assert expect (failsToEval (artifact unfreePkgs "mystery-fw").drvPath) "blocked artifact must not package";
           assert expect (failsToEval (artifact pkgs "redist-fw").drvPath) "R1 artifact must need an unfree allowance";
-          assert expect (!(failsToEval (artifact pkgs "free-blob").drvPath)) "R0 artifact must not need an unfree allowance";
-          assert expect (failsToEval (artifact cachePkgs "redist-fw").drvPath) "gate 1: R1 without cache clearance must fail under the cache predicate";
-          assert expect (!(failsToEval (artifact cachePkgs "cached-fw").drvPath)) "gate 1: cache-cleared R1 must evaluate under the cache predicate"; let
+          assert expect (!(failsToEval (artifact pkgs "free-blob").drvPath)) "R0 artifact must not need an unfree allowance"; let
             r2 = boardsLib.mkArtifact {
               pkgs = unfreePkgs;
               manifest = valid;
@@ -203,13 +194,6 @@ in {
           leak = fixturesWith [(useArtifacts ["redist-fw"])];
           nixpkgsFirmware = fixturesWith [({pkgs, ...}: {hardware.firmware = [pkgs.linux-firmware];})];
           firmwareFree = fixturesWith [(useArtifacts ["nocache-fw"])];
-          pushSet = fixture:
-            boardsLib.mkPublicPushSet {
-              inherit pkgs fixture;
-              name = "test-board-public-push-set";
-              publish = ["toplevel"];
-              manifests = [];
-            };
           ownAllowance = fixturesWith [{nixpkgs.config.allowUnfreePredicate = _: true;}];
           otherManifest = config.boards.internal.mkFixtures {
             board = "test-board";
@@ -225,8 +209,6 @@ in {
           assert expect (failsToEval (evaluates leak.free)) "an R1 artifact in the free profile must fail";
           assert expect (!(failsToEval (evaluates nixpkgsFirmware.free))) "the free profile follows nixpkgs: linux-firmware evaluates";
           assert expect (!(failsToEval (evaluates firmwareFree.free))) "the free profile follows nixpkgs: unfreeRedistributableFirmware artifacts evaluate";
-          assert expect (!(failsToEval (pushSet ok.free).drvPath)) "gate 1: a free fixture without manifest artifacts is publishable";
-          assert expect (failsToEval (pushSet firmwareFree.free).drvPath) "gate 1: an artifact not cleared for cache must block the push set";
           assert expect (hasMessage ownAllowance.full "features must not set nixpkgs.config") "a feature's own unfree allowance must fail";
           assert expect (hasMessage otherManifest.full "comes from a manifest not listed") "artifacts from unlisted manifests must fail";
           assert expect (hasMessage wrongProvider.free "the kernel's provider (mainline) is not test-1.0") "provider mismatch must fail";
@@ -287,113 +269,20 @@ in {
           assert expect (!(lib.hasInfix "nocache-fw" pages."Test-Board-Free-vs-NonFree.md")) "artifacts nixpkgs counts as free are not gaps";
             pkgs.runCommand "nixos-boards-lib-docs" {} "touch $out";
 
-        lib-cache-scan = let
-          scan = boardsLib.mkCacheScan {
-            inherit pkgs;
-            hashes = boardsLib.nonCacheableHashes [valid];
+        lib-public-targets = let
+          fixture.config.system.build.toplevel = pkgs.writeText "configured-fixture" "fixture";
+          extra = artifact unfreePkgs "redist-fw";
+          targets = boardsLib.mkPublicPushSet {
+            inherit pkgs fixture;
+            name = "configured-public-targets";
+            publish = ["toplevel"];
+            artifacts = [extra];
           };
-          # A non-cacheable blob copied under an unrelated name.
-          leak = pkgs.runCommand "innocent-data" {} ''
-            mkdir -p $out/share
-            cp ${pkgs.writeText "x" data.contents."redist.bin"} $out/share/innocent.dat
-          '';
-          clean = [(artifact unfreePkgs "cached-fw") (artifact pkgs "free-blob")];
         in
-          pkgs.runCommand "nixos-boards-lib-cache-scan" {
-            nativeBuildInputs = [scan];
-            leakClosure = pkgs.closureInfo {rootPaths = [leak];};
-            cleanClosure = pkgs.closureInfo {rootPaths = clean;};
-          } ''
-            # expect STATUS MESSAGE ARGS...: the scan exits with STATUS and says MESSAGE.
-            expect() {
-              want=$1 message=$2
-              shift 2
-              status=0
-              nixos-boards-cache-scan "$@" 2>err || status=$?
-              [ "$status" -eq "$want" ] || { echo "status $status, wanted $want: $*" >&2; cat err >&2; exit 1; }
-              grep -q -- "$message" err || { echo "wanted \"$message\" for: $*" >&2; cat err >&2; exit 1; }
-            }
-
-            # Without nix-store, nothing can be validated.
-            expect 2 "nix-store is needed" --closure-file "$cleanClosure/store-paths"
-            expect 2 "nix-store is needed" "$(head -n 1 "$cleanClosure/store-paths")"
-
-            # A stub store: registered paths and the requisites a query returns.
-            mkdir bin
-            export PATH=$PWD/bin:$PATH MOCK=$PWD
-            cat "$leakClosure/store-paths" "$cleanClosure/store-paths" > registered
-            cat > bin/nix-store <<'SH'
-            #!${pkgs.runtimeShell}
-            case "$1" in
-              --check-validity)
-                shift
-                for p in "$@"; do grep -qxF "$p" "$MOCK/registered" || { echo "path '$p' is not valid" >&2; exit 1; }; done ;;
-              --query)
-                case "$(cat "$MOCK/query")" in
-                  fail) exit 1 ;;
-                  empty) ;;
-                  *) cat "$(cat "$MOCK/query")" ;;
-                esac ;;
-              *) exit 2 ;;
-            esac
-            SH
-            chmod +x bin/nix-store
-            answer() { echo "$1" > query; }
-
-            answer "$leakClosure/store-paths"
-            expect 1 innocent.dat --closure-file "$leakClosure/store-paths"
-            answer "$cleanClosure/store-paths"
-            nixos-boards-cache-scan --closure-file "$cleanClosure/store-paths"
-
-            # Malformed, missing, unregistered or incomplete lists fail closed.
-            : > empty
-            expect 2 "missing or empty" --closure-file empty
-            expect 2 "missing or empty" --closure-file absent
-            echo relative/path > relative
-            expect 2 "not a top-level store path" --closure-file relative
-            missing=${builtins.storeDir}/00000000000000000000000000000000-missing
-            echo "$missing" > invalid
-            expect 2 "does not exist" --closure-file invalid
-            { cat "$leakClosure/store-paths"; echo "$missing"; } > mixed
-            expect 2 "does not exist" --closure-file mixed
-            top=$(head -n 1 "$leakClosure/store-paths")
-            for bad in "$top/share" "$top/share/.." "$top/." "${builtins.storeDir}/.$(basename "$top")"; do
-              { cat "$cleanClosure/store-paths"; echo "$bad"; } > nested
-              expect 2 "not a top-level store path" --closure-file nested
-            done
-            # Exists in the store, but is not registered.
-            unregistered=$(dirname "$(dirname ${pkgs.runtimeShell})")
-            echo "$unregistered" > unknown
-            expect 2 "not valid in the Nix store" --closure-file unknown
-            head -n 1 "$cleanClosure/store-paths" > partial
-            expect 2 "omits" --closure-file partial
-            answer fail
-            expect 2 "could not query" --closure-file "$cleanClosure/store-paths"
-            # A query that succeeds with nothing, or with less than the roots.
-            answer empty
-            expect 2 "returned no closure" --closure-file "$cleanClosure/store-paths"
-            head -n 1 "$cleanClosure/store-paths" > short
-            answer short
-            expect 2 "does not report" --closure-file "$cleanClosure/store-paths"
-
-            # Querying store paths directly: arguments are checked first.
-            for bad in "$top/share" "$top/share/.." relative "$missing"; do
-              expect 2 "Refusing" "$bad"
-            done
-            expect 2 "not valid in the Nix store" "$unregistered"
-            answer fail
-            expect 2 "could not query" "$top"
-            answer empty
-            expect 2 "does not include" "$top"
-            answer "$leakClosure/store-paths"
-            expect 1 innocent.dat "$top"
-            answer "$cleanClosure/store-paths"
-            expect 2 "does not include" "$top"
-            { echo "$top"; echo "$unregistered"; } > unknown-closure
-            answer unknown-closure
-            expect 2 "not valid in the Nix store" "$top"
-            touch $out
-          '';
+          assert expect (!valid.artifacts.redist-fw.redistribution.cache) "test target has no cache flag";
+          assert expect (toString targets.entries.${extra.name} == extra.outPath) "explicit standalone target is not filtered by license flags";
+          assert expect (builtins.length (builtins.attrNames targets.entries) == 2) "configured fixture and standalone target only";
+            pkgs.writeText "nixos-boards-public-targets" "Explicit configured targets; no publication policing.\n";
 
         lib-flash-tool =
           pkgs.runCommand "nixos-boards-lib-flash-tool" {
