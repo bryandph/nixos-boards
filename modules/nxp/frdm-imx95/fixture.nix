@@ -114,13 +114,9 @@ in {
         });
         board = boards.frdm-imx95;
         allFeaturesBoard = boards.frdm-imx95-all-features;
-        allFeaturesRuntime = allFeaturesBoard.config.system.build.runtime;
         allFeaturesSdImage = allFeaturesBoard.config.system.build.frdmImx95SdImage.overrideAttrs (old: {
           allowSubstitutes = false;
           preferLocalBuild = true;
-          passthru =
-            (old.passthru or {})
-            // {publicationPolicy = allFeaturesRuntime.publicationPolicy;};
           meta =
             (old.meta or {})
             // {
@@ -160,13 +156,9 @@ in {
           imageBaseName = "nixos-frdm-imx95-unsafe-m7";
           modules = [config.flake.modules.nixos.frdm-imx95-m7-remoteproc {hardware.boards.imx95.bootContainer = (frdm pkgs).completeBootContainer;}];
         };
-        neutronRuntime = neutronBoard.config.system.build.runtime;
         neutronSdImage = neutronBoard.config.system.build.frdmImx95SdImage.overrideAttrs (old: {
           allowSubstitutes = false;
           preferLocalBuild = true;
-          passthru =
-            (old.passthru or {})
-            // {publicationPolicy = neutronRuntime.publicationPolicy;};
           meta =
             (old.meta or {})
             // {

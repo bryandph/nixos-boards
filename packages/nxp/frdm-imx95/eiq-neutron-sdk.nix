@@ -39,12 +39,6 @@ in
     preferLocalBuild = true;
 
     passthru = {
-      publicationPolicy = {
-        publicChecks = false;
-        publicPackages = false;
-        publicReleases = false;
-        redistributable = false;
-      };
       releaseMapping = release;
       wheelSha256 = converter.sha256;
     };

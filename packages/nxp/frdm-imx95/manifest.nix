@@ -230,8 +230,8 @@ in {
 
     built = {
       source-boot-container = built {
-        # Historical accepted aggregate pins: deny them in the public hash
-        # scan as well as their raw inputs. This is not complete admission.
+        # Historical accepted aggregate hashes, retained as provenance
+        # metadata rather than a CI scanner or publication admission rule.
         derivedHashes = [
           "sha256-5s1YjWQg/daHJI2gwb1A7JR539qJWhuqfo8SM821g5g="
           (builtins.convertHash {

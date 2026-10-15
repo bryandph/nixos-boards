@@ -19,7 +19,6 @@ in
       passthru = {
         inherit distribution;
         selectedMember = firmware.member;
-        publicationPolicy = firmware.publicationPolicy;
         releaseMapping = release.multimedia;
       };
       meta = {

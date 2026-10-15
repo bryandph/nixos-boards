@@ -45,7 +45,6 @@ in {
             hydraPlatforms = [];
             platforms = ["aarch64-linux"];
           };
-          passthru.publicationPolicy = runtime.publicationPolicy;
         } ''
           install -Dm0444 "$src" "$out/share/models/${release.neutron.model.converted.fileName}"
         '');
@@ -72,7 +71,6 @@ in {
         allowSubstitutes = false;
         preferLocalBuild = true;
       };
-      passthru.publicationPolicy = runtime.publicationPolicy;
       meta = {
         description = "Licensed FRDM-i.MX95 Neutron acceptance smoke closure";
         hydraPlatforms = [];

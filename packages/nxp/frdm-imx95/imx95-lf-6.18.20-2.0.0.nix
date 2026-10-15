@@ -516,14 +516,6 @@
             closure.
           '';
         };
-        publicationPolicy = {
-          allowSubstitutes = false;
-          hydra = false;
-          preferLocalBuild = true;
-          publicCache = false;
-          publicImage = false;
-          publicRelease = false;
-        };
       };
       userspace = {
         interface = "v4l2-mem2mem";

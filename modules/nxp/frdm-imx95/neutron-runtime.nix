@@ -22,26 +22,6 @@ in {
     smokeRunner = scope.neutronSmokeRunner;
     tensorflowLite = scope.tensorflowLite;
     delegateSource = scope.delegateSource;
-    policyRuntime = scope.neutronRuntime;
-    policyAggregate = scope.delegate;
-    policyJson = pkgs.writeText "imx95-neutron-publication-policy.json" (
-      builtins.toJSON {
-        runtime = {
-          allowSubstitutes = policyRuntime.allowSubstitutes;
-          hydraPlatforms = policyRuntime.meta.hydraPlatforms;
-          preferLocalBuild = policyRuntime.preferLocalBuild;
-          publication = policyRuntime.publicationPolicy;
-          redistributable = policyRuntime.meta.license.redistributable;
-        };
-        aggregate = {
-          allowSubstitutes = policyAggregate.allowSubstitutes;
-          hydraPlatforms = policyAggregate.meta.hydraPlatforms;
-          preferLocalBuild = policyAggregate.preferLocalBuild;
-          publication = policyAggregate.publicationPolicy;
-          redistributable = policyAggregate.meta.license.redistributable;
-        };
-      }
-    );
   in {
     boardPackages.frdm-imx95 =
       {
@@ -69,23 +49,13 @@ in {
         '';
       }
       // lib.optionalAttrs (system == "aarch64-linux") {
-        neutron-publication-policy =
-          pkgs.runCommand "frdm-imx95-neutron-publication-policy" {
-            nativeBuildInputs = [pkgs.jq];
-          } ''
-            jq -e '
-              all(.runtime, .aggregate;
-                .allowSubstitutes == false and
-                .preferLocalBuild == true and
-                .redistributable == false and
-                .hydraPlatforms == [] and
-                .publication.publicChecks == false and
-                .publication.publicPackages == false and
-                .publication.publicReleases == false and
-                .publication.redistributable == false)
-            ' ${policyJson} >/dev/null
-            cp ${policyJson} "$out"
-          '';
+        neutron-provenance = assert scope.neutronRuntime.manifestEntry.id == "neutron-runtime";
+        assert scope.delegate.manifestEntry.id == "tflite-neutron-delegate";
+          pkgs.writeText "frdm-imx95-neutron-provenance" (builtins.toJSON {
+            runtimeRevision = scope.neutronRuntime.runtimeRevision;
+            delegateRevision = scope.delegate.sourceRevision;
+            license = scope.neutronRuntime.meta.license.shortName;
+          });
         neutron-smoke-fixtures = let
           fakeBenchmark = pkgs.writeShellScriptBin "benchmark_model" ''
             output=

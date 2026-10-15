@@ -51,12 +51,6 @@ in
     preferLocalBuild = true;
 
     passthru = {
-      publicationPolicy = {
-        publicChecks = false;
-        publicPackages = false;
-        publicReleases = false;
-        redistributable = false;
-      };
       releaseMapping = release;
       sourceRevision = delegate.rev;
       runtimeRevision = release.neutron.runtime.rev;

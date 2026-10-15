@@ -50,12 +50,6 @@ in
 
       passthru = {
         inherit members;
-        publicationPolicy = {
-          publicChecks = false;
-          publicPackages = false;
-          publicReleases = false;
-          redistributable = false;
-        };
         releaseMapping = release;
         runtimeRevision = runtime.rev;
       };
