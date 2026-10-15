@@ -17,5 +17,11 @@ OpenSpec change. They cover:
 
 Licensing is established before any non-free artifact is adopted.
 
+Ordinary CI keeps native builds, provenance tests and immutable action pins.
+After successful main checks, the cache workflow publishes explicitly configured
+build targets using normal Cachix authentication. Main-branch wiki edits are
+mirrored after the ordinary documentation checks. Neither workflow uses a
+release-SHA approval variable, license-derived target filter or content scanner.
+
 The MIT license covers original source code only. It does not cover
 third-party firmware or vendor artifacts referenced by this repository.

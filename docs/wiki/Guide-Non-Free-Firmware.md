@@ -116,51 +116,22 @@ nixpkgs.config.allowUnfreePredicate = inputs.nixos-boards.lib.unfreePredicate "d
 
 ## Publication
 
-The public cache is `bph.cachix.org`. Publication is default-deny. The
-`publish` and `wiki` workflows admit only the current `main` commit whose
-full 40-character SHA exactly matches the operator-controlled repository
-variable `PUBLIC_RELEASE_SHA`. Missing, malformed or mismatched approval
-refuses release. Both native `check` matrix jobs must have succeeded for
-that **same SHA** in a completed `main` push run; PR checks, skipped jobs,
-older green runs superseded by failed retries, and arbitrary-ref manual
-dispatches do not qualify. Actions are pinned to immutable revisions and
-checkout uses the admitted SHA without persisted credentials.
+The public cache is `bph.cachix.org`. Conventional CI publishes the configured
+build targets after successful main-branch checks, using its normal Cachix
+authentication. `boards.registry.<board>.publish` names free-fixture build
+outputs; `publishArtifacts` explicitly lists any standalone artifact targets.
+License flags do not select the targets. There is no release-SHA approval
+variable, permission-derived admission or pre-push content scanner.
 
-A completed `check` workflow can trigger admission; a manual retry on
-`main` passes the same gates, never bypasses them. Admission is checked
-again immediately before the write. Approval is necessary, not a license
-grant or a replacement for closure policy. Preparing these workflows does
-not approve any commit or authorize publication. Keep the variable unset
-until a separately authorized release; do not use PR-controlled inputs to
-supply it. A new main SHA needs its own approval and successful checks.
-
-Admission requires both native jobs in the selected run attempt's API
-response. If a partial "re-run failed jobs" attempt does not include both,
-admission refuses it; use "re-run all jobs" to produce complete evidence.
-Partial-rerun API behaviour is not assumed or established by offline fixtures.
-
-After admission, cache publication still requires both content gates:
-
-1. **Evaluation.** The public push set,
-   `legacyPackages.<system>.publicPushSet.<board>`, contains:
-   - the free configuration's builds;
-   - R1 artifacts cleared for `cache`, built with nixpkgs that admits only
-     those names.
-
-   It fails to evaluate if the free configuration installs any non-R0
-   artifact that is not cleared for `cache`, or for `image` when images
-   are published. This check reads the manifest rather than the license,
-   because nixpkgs counts some non-free firmware as free.
-2. **Pre-push scan.** `nix run .#cache-scan -- <store paths>` hashes every
-   file in their closure. It refuses if any file matches a non-cacheable
-   artifact, or one of its `derivedHashes`, from any manifest.
-
-R2 artifacts never leave the machine that imported them.
+The manifests still record source, license evidence, notices and permitted
+redistribution. Free and full profiles retain their existing Nixpkgs behavior;
+these profiles and metadata are not additional publication grants. Packaging
+still checks pinned source integrity and installs its recorded notices. Cache
+operators remain responsible for their use of the recorded terms.
 
 To use the cache, import `nixosModules.nixos-boards-cache` (or
-`darwinModules.nixos-boards-cache`). It adds the substituter and its key.
+`darwinModules.nixos-boards-cache`). It adds the substituter and its public key.
 
-The scan matches exact file contents. NixOS compresses firmware by default
-(`hardware.firmwareCompression`), so compressed copies only match if their
-hashes are recorded in `derivedHashes`. The evaluation gate is the primary
-protection.
+Wiki CI mirrors `docs/wiki/` on main-branch documentation pushes after the
+ordinary generated-doc and link checks. It can also be run manually with the
+normal repository token. No separate publisher infrastructure is required.

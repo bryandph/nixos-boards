@@ -39,8 +39,6 @@ jobs:
             *) echo "Unsupported native runner: $RUNNER_ARCH" >&2; exit 1 ;;
           esac
           test "$(nix config show system)" = "$expected"
-      - name: Release gate regression fixtures
-        run: python3 -B -m unittest discover -s .github/scripts -p 'test_*.py' -v
       - name: nix flake check
         # No remote/advertised translated execution fallback on CI runners.
         run: nix flake check -L --builders '' --option extra-platforms ''

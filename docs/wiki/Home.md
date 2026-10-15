@@ -23,7 +23,7 @@ See the [Glossary](Glossary) for the terms used throughout this wiki.
 
 The conventions are approved and the shared library is in place: board
 options, release manifests, artifact packaging, free and full test
-configurations, publication gates and generated documentation.
+configurations, ordinary CI and generated documentation.
 
 | Board | SoC | Profiles | Provider |
 | --- | --- | --- | --- |
