@@ -70,8 +70,8 @@ imported or retained in runtime closures. Missing input requires the operator
 app; an agent must not accept or import it on the operator's behalf.
 
 No standalone/public publication, public cache or image clearance is granted.
-Only manifest-cleared controlled internal/private copies are eligible under
-the recorded NXP terms and consumer gates. NXP SLA restrictions on reports and
+Controlled internal/private forms are described by the recorded NXP terms;
+these declarations are not CI admission gates. NXP SLA restrictions on reports and
 licensed bytes remain applicable; this build boundary is not permission to
 publish hardware reports or vendor content.
 
