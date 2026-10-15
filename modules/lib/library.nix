@@ -35,6 +35,11 @@
 
   entryType = types.submodule ({name, ...}: {
     options = {
+      system = mkOption {
+        type = types.str;
+        default = "aarch64-linux";
+        description = "Platform of the board's fixtures (`nixpkgs.hostPlatform`).";
+      };
       page = mkOption {
         type = types.str;
         default = name;
@@ -90,6 +95,7 @@
     }: {
       _file = "nixos-boards#fixture";
       networking.hostName = lib.mkDefault board;
+      nixpkgs.hostPlatform = lib.mkDefault entry.system;
       # Public fixture: local serial login only, no credentials or SSH.
       services.getty.autologinUser = "root";
       services.openssh.enable = false;
@@ -107,6 +113,10 @@
           {
             assertion = config.hardware.boards.identity.board == board;
             message = "${board}: hardware.boards.identity.board is ${config.hardware.boards.identity.board}";
+          }
+          {
+            assertion = config.hardware.boards.image.layoutVersion != null;
+            message = "${board}: the free profile must include ${board}-image, which sets hardware.boards.image.layoutVersion";
           }
         ]
         ++ map (p: {

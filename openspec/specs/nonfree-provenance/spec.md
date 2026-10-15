@@ -11,7 +11,7 @@ A non-free artifact MUST NOT be packaged until its license has been established 
 - **THEN** the firmware is recorded as `blocked: licensing`, no derivation fetches it, and the features needing it are documented as gaps
 
 ### Requirement: Non-free classes
-Every artifact SHALL be classed R0 (free), R1 (non-free with permitted redistribution) or R2 (non-free, operator-supplied). R0 artifacts SHALL have a license nixpkgs marks free, and R1 artifacts a license nixpkgs marks redistributable. R1 artifacts SHALL be fixed-output fetches from a pinned upstream URL, install their license and notice files, and carry `meta.license` and `meta.sourceProvenance` from the manifest. R2 artifacts SHALL use `requireFile` with import instructions, `allowSubstitutes = false` and `preferLocalBuild = true`.
+Every artifact SHALL be classed R0 (free), R1 (non-free with permitted redistribution) or R2 (non-free, operator-supplied). R0 artifacts SHALL have a recognized free SPDX software license, not merely a license nixpkgs permits in `allowUnfree = false` profiles (in particular, `unfreeRedistributableFirmware` does not qualify), and R1 artifacts a license nixpkgs marks redistributable. R1 artifacts SHALL be fixed-output fetches from a pinned upstream URL, install their license and notice files, and carry `meta.license` and `meta.sourceProvenance` from the manifest. R2 artifacts SHALL use `requireFile` with import instructions, `allowSubstitutes = false` and `preferLocalBuild = true`.
 
 #### Scenario: Operator-supplied firmware
 - **WHEN** a build needs an R2 artifact that has not been imported

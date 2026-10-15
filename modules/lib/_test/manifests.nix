@@ -22,7 +22,7 @@
     sha256 = sri contents.${name};
   };
   notice = {
-    url = "https://example.invalid/LICENSE.redist";
+    url = "https://example.invalid/LICENSE.redist?id=0123abcd";
     sha256 = sri contents."LICENSE.redist";
   };
   testLicense = {
@@ -210,7 +210,7 @@ in {
   };
 
   expectedErrors = [
-    "invalid.r0-unfree: R0 requires a free license"
+    "invalid.r0-unfree: R0 requires a recognized free SPDX license"
     "invalid.r1-no-evidence: non-free artifacts require license evidence"
     "invalid.r1-not-redistributable: R1 requires a license nixpkgs marks redistributable"
     "invalid.r1-cache-only: R1 requires redistribution.file"
