@@ -71,4 +71,4 @@ store_path=$(nix-store --add-fixed sha256 "$boot_container")
 echo "Imported licensed NXP boot container into the local Nix store:"
 echo "$store_path"
 echo
-echo "No public publication, public cache upload or release attachment. Only manifest-cleared controlled internal/private forms are eligible; consumer pre-push gates still apply."
+echo "No public publication, public cache upload or release attachment. Controlled internal/private forms are described by the recorded NXP terms; these declarations are not CI admission gates."

@@ -53,4 +53,4 @@ echo "$member_sha256  $member" | sha256sum -c --quiet || {
 store_path=$(nix-store --add-fixed sha256 "$member")
 echo "Imported only the pinned Wave6 member as $store_path"
 echo "The raw distribution was not imported. No public publication/cache/upload."
-echo "Only manifest-cleared controlled internal/private forms are eligible; consumer gates still apply."
+echo "Controlled internal/private forms are described by the recorded NXP terms; these declarations are not CI admission gates."
