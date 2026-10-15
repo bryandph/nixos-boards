@@ -26,6 +26,7 @@ Every board follows the same conventions:
 | --- | --- | --- |
 | ClockworkPi uConsole (CM5) | BCM2712 | free |
 | BeagleBoard.org BeagleY-AI | AM67A / J722S | free, full |
+| NXP FRDM-i.MX95 | i.MX 95 | free, full |
 
 Each board's wiki page covers its hardware matrix, boot and recovery,
 firmware, and free versus non-free gaps.
