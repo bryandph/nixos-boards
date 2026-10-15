@@ -10,8 +10,10 @@ permit. Terms are defined in the [Glossary](Glossary).
 1. **Establish the license first.** Read the license that actually
    applies, from the copyright holder. A packaging label is not enough.
    For example, a Debian `copyright` file that labels vendor blobs GPL does
-   not count without a grant from the vendor. If the license cannot be
-   established, the artifact is not packaged at all. It is recorded as
+   not count without a grant from the vendor. A separately recorded,
+   evidence-backed operator-accepted internal-use interpretation may permit
+   bounded R2 internal builds only (see below); it is not a vendor grant.
+   Otherwise, if the license cannot be established, the artifact is not packaged. It is recorded as
    `blocked: licensing`, and the features that need it are documented as
    gaps.
 2. **Never accept a license on the user's behalf.** Artifacts whose license
@@ -82,6 +84,11 @@ as `boards.manifests.<name>`. The values below are illustrative:
 - `file` whenever `cache` is set;
 - a reason on every blocked entry.
 
+R2 does not waive notice obligations for internal copies. Preserve original
+copyright/proprietary legends and install the applicable pinned notices.
+Built entries can record `notices`; `mkBuilt` receives the consumer's `pkgs`
+when fetching them and installs notices in every output, including `dev`.
+
 ## Redistribution forms
 
 | Form | The license permits |
@@ -89,9 +96,34 @@ as `boards.manifests.<name>`. The values below are illustrative:
 | `file` | Redistributing the unmodified file |
 | `image` | Including it in a disk image we distribute |
 | `cache` | Publishing it as a binary-cache substitute |
-| `private` | Keeping internal copies on the maintainer's private infrastructure |
+| `private` | Copies in the licensee's private binary cache, served only to the licensee's own systems |
+| `build` | Copies on the licensee's own build machines while building (implied by `file` and `private`) |
 
 Set a form only when the license grants it.
+
+### Separate internal-use interpretation
+
+`internalUse` records explicit operator acceptance, a device/use target,
+pinned source evidence, rationale and unresolved rights uncertainty. This is
+not an express copyright-holder grant, does not set `redistribution.build`,
+and must not promote the license to `redistributable=true`. Validation rejects
+such a record unless it is R2 and all redistribution forms remain false.
+
+For the four pinned BeagleY-AI TI Sandbox helpers, published TI-target use and
+underlying TI source terms support the operator's accepted interpretation for
+controlled internal builders producing J722S outputs. Independent rights for
+the helper/wrapper text remain inferential; Debian package `Files:*` notices
+do not clearly cover the root patches/scripts. Lack of a root LICENSE is not
+by itself proof of unlawful use. The manifest and installed interpretation
+notices retain this uncertainty. See [BeagleY-AI firmware](BeagleY-AI-Firmware).
+
+Standalone helper source file/image/public/private-cache forms and every
+affected derived output's file/image/public/private-cache forms remain denied.
+The full profile retains its features; internal build eligibility is not cache
+clearance. All `from` restrictions remain transitive, with no build-only input
+exception. Runtime binaries, models, generated headers/DTS and dev contents
+need a separate rights assessment and approved policy change before caching.
+Unaffected established licensed outputs keep their existing permissions.
 
 ## Profiles
 

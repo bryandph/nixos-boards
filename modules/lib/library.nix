@@ -1,5 +1,6 @@
 {
   config,
+  flake-parts-lib,
   inputs,
   lib,
   ...
@@ -176,6 +177,25 @@ in {
     };
   };
 
+  options.perSystem = flake-parts-lib.mkPerSystemOption {
+    options = {
+      boardPackages = mkOption {
+        type = types.lazyAttrsOf (types.lazyAttrsOf types.raw);
+        default = {};
+        description = "Board packages for maintainers and checks, exposed as `legacyPackages.<system>.<board>`.";
+      };
+      hardwareChecks = mkOption {
+        type = types.lazyAttrsOf (types.lazyAttrsOf types.raw);
+        default = {};
+        description = ''
+          Checks that need operator-supplied (R2) artifacts or build complete
+          full-profile systems, exposed as
+          `legacyPackages.<system>.hardwareChecks.<board>` (board-layout spec).
+        '';
+      };
+    };
+  };
+
   config = {
     flake = {
       lib =
@@ -191,13 +211,20 @@ in {
       fixtures;
     };
 
-    perSystem = {pkgs, ...}: let
+    perSystem = {
+      config,
+      pkgs,
+      ...
+    }: let
       unknown = lib.concatLists (lib.mapAttrsToList (board: b:
         map (m: "${board}: unknown release manifest ${m}")
         (lib.filter (m: !(cfg.manifests ? ${m})) b.manifests))
       cfg.registry);
       errors = unknown ++ lib.concatMap boardsLib.manifestErrors (lib.attrValues cfg.manifests);
     in {
+      legacyPackages =
+        config.boardPackages
+        // {inherit (config) hardwareChecks;};
       checks =
         {
           release-manifests = pkgs.runCommand "nixos-boards-release-manifests" {} (

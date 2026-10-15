@@ -87,8 +87,8 @@ in {
 ```
 
 Every artifact a feature installs must also be listed in
-`hardware.boards.artifacts`. Documentation and publication gates read that
-list.
+`hardware.boards.artifacts`. Provenance documentation and fixture checks read
+that list; ordinary publication uses explicitly configured build targets.
 
 ## 5. Register the board
 
