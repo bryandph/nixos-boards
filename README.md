@@ -31,6 +31,7 @@ Every board follows the same conventions:
 | Xunlong Orange Pi 5 | RK3588S | free |
 | Xunlong Orange Pi 5 Plus | RK3588 | free |
 | Radxa ROCK 5A | RK3588S | free |
+| Radxa Dragon Q8B | SC8280XP | free, full |
 
 Each board's wiki page covers its hardware matrix, boot and recovery,
 firmware, and free versus non-free gaps.

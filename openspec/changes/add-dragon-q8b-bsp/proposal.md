@@ -2,7 +2,7 @@
 
 ## Why
 
-This change brings Radxa Dragon Q8B support into the already merged public conventions without depending on the unmerged board migration stack. Artifact licensing and acquisition research is recorded in provider manifests.
+This final board stage adds reviewed Radxa Dragon Q8B support to the landed board/conventions stack. Artifact provenance and acquisition evidence remain in provider manifests; ordinary CI uses explicit output targets and normal authentication, not a separate publisher policy service.
 
 ## What Changes
 
@@ -15,6 +15,6 @@ This change brings Radxa Dragon Q8B support into the already merged public conve
 ## Impact
 
 - New capability: dragon-q8b-board-support.
-- No migration/retirement of existing BSPs or changes to PRs #1–#5.
+- No retirement, force-updates of prior source branches or changes to other boards/shared CI.
 - Hardware verification remains independent of software build checks; vendor OS observations are not NixOS verification.
 - Scope: BSP implementation and provider-manifest licensing evidence.

@@ -43,7 +43,8 @@ Board factory MACs are preserved; no per-device address is embedded in source.
 The free profile installs no proprietary runtime blob. The full profile adds only
 operator-imported ADSP and GPU SQE/GMU/ZAP, not unknown-license firmware; it cannot
 be built until all four files have been imported after the operator reviews/accepts
-their terms. The full profile never publicly publishes these operator-supplied blobs.
+their terms. The configured public targets use only the free profile; the
+recorded terms grant no public redistribution of the operator-supplied blobs.
 ADSP alone does not establish working audio: topology/service metadata remain gaps.
 No default profile pulls all of linux-firmware or radxa-firmware into its closure.
 
