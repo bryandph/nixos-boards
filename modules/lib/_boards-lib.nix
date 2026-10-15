@@ -94,7 +94,7 @@
       derivedHashes = mkOption {
         type = types.listOf types.str;
         default = [];
-        description = "SRI sha256 hashes of forms the build derives from the file (e.g. compressed); used by the pre-push scan.";
+        description = "Recorded SRI sha256 hashes of derived file forms (e.g. compressed), retained as provenance metadata.";
       };
       license = mkOption {
         type = types.nullOr types.attrs;
