@@ -8,10 +8,10 @@
 buildUBoot {
   defconfig = "rock5a-rk3588s_defconfig";
   extraMeta.platforms = ["aarch64-linux"];
-  BL31 = "${armTrustedFirmwareRK3588}/bl31.elf";
-  ROCKCHIP_TPL = rkbin.TPL_RK3588;
-  filesToInstall = [
-    "u-boot-rockchip.bin"
-    "u-boot-rockchip-spi.bin"
-  ];
+  env = {
+    BL31 = "${armTrustedFirmwareRK3588}/bl31.elf";
+    ROCKCHIP_TPL = rkbin.TPL_RK3588;
+  };
+  # The upstream ROCK 5A defconfig does not enable ROCKCHIP_SPI_IMAGE.
+  filesToInstall = ["u-boot-rockchip.bin"];
 }
