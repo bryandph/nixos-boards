@@ -10,4 +10,15 @@ in {
   };
 
   flake.nixosModules.rock5a-image = config.flake.modules.nixos.rock5a-image;
+
+  perSystem = {
+    pkgs,
+    lib,
+    system,
+    ...
+  }: {
+    boardPackages = lib.optionalAttrs (system == "aarch64-linux") {
+      rock5a.u-boot = pkgs.callPackage ../../../packages/radxa/rock5a/u-boot.nix {};
+    };
+  };
 }

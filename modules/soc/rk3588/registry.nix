@@ -151,6 +151,17 @@ in {
           pkgs.runCommand "${board}-device-tree" {} ''
             test -s ${c.hardware.deviceTree.package}/${c.hardware.deviceTree.name}
             touch "$out"
-          '')));
+          '')))
+      # Build the actual bootloaders, not just fixture evaluation/DTBs. This
+      # catches missing BL31/TPL inputs without building complete SD images.
+      # Other boot chains have their own checks (and may need R2 inputs).
+      // lib.optionalAttrs (system == "aarch64-linux") (lib.genAttrs' ["turing-rk1" "orangepi5" "orangepi5pro" "orangepi5plus" "rock5a"] (board:
+        lib.nameValuePair "${board}-u-boot" (let
+          uboot = config.flake.nixosConfigurations."${board}-free".config.hardware.boards.rk3588.image.uboot;
+        in
+          # buildUBoot uses structured attributes: top-level payload paths
+          # are not exported, and binman can silently omit missing blobs.
+          assert lib.assertMsg ((uboot.env.BL31 or "") != "") "${board}: U-Boot needs env.BL31";
+          assert lib.assertMsg ((uboot.env.ROCKCHIP_TPL or "") != "") "${board}: U-Boot needs env.ROCKCHIP_TPL"; uboot)));
   };
 }
