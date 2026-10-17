@@ -34,6 +34,7 @@ configurations, ordinary CI and generated documentation.
 | [uConsole](uConsole) (ClockworkPi, CM5) | BCM2712 | free | `rpi-<release>` |
 | [Turing RK1](Turing-RK1) (Turing Machines) | RK3588 | free | `mainline` |
 | [Orange Pi 5](Orange-Pi-5) (Xunlong) | RK3588S | free | `mainline` |
+| [Orange Pi 5 Pro](Orange-Pi-5-Pro) (Xunlong) | RK3588S | free | `mainline` (7.3-rc) |
 | [Orange Pi 5 Plus](Orange-Pi-5-Plus) (Xunlong) | RK3588 | free | `mainline` |
 | [ROCK 5A](ROCK-5A) (Radxa) | RK3588S | free | `mainline` |
 | [Dragon Q8B](Dragon-Q8B) (Radxa) | SC8280XP | free, full | `radxa-7.0.11` (mainline blocked) |
