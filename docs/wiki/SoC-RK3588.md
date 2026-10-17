@@ -37,9 +37,11 @@ fixed root partition UUID and whether the image is compressed.
 | --- | --- | --- | --- |
 | [Turing RK1](Turing-RK1) | RK3588 | yes | nixpkgs `ubootTuringRK1` |
 | [Orange Pi 5](Orange-Pi-5) | RK3588S | yes | nixpkgs `ubootOrangePi5` |
+| [Orange Pi 5 Pro](Orange-Pi-5-Pro) | RK3588S | yes | nixpkgs U-Boot with Armbian's board patch |
 | [Orange Pi 5 Plus](Orange-Pi-5-Plus) | RK3588 | no | nixpkgs `ubootOrangePi5Plus` |
 | [ROCK 5A](ROCK-5A) | RK3588S | no | built from `rock5a-rk3588s_defconfig` |
 
-The Orange Pi 5 Pro and 5B are not here yet: the 5 Pro needs a vendor
-kernel whose embedded Mali firmware has no established license and has no
-upstream device tree, and the 5B has no upstream U-Boot configuration.
+The Orange Pi 5B is not here yet: it has no upstream U-Boot configuration.
+The Orange Pi 5 Pro uses Linux 7.3-rc (`linuxPackages_testing`) until
+nixpkgs' `linuxPackages_latest` reaches 7.3, the first release with its
+device tree.

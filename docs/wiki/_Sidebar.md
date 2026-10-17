@@ -38,6 +38,12 @@
   - [Firmware](Orange-Pi-5-Firmware)
   - [Free vs non-free](Orange-Pi-5-Free-vs-NonFree)
 
+- [Orange Pi 5 Pro](Orange-Pi-5-Pro)
+  - [Hardware matrix](Orange-Pi-5-Pro-Hardware-Matrix)
+  - [Boot and recovery](Orange-Pi-5-Pro-Boot-and-Recovery)
+  - [Firmware](Orange-Pi-5-Pro-Firmware)
+  - [Free vs non-free](Orange-Pi-5-Pro-Free-vs-NonFree)
+
 - [Orange Pi 5 Plus](Orange-Pi-5-Plus)
   - [Hardware matrix](Orange-Pi-5-Plus-Hardware-Matrix)
   - [Boot and recovery](Orange-Pi-5-Plus-Boot-and-Recovery)

@@ -29,6 +29,7 @@ Every board follows the same conventions:
 | NXP FRDM-i.MX95 | i.MX 95 | free, full |
 | Turing Machines Turing RK1 | RK3588 | free |
 | Xunlong Orange Pi 5 | RK3588S | free |
+| Xunlong Orange Pi 5 Pro | RK3588S | free |
 | Xunlong Orange Pi 5 Plus | RK3588 | free |
 | Radxa ROCK 5A | RK3588S | free |
 | Radxa Dragon Q8B | SC8280XP | free, full |
