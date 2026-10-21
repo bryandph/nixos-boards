@@ -22,7 +22,9 @@ in {
     boot.loader.efi.efiSysMountPoint = "/boot";
     boot.kernelParams = ["console=ttyMSM0,115200n8" "earlycon" "clk_ignore_unused"];
     # QSEECOM is built in; udev needs its TPM auxiliary driver in stage 1.
-    boot.initrd.availableKernelModules = ["sdhci_msm" "nvme" "ufs_qcom" "phy_qcom_qmp_pcie" "tpm_qcom_qsee"];
+    # Host controllers find their PHYs by DT phandle, not module dependency,
+    # so each PHY driver is listed explicitly.
+    boot.initrd.availableKernelModules = ["sdhci_msm" "nvme" "ufs_qcom" "phy_qcom_qmp_pcie" "phy_qcom_qmp_ufs" "tpm_qcom_qsee"];
     hardware.boards.connectors = {
       header = {
         standard = "rpi-40pin";

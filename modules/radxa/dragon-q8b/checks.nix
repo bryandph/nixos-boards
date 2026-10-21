@@ -159,6 +159,7 @@ in {
         dragon-q8b-initrd-tpm-options = assert builtins.elem "tpm_qcom_qsee" fixture.boot.initrd.availableKernelModules;
         assert builtins.elem "tpm_qcom_qsee" appendedInitrdModules.boot.initrd.availableKernelModules;
         assert builtins.elem "loop" appendedInitrdModules.boot.initrd.availableKernelModules;
+        assert builtins.all (m: builtins.elem m fixture.boot.initrd.availableKernelModules) ["ufs_qcom" "phy_qcom_qmp_ufs" "nvme" "phy_qcom_qmp_pcie"];
         assert fixture.boot.initrd.systemd.tpm2.enable;
         assert fixture.boot.initrd.compressor == "zstd";
           pkgs.writeText "dragon-q8b-initrd-tpm-options" "Early TPM availability, module merging and TPM2 are evaluated.\n";
