@@ -8,6 +8,7 @@
   sectorSize,
 }:
 assert builtins.elem sectorSize [512 4096]; let
+  ids = import ./layout.nix;
   system = config.system.build.toplevel;
   dtb = "${config.hardware.deviceTree.package}/${config.hardware.deviceTree.name}";
   sector = toString sectorSize;
@@ -36,9 +37,10 @@ in
     linux /dragon-q8b-bootstrap/linux
     initrd /dragon-q8b-bootstrap/initrd
     devicetree /dragon-q8b-bootstrap/dragon-q8b.dtb
-    options init=${system}/init root=LABEL=NIXOS_Q8B ${lib.concatStringsSep " " config.boot.kernelParams}
+    options init=${system}/init ${lib.concatStringsSep " " config.boot.kernelParams}
     EOF
-    # Fixed creation times, volume ID, disk GUID and partition GUIDs.
+    # Fixed creation times, volume ID, disk GUID and partition GUIDs; the GUIDs
+    # are replaced on first boot so written copies stay distinguishable.
     find esp -exec touch -h -t 198001010000 {} +
     truncate -s 512M esp.img
     faketime '1980-01-01 00:00:00' mkfs.vfat --invariant -F 32 -S ${sector} -n BOOT_Q8B -i 5128B001 esp.img
@@ -54,11 +56,11 @@ in
     truncate -s "$total_bytes" "$out"
     sfdisk --sector-size ${sector} "$out" <<EOF
     label: gpt
-    label-id: 81ad85de-22d0-4e73-8ebb-0512b0000001
+    label-id: ${ids.diskId}
     unit: sectors
     sector-size: ${sector}
-    start=$align, size=$esp_sectors, type=U, name="EFI System", uuid=81ad85de-22d0-4e73-8ebb-0512b0000002
-    start=$root_start, size=$root_sectors, type=L, name="NixOS", uuid=81ad85de-22d0-4e73-8ebb-0512b0000003
+    start=$align, size=$esp_sectors, type=U, name="EFI System", uuid=${ids.espId}
+    start=$root_start, size=$root_sectors, type=${ids.rootType}, name="NixOS", uuid=${ids.rootId}
     EOF
     dd if=esp.img of="$out" bs=${sector} seek="$align" conv=notrunc status=none
     dd if=${rootfs} of="$out" bs=${sector} seek="$root_start" conv=notrunc status=none

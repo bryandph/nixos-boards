@@ -17,20 +17,60 @@
       pkgs.callPackage ../../../packages/radxa/dragon-q8b/image.nix {
         inherit config rootfs sectorSize;
       };
+    ids = import ../../../packages/radxa/dragon-q8b/layout.nix;
+    gptAutoRoot = config.fileSystems."/".device == "/dev/gpt-auto-root";
   in {
+    # Mount from the disk systemd-boot loaded from, not by label: every image
+    # shares its labels, so a second written disk would otherwise race.
     fileSystems."/" = {
-      device = lib.mkDefault "/dev/disk/by-label/NIXOS_Q8B";
+      device = lib.mkDefault "/dev/gpt-auto-root";
       fsType = lib.mkDefault "ext4";
       # growPartition expands GPT only; the filesystem must grow as well.
       autoResize = lib.mkDefault true;
     };
     fileSystems."/boot" = {
-      device = lib.mkDefault "/dev/disk/by-label/BOOT_Q8B";
+      device = lib.mkDefault "/dev/disk/by-designator/esp";
       fsType = lib.mkDefault "vfat";
       # EFI random-seed material must not be world-readable on the mounted ESP.
       options = ["umask=0077"];
     };
     boot.growPartition = true;
+    # NixOS ships systemd's gpt-auto udev rules in stage 2 only.
+    boot.initrd.services.udev.packages = lib.mkIf gptAutoRoot [
+      (pkgs.runCommand "image-dissect-udev-rules" {} ''
+        install -Dm444 ${config.boot.initrd.systemd.package}/lib/udev/rules.d/90-image-dissect.rules \
+          $out/lib/udev/rules.d/90-image-dissect.rules
+      '')
+    ];
+    boot.initrd.systemd.services.dragon-q8b-boot-disk = lib.mkIf gptAutoRoot {
+      description = "Identify the Dragon Q8B boot disk";
+      requiredBy = ["sysroot.mount"];
+      before = ["sysroot.mount" "initrd-root-device.target"];
+      after = ["systemd-udev-trigger.service"];
+      unitConfig.DefaultDependencies = false;
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+      script = ''
+        exec ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/boot-disk-guard.sh}
+      '';
+    };
+    systemd.services.dragon-q8b-disk-ids = {
+      description = "Give an image-written Dragon Q8B disk its own GPT identifiers";
+      wantedBy = ["multi-user.target"];
+      after = ["local-fs.target" "install-initial-bootloader.service"];
+      path = [pkgs.util-linux];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+      script = ''
+        root=$(findmnt -no SOURCE /)
+        disk=$(lsblk -no PKNAME "$root")
+        exec ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/randomize-disk-ids.sh} "/dev/$disk" ${ids.diskId}
+      '';
+    };
     # Runs only after a successful generation install; preserve bootstrap on failure.
     boot.loader.systemd-boot.extraInstallCommands = lib.mkAfter ''
       ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/cleanup-bootstrap.sh} ${lib.escapeShellArg config.boot.loader.efi.efiSysMountPoint} /nix-path-registration
