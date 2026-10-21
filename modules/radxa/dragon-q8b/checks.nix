@@ -145,6 +145,7 @@ in {
         assert fixture.fileSystems."/".device == "/dev/gpt-auto-root";
         assert fixture.fileSystems."/boot".device == "/dev/disk/by-designator/esp";
         assert builtins.elem "sysroot.mount" fixture.boot.initrd.systemd.services.dragon-q8b-boot-disk.requiredBy;
+        assert builtins.elem "initrd-root-device.target" fixture.boot.initrd.systemd.services.dragon-q8b-boot-disk.after;
         assert !(overriddenRoot.boot.initrd.systemd.services ? dragon-q8b-boot-disk);
         assert builtins.elem "install-initial-bootloader.service" fixture.systemd.services.dragon-q8b-disk-ids.after;
         assert fixture.fileSystems."/".fsType == "ext4";

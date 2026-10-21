@@ -45,8 +45,9 @@
     boot.initrd.systemd.services.dragon-q8b-boot-disk = lib.mkIf gptAutoRoot {
       description = "Identify the Dragon Q8B boot disk";
       requiredBy = ["sysroot.mount"];
-      before = ["sysroot.mount" "initrd-root-device.target"];
-      after = ["systemd-udev-trigger.service"];
+      # Disks probe asynchronously; check once the boot disk's root has appeared.
+      before = ["sysroot.mount"];
+      after = ["initrd-root-device.target"];
       unitConfig.DefaultDependencies = false;
       serviceConfig = {
         Type = "oneshot";

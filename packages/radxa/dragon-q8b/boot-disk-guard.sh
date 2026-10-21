@@ -23,5 +23,3 @@ if [ "${#matches[@]}" -ne 1 ]; then
   echo "dragon-q8b: boot ESP $esp found on ${#matches[@]} partitions (${matches[*]}); detach all but the boot disk" >&2
   exit 1
 fi
-# Disks probed before EFI variables were readable lack the gpt-auto markers.
-udevadm trigger --action=change --subsystem-match=block --settle
