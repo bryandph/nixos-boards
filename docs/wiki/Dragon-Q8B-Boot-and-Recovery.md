@@ -29,14 +29,7 @@ all firmware reserved-memory fixups or compatibility with other firmware release
 
 GPT addresses and FAT BPB use the chosen 512 or 4096-byte logical sectors.
 Partition 1 starts at 1 MiB: FAT32 ESP, 512 MiB, label `BOOT_Q8B`.
-Partition 2: ext4 root, label `NIXOS_Q8B`, with the Discoverable Partitions
-root (64-bit ARM) type. Every image has the same labels and GPT identifiers, so
-nothing mounts by them: stage 1 finds the root on the disk holding the ESP
-systemd-boot loaded from (`/dev/gpt-auto-root`), and `/boot` is that disk's ESP
-(`/dev/disk/by-designator/esp`). On first boot the disk gets its own disk and
-partition GUIDs, effective from the next boot. Until then, stage 1 stops if the
-boot ESP's GUID is on more than one attached disk; detach the other copies.
-On first boot, upstream
+Partition 2: ext4 root, label `NIXOS_Q8B`. On first boot, upstream
 `boot.growPartition` expands the partition and `fileSystems."/".autoResize`
 expands the filesystem to fill it. These are separate operations: check both
 partition capacity (`lsblk`) and filesystem capacity/free space (`df`). The

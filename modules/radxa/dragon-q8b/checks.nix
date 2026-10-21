@@ -42,7 +42,6 @@
   badSource = fixtureSystem.extendModules {
     modules = [({pkgs, ...}: {hardware.deviceTree.dtbSource = lib.mkForce (pkgs.writeTextDir "qcom/unrelated.dtb" "not a matching source");})];
   };
-  layout = import ../../../packages/radxa/dragon-q8b/layout.nix;
   rejects = prefix: cfg: lib.any (a: !a.assertion && lib.hasPrefix prefix a.message) cfg.config.assertions;
 in {
   perSystem = {
@@ -142,11 +141,7 @@ in {
             touch "$out"
           '';
         dragon-q8b-root-growth-options = assert fixture.fileSystems."/".autoResize;
-        assert fixture.fileSystems."/".device == "/dev/gpt-auto-root";
-        assert fixture.fileSystems."/boot".device == "/dev/disk/by-designator/esp";
-        assert builtins.elem "sysroot.mount" fixture.boot.initrd.systemd.services.dragon-q8b-boot-disk.requiredBy;
-        assert !(overriddenRoot.boot.initrd.systemd.services ? dragon-q8b-boot-disk);
-        assert builtins.elem "install-initial-bootloader.service" fixture.systemd.services.dragon-q8b-disk-ids.after;
+        assert fixture.fileSystems."/".device == "/dev/disk/by-label/NIXOS_Q8B";
         assert fixture.fileSystems."/".fsType == "ext4";
         assert overriddenRoot.fileSystems."/".device == "/dev/fixture-root";
         assert overriddenRoot.fileSystems."/".fsType == "ext4";
@@ -178,7 +173,7 @@ in {
         # above remain checked on every platform without foreign build inputs.
         dragon-q8b-root-growth = pkgs.runCommand "dragon-q8b-root-growth" {} ''
           # The fixture uses systemd stage 1, not scripted resize2fs.
-          grep -E '^/dev/gpt-auto-root / ext4 .*x-systemd.growfs' ${fixture.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
+          grep -E '^/dev/disk/by-label/NIXOS_Q8B / ext4 .*x-systemd.growfs' ${fixture.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
           grep -E '^/dev/fixture-root / ext4 .*x-systemd.growfs' ${overriddenRoot.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
           ! grep -F 'x-systemd.growfs' ${optedOutRoot.boot.initrd.systemd.managerEnvironment.SYSTEMD_SYSROOT_FSTAB}
           test -x ${fixture.systemd.package}/lib/systemd/systemd-growfs
@@ -195,8 +190,6 @@ in {
             # Inspect archive members, not absolute symlinks into the builder's
             # modules store. The existing auxiliary driver has no module deps.
             find unpack -type f -name 'tpm_qcom_qsee.ko*' > modules
-            find unpack -name 90-image-dissect.rules | grep -q .
-            grep -rqF 'LoaderDevicePartUUID' unpack/nix/store/*-boot-disk-guard.sh
             test -s modules
             find unpack -type f -name modules.alias -exec grep -lF 'alias auxiliary:qcom_qseecom.tpm tpm_qcom_qsee' {} + > aliases
             test -s aliases
@@ -255,26 +248,6 @@ in {
             test -L first/rootImage/init
             test -L first/rootImage/nix/var/nix/profiles/system
             test -s first/rootImage/nix-path-registration
-            touch "$result"
-          '';
-        # Written copies of one image must stop sharing GPT identifiers after first boot.
-        dragon-q8b-disk-ids =
-          pkgs.runCommand "dragon-q8b-disk-ids" {
-            nativeBuildInputs = [pkgs.util-linux] ++ (mockImage 512).nativeBuildInputs;
-          } ''
-            result=$out
-            export out=$PWD/image.img
-            ${(mockImage 512).buildCommand}
-            ids() { sfdisk --dump image.img | grep -E '^(label-id|image)'; }
-            types() { sfdisk --part-type image.img 1; sfdisk --part-type image.img 2; }
-            types > types.before
-            ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/randomize-disk-ids.sh} image.img ${layout.diskId}
-            ids > first
-            ! grep -qiF -e ${layout.diskId} -e ${layout.espId} -e ${layout.rootId} first
-            types | cmp - types.before
-            ${pkgs.runtimeShell} ${../../../packages/radxa/dragon-q8b/randomize-disk-ids.sh} image.img ${layout.diskId}
-            ids | cmp - first
-            bash -n ${../../../packages/radxa/dragon-q8b/boot-disk-guard.sh}
             touch "$result"
           '';
         # Exercise the exact production assembler cheaply before building kernels.

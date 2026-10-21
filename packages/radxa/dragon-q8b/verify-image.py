@@ -57,7 +57,7 @@ def validate(path, sector):
         require(entries[256:] == b"\x00" * (len(entries) - 256))
         esp, root = partitions
         require(esp[0] == uuid.UUID("c12a7328-f81f-11d2-ba4b-00a0c93ec93b"))
-        require(root[0] == uuid.UUID("b921b045-1df0-41c3-af44-4c6f280d3fae"))
+        require(root[0] == uuid.UUID("0fc63daf-8483-4772-8e79-3d69d8477de4"))
         require(esp[1] * sector == 1048576)
         require((esp[2] - esp[1] + 1) * sector == 536870912)
         require(root[1] == esp[2] + 1)
