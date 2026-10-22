@@ -53,16 +53,16 @@ No default profile pulls all of linux-firmware or radxa-firmware into its closur
 Core targets microSD, NVMe, UFS, serial and dual Toshiba PCIe Ethernet.
 Full-profile NixOS headless boot on 512-byte-sector NVMe, UART output and one
 PCIe Ethernet link were observed using this BSP with its Radxa vendor-kernel
-provider, not merely the vendor OS. Free-fixture boot, 4096-sector
-hardware, UFS and NixOS microSD operation remain unverified. See the bounded
+provider, not merely the vendor OS. Full-profile headless boot from a
+4096-byte-sector UFS module was also observed ([UFS boot](Dragon-Q8B-Boot-and-Recovery#ufs-boot)).
+Free-fixture boot and NixOS microSD operation remain unverified. See the bounded
 [hardware acceptance](Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance).
 The Toshiba switch power-control node uses I2C21. The vendor GENI I2C driver reuses
 an already initialized I2C engine, but requests the unestablished QUP firmware if
 its protocol is invalid. Ordinary warm-boot Ethernet success does not establish a
 cold-start fallback or general UEFI pre-initialization guarantee without
 establishing that exact QUP firmware's grant.
-A UFS-attached vendor boot failed before readable firmware output; the failure is
-not proof of a Linux driver problem or boot-order cause. Power off before fitting modules.
+Power off before fitting modules.
 Wireless depends on the actual optional M.2 E-key card, not on the board name.
 No integrated modem is assumed. Board connector bindings are documented only where
 verified in the pinned DTS; this is not an assertion of generic HAT compatibility.

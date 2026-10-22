@@ -18,5 +18,5 @@ Maintainers have this board, so functions can be verified on hardware.
 | qup | blocked: licensing | blocked: licensing | dragon-q8b-qup |  |
 | sd | implemented-unverified | free | dragon-q8b-core |  |
 | serial | verified: recorded 2026-10-13 full-profile headless consumer; not current public-fixture hardware acceptance | free | dragon-q8b-core | [evidence](Dragon-Q8B-Boot-and-Recovery#headless-hardware-acceptance) |
-| ufs | implemented-unverified | free | dragon-q8b-core |  |
+| ufs | verified: recorded 2026-10-21 full-profile headless consumer, 4096-byte sectors, YMTC 128 GB module | free | dragon-q8b-core | [evidence](Dragon-Q8B-Boot-and-Recovery#ufs-boot) |
 | video | blocked: licensing | blocked: licensing | dragon-q8b-video |  |

@@ -73,7 +73,9 @@
         features = ["dragon-q8b-core"];
       };
       ufs = {
-        status = "implemented-unverified";
+        status = "verified";
+        reason = "recorded 2026-10-21 full-profile headless consumer, 4096-byte sectors, YMTC 128 GB module";
+        evidence = "Dragon-Q8B-Boot-and-Recovery#ufs-boot";
         features = ["dragon-q8b-core"];
       };
     };

@@ -96,12 +96,33 @@ configuration and its limits, not a new public-fixture hardware test:
   returned to the reviewed NVMe generation. Only proven owned temporary staging
   and transport material was removed. No firmware payload was flashed.
 
-The 512/4096-sector free/full images passed structural checks; **4096-sector
-hardware boot was not tested**. The free fixture was built, **not boot-verified**.
+The 512/4096-sector free/full images passed structural checks; 4096-sector
+hardware boot was later recorded on UFS (see [UFS boot](#ufs-boot)). The free fixture was built, **not boot-verified**.
 The matrix's `free` column describes module/profile availability, not which fixture
-was used for these observations. GPU, ADSP, audio, UFS and NixOS microSD operation
+was used for these observations. GPU, ADSP, audio and NixOS microSD operation
 remain unverified or blocked as separately recorded. This is not a cold-start,
 power-failure, all-Ethernet-ports, independently rebuilt kernel or uConsole result.
+
+## UFS boot
+
+Recorded 2026-10-21 on a YMTC `YMUS8A1TE2D1C1` 128 GB UFS module (4096-byte
+logical sectors) with UEFI `6.0.260818.BOOT.MXF.1.1.c1-00167` and UFS first in
+the firmware's Boot Device Order:
+
+- Radxa rsdk-r7 `resolute_gnome` `output_4096` reached a login prompt, so the
+  firmware boots this module.
+- The 4096-sector image (full profile, then a full-profile headless consumer)
+  booted to userspace with `/` and `/boot` on the UFS, grew the root partition
+  and filesystem, and reached zero failed stage-2 units.
+- Stage 1 needs the UFS PHY driver (`phy_qcom_qmp_ufs`): `ufs_qcom` finds it by
+  device-tree phandle, not module dependency. Without it the root device never
+  appears.
+
+Every layout-v1 image shares its labels and GPT identifiers. With images on two
+attached disks, `/` and `/boot` can resolve to different disks; keep one image-
+written disk attached, or wipe or relabel the others. A reinstall generates new
+SSH host keys; restore the host's sealed key if its secrets are encrypted to it.
+This is not a cold-start, power-failure or free-fixture result.
 
 ## Bootstrap handoff and recovery
 
