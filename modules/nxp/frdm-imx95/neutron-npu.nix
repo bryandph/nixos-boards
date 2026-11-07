@@ -1,6 +1,10 @@
 # Neutron NPU: the reviewed reduced mainline kernel, NXP's Neutron runtime
 # and the TensorFlow Lite delegate (R2), and an acceptance smoke closure.
-{config, ...}: let
+{
+  config,
+  lib,
+  ...
+}: let
   frdm = import ./_scope.nix {inherit config;};
 in {
   flake.modules.nixos.frdm-imx95-neutron-npu = {
@@ -9,7 +13,11 @@ in {
     pkgs,
     ...
   }: let
-    scope = frdm pkgs;
+    scope = (frdm pkgs).overrideScope (_final: prev: {
+      tensorflowLite = prev.tensorflowLite.override {
+        fetchDepsSha256 = config.hardware.boards.imx95.tensorflowLiteDepsSha256;
+      };
+    });
     inherit (scope) release;
     kernel = scope.neutronReducedKernel;
     providerKind = config.boot.kernelPackages.kernel.providerKind or "upstream";
@@ -28,10 +36,7 @@ in {
             else override
           );
       };
-    inherit (scope) modelSource delegate;
-    tensorflowLite = scope.tensorflowLite.override {
-      fetchDepsSha256 = config.hardware.boards.imx95.tensorflowLiteDepsSha256;
-    };
+    inherit (scope) modelSource delegate tensorflowLite;
     smokeRunner = scope.neutronSmokeRunner;
     runtime = scope.neutronRuntime;
     convertedModel = let
@@ -80,8 +85,8 @@ in {
   in {
     options.hardware.boards.imx95.tensorflowLiteDepsSha256 = lib.mkOption {
       type = lib.types.strMatching "sha256-.+";
-      default = "sha256-qnuldxLFIW0hB03Pydo+HhjaIeTDbf6gBhxH0XqxACE=";
-      description = "Bazel dependency archive pin for the consumer toolchain; reverify when changing nixpkgs. Does not change artifact licence/cache permission.";
+      default = "sha256-oVxR6CzmG4xbGMbIS6zoriUXCk44OrX43OKB4qKNUUU=";
+      description = "Bazel dependency archive pin for the TFLite used by the delegate and smoke closure. The previous pin no longer reproduced on 2026-11-07; this value was verified that day against nixpkgs 7c8764b7, da6dc0e7 and c56a87d8. Verify two independent samples when it fails again. Does not change artifact licence/cache permission.";
     };
     config = {
       boot.kernelPackages = lib.mkForce (pkgs.linuxPackagesFor nixosKernel);
@@ -136,6 +141,23 @@ in {
         }
       ];
     };
+  };
+
+  perSystem = {pkgs, ...}: let
+    board = config.flake.nixosConfigurations.frdm-imx95-full;
+    changed = board.extendModules {
+      modules = [{hardware.boards.imx95.tensorflowLiteDepsSha256 = lib.fakeHash;}];
+    };
+    delegate = changed.config.system.build.delegate;
+    tensorflowLite = (frdm changed.pkgs).tensorflowLite.override {
+      fetchDepsSha256 = lib.fakeHash;
+    };
+  in {
+    frdmChecks.neutron-tflite-deps-override = assert board.config.system.build.delegate.drvPath != delegate.drvPath;
+    assert builtins.elem tensorflowLite.drvPath (map (input: input.drvPath) delegate.buildInputs);
+      pkgs.runCommand "frdm-imx95-neutron-tflite-deps-override" {} ''
+        touch "$out"
+      '';
   };
 
   flake.nixosModules.frdm-imx95-neutron-npu = config.flake.modules.nixos.frdm-imx95-neutron-npu;

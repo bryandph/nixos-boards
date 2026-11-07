@@ -5,7 +5,7 @@
   fetchFromGitHub,
   lib,
   stdenv,
-  fetchDepsSha256 ? "sha256-qnuldxLFIW0hB03Pydo+HhjaIeTDbf6gBhxH0XqxACE=",
+  fetchDepsSha256 ? "sha256-oVxR6CzmG4xbGMbIS6zoriUXCk44OrX43OKB4qKNUUU=",
 }: let
   release = import ./imx95-lf-6.18.20-2.0.0.nix {inherit lib;};
   source = release.neutron.tensorflowLite;
@@ -99,8 +99,9 @@ in
       '';
     };
 
-    # Bazel's dependency archive includes toolchain-dependent content. Keep this
-    # pin aligned with flake.lock; verify two independent samples when updating.
+    # The previous pin no longer reproduced on 2026-11-07. This value was verified
+    # that day against nixpkgs 7c8764b7, da6dc0e7 and c56a87d8; verify two
+    # independent samples when it fails again.
     fetchAttrs.sha256 = fetchDepsSha256;
 
     env = {
