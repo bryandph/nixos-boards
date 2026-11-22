@@ -2,6 +2,8 @@
 # Processor SDK 11.02. Every non-free input is an artifact or a built
 # package; licence evidence and bounded interpretation are recorded below.
 {}: let
+  modelRelease = import ./model-release.nix;
+  osrtWheels = builtins.fromJSON (builtins.readFile ./accelerator-osrt-wheels.json);
   tiFirmwareRev = "d528873a75e532075a1fd5d2a53defef98d60437";
   tiFirmware = path: "https://git.ti.com/cgit/processor-firmware/ti-linux-firmware/plain/${path}?id=${tiFirmwareRev}";
   sandboxRev = "be3a57d2760691f6b4f5cc7cae6e00ccddef7016";
@@ -384,7 +386,7 @@ in {
         7169 "sha256-D2NhjLtYPhuVDmMvXc99AOeYtaSgN3XEsQdCSs9AQn8=" ["beagley-ai-regnet-model"];
       tidl-tools = operatorSupplied {
         file = "tidl_tools.tar.gz";
-        url = evidence.tidlTools.url;
+        url = modelRelease.tools.url;
         size = 33211086;
         sha256 = "sha256-mPuzEX2lh3Kms/oGbX+6OZK50Lsbr9kGaHed8Ui4zYA=";
         evidence = evidence.tidlTools;
@@ -395,7 +397,7 @@ in {
       };
       regnet-archive = operatorSupplied {
         file = "cl-6360_onnxrt_imagenet1k_fbr-pycls_regnetx-200mf_onnx.tar.gz";
-        url = evidence.model.url;
+        url = modelRelease.model.url;
         size = 13042183;
         sha256 = "sha256-h40GFJYbKQES7KeFxdf01OfDDsd7N4+NtXMvt6JfMS0=";
         evidence = evidence.model;
@@ -406,7 +408,7 @@ in {
       };
       tidlruntime-wheel = operatorSupplied {
         file = "tidlruntime-0.1.0-cp312-cp312-linux_aarch64.whl";
-        url = evidence.tidlRuntime.url;
+        url = (builtins.head (builtins.filter (wheel: wheel.file == "tidlruntime-0.1.0-cp312-cp312-linux_aarch64.whl") osrtWheels)).url;
         size = 251354;
         sha256 = "sha256-OE2CWjYttyQRwQ7MrPu+9dS0h8FZmCoX4niLtyTFpR4=";
         evidence = evidence.tidlRuntime;

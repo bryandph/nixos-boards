@@ -80,6 +80,29 @@ in {
   in {
     checks =
       {
+        beagley-ai-import-sources = let
+          entries = lib.filterAttrs (_: a: a.class == "R2") manifest.artifacts;
+          # These operator-supplied files have direct, filename-bearing URLs,
+          # not license evidence or GitHub's HTML file/tree views.
+          artifactUrl = a:
+            a.url
+            != null
+            && a.url != a.evidence.url
+            && lib.hasSuffix "/${baseNameOf a.path}" a.url
+            && !(lib.hasPrefix "https://github.com/" a.url);
+          model = manifest.artifacts.regnet-archive;
+          release = import (dir + "/model-release.nix");
+          wheels = builtins.fromJSON (builtins.readFile (dir + "/accelerator-osrt-wheels.json"));
+          runtime = lib.findFirst (wheel: wheel.file == baseNameOf manifest.artifacts.tidlruntime-wheel.path) null wheels;
+        in
+          assert lib.all artifactUrl (builtins.attrValues entries);
+          assert model.url == release.model.url && model.sha256 == release.model.hash;
+          assert manifest.artifacts.tidl-tools.url == release.tools.url;
+          assert manifest.artifacts.tidlruntime-wheel.url == runtime.url;
+          assert !(artifactUrl (model // {url = model.evidence.url;}));
+          assert !(artifactUrl (model // {url = "https://example.org/LICENSE.md";}));
+          assert !(artifactUrl (model // {url = "https://github.com/example/models/blob/main/${baseNameOf model.path}";}));
+            pkgs.writeText "beagley-ai-import-sources" "Operator-supplied source URLs identify artifacts separately from license evidence.\n";
         beagley-ai-provenance = let
           helpers = map (id: manifest.artifacts.${id}) ["memory-map-patch" "disable-cpsw-patch" "scrub-workaround" "model-compiler-script"];
           affected = map (id: manifest.built.${id}) ["edgeai-libraries" "edgeai-gstreamer" "imx219-dcc" "accelerator-firmware" "accelerator-runtime" "tidl" "osrt" "regnet-model"];
