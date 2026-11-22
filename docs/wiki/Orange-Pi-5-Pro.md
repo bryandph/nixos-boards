@@ -2,11 +2,11 @@
 
 The Orange Pi 5 Pro (RK3588S) runs the mainline kernel and the upstream `rk3588s-orangepi-5-pro.dtb`: the Motorcomm YT6801 PCIe Ethernet controller (in-tree `dwmac-motorcomm`), NVMe on PCIe2, eMMC, CPU DVFS, the Mali GPU through panthor and linux-firmware's `arm/mali/arch10.8` firmware, the PWM LEDs and the debug UART. Maintainers have this board; no function has been verified on it yet.
 
-The board DTS is first in Linux 7.3. Until nixpkgs' `linuxPackages_latest` reaches 7.3, `orangepi5pro-core` uses `linuxPackages_testing` (7.3-rc), unpatched and labelled provider `mainline`, and prints a warning. When latest reaches 7.3 the core falls back to `soc-rk3588`'s kernel and `checks.orangepi5pro-kernel` fails, so the override is removed at the next nixpkgs update.
+The board DTS is first in Linux 7.3. `orangepi5pro-core` inherits `soc-rk3588`'s unpatched `linuxPackages_latest` kernel, labelled provider `mainline`. `checks.orangepi5pro-kernel` requires that kernel unchanged and version 7.3 or newer; `checks.orangepi5pro-device-tree` verifies that it supplies the board DTB.
 
 | Feature | Provides |
 | --- | --- |
-| `orangepi5pro-core` | Mainline kernel (7.3-rc until 7.3 is in nixpkgs), the upstream device tree and console (`ttyS2`, 1500000 baud) |
+| `orangepi5pro-core` | Mainline kernel (nixpkgs' `linuxPackages_latest`, 7.3 or newer), the upstream device tree and console (`ttyS2`, 1500000 baud) |
 | `orangepi5pro-image` | SD/eMMC image (`soc-rk3588-image`, layout version 1) |
 | `orangepi5pro-ethernet-10-100` | Advertises only 10/100 Mbps on the YT6801, which does not train 1000BASE-T on this board; adds `ethtool` |
 | `orangepi5pro-leds-off` | Turns off the `blue:status` and `green:activity` LEDs through udev |

@@ -3,20 +3,9 @@
 # eMMC, CPU DVFS, panthor with linux-firmware's Mali CSF firmware, and
 # UART2. The board DTS is first in Linux 7.3.
 {config, ...}: let
-  boardsLib = config.boards.lib;
   inherit (config.flake.modules.nixos) soc-rk3588;
 in {
-  flake.modules.nixos.orangepi5pro-core = {
-    lib,
-    pkgs,
-    ...
-  }: let
-    # Until linuxPackages_latest reaches 7.3, use the release candidate
-    # (linuxPackages_testing), unpatched and so still provider `mainline`.
-    # Once it does, soc-rk3588's linuxPackages_latest applies and
-    # checks.orangepi5pro-kernel fails: delete this override then.
-    needsTesting = lib.versionOlder pkgs.linuxPackages_latest.kernel.version "7.3";
-  in {
+  flake.modules.nixos.orangepi5pro-core = {lib, ...}: {
     imports = [soc-rk3588];
 
     hardware.boards.identity = {
@@ -27,12 +16,6 @@ in {
       provider = "mainline";
       statusPage = "https://github.com/bryandph/nixos-boards/wiki/Orange-Pi-5-Pro";
     };
-
-    boot.kernelPackages = lib.mkIf needsTesting (pkgs.linuxPackagesFor (boardsLib.withProvider "mainline" pkgs.linuxPackages_testing.kernel));
-
-    warnings = lib.optional needsTesting ''
-      orangepi5pro uses Linux ${pkgs.linuxPackages_testing.kernel.version} (linuxPackages_testing), a release candidate, because linuxPackages_latest (${pkgs.linuxPackages_latest.kernel.version}) has no rk3588s-orangepi-5-pro.dtb. See https://github.com/bryandph/nixos-boards/wiki/Orange-Pi-5-Pro.
-    '';
 
     # The upstream board DTS chooses serial2:1500000n8 and enables
     # uart2m0. Put the board UART after sd-image's generic console defaults,

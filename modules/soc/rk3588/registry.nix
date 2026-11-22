@@ -129,20 +129,17 @@ in {
           assert builtins.elem "phy-rockchip-naneng-combphy" c.boot.initrd.availableKernelModules;
             pkgs.writeText "orangepi5pro-console-contract" "Upstream UART2/1.5M console and PCIe2 PHY initrd request evaluated; no hardware acceptance.\n";
 
-        # The board DTS is first in Linux 7.3, so orangepi5pro-core uses
-        # linuxPackages_testing while linuxPackages_latest is older. This
-        # fails once nixpkgs' latest reaches 7.3: then delete the override
-        # in modules/xunlong/orangepi5pro/core.nix and this check.
+        # Keep the upstream kernel contract; orangepi5pro-device-tree below
+        # verifies that this kernel supplies rk3588s-orangepi-5-pro.dtb.
         orangepi5pro-kernel = let
           nixos = config.flake.nixosConfigurations.orangepi5pro-free;
           inherit (nixos.config.boot.kernelPackages) kernel;
-          testing = nixos.pkgs.linuxPackages_testing.kernel;
-          latest = nixos.pkgs.linuxPackages_latest.kernel.version;
+          latest = nixos.pkgs.linuxPackages_latest.kernel;
         in
-          assert lib.assertMsg (lib.versionOlder latest "7.3") "linuxPackages_latest is ${latest}: drop the linuxPackages_testing override in orangepi5pro-core";
           assert kernel.provider == "mainline";
-          assert kernel.outPath == testing.outPath;
-            pkgs.writeText "orangepi5pro-kernel" "orangepi5pro boots nixpkgs' linuxPackages_testing kernel ${kernel.version} unchanged (${kernel.outPath}).\n";
+          assert kernel.outPath == latest.outPath;
+          assert lib.assertMsg (lib.versionAtLeast kernel.version "7.3") "orangepi5pro needs Linux >= 7.3 for rk3588s-orangepi-5-pro.dtb (got ${kernel.version})";
+            pkgs.writeText "orangepi5pro-kernel" "orangepi5pro boots nixpkgs' linuxPackages_latest kernel ${kernel.version} unchanged (${kernel.outPath}).\n";
       }
       // lib.optionalAttrs (system == "aarch64-linux") (lib.genAttrs' ["turing-rk1" "orangepi5" "orangepi5pro" "orangepi5plus" "rock5a"] (board:
         lib.nameValuePair "${board}-device-tree" (let
