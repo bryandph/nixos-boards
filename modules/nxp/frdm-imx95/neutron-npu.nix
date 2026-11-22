@@ -85,8 +85,10 @@ in {
   in {
     options.hardware.boards.imx95.tensorflowLiteDepsSha256 = lib.mkOption {
       type = lib.types.strMatching "sha256-.+";
-      default = "sha256-oVxR6CzmG4xbGMbIS6zoriUXCk44OrX43OKB4qKNUUU=";
-      description = "Bazel dependency archive pin for the TFLite used by the delegate and smoke closure. The previous pin no longer reproduced on 2026-11-07; this value was verified that day against nixpkgs 7c8764b7, da6dc0e7 and c56a87d8. Verify two independent samples when it fails again. Does not change artifact licence/cache permission.";
+      # LAB-241: explicit Go SDK archive checksums eliminate the changing
+      # versions.json; independently rebuilt on 2026-11-22 without an SDK upgrade.
+      default = "sha256-YDF/2rU7tnWANCMPbobt7uoVvUP4H9PRwJK2Vqpcox8=";
+      description = "Bazel dependency archive pin for the TFLite used by the delegate and smoke closure. The Go SDK archive and checksum are pinned explicitly rather than vendoring its changing release index (LAB-241). Verify two independent samples after changing the fetch. Does not change artifact licence/cache permission.";
     };
     config = {
       boot.kernelPackages = lib.mkForce (pkgs.linuxPackagesFor nixosKernel);

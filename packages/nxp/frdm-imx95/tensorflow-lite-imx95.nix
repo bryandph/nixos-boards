@@ -5,7 +5,7 @@
   fetchFromGitHub,
   lib,
   stdenv,
-  fetchDepsSha256 ? "sha256-oVxR6CzmG4xbGMbIS6zoriUXCk44OrX43OKB4qKNUUU=",
+  fetchDepsSha256 ? "sha256-YDF/2rU7tnWANCMPbobt7uoVvUP4H9PRwJK2Vqpcox8=",
 }: let
   release = import ./imx95-lf-6.18.20-2.0.0.nix {inherit lib;};
   source = release.neutron.tensorflowLite;
@@ -99,10 +99,19 @@ in
       '';
     };
 
-    # The previous pin no longer reproduced on 2026-11-07. This value was verified
-    # that day against nixpkgs 7c8764b7, da6dc0e7 and c56a87d8; verify two
-    # independent samples when it fails again.
-    fetchAttrs.sha256 = fetchDepsSha256;
+    # LAB-241: rules_go vendored the unhashed, changing Go release index even
+    # with version = "1.18.4". grpc-pin-go-sdk.patch supplies archive checksums;
+    # no SDK version changes. Verified with an independent --rebuild, 2026-11-22.
+    # See tensorflow-lite-deps-reproducibility.md for the inventory and limits.
+    fetchAttrs = {
+      sha256 = fetchDepsSha256;
+      preInstall = ''
+        if test -e "$bazelOut/external/go_sdk/versions.json"; then
+          echo "Go release index must not enter the fixed-output deps archive" >&2
+          exit 1
+        fi
+      '';
+    };
 
     env = {
       PYTHON_BIN_PATH = pythonEnv.interpreter;
@@ -117,6 +126,9 @@ in
     postPatch = ''
       rm -f .bazelversion
       touch third_party/xla/third_party/tsl/WORKSPACE
+      # gRPC's version-only Go pin still downloads and vendors an unhashed,
+      # changing versions.json. Supply rules_go's explicit archive checksums.
+      cp ${./grpc-pin-go-sdk.patch} third_party/grpc/register_go_toolchain.patch
     '';
     preConfigure = ''
       patchShebangs configure

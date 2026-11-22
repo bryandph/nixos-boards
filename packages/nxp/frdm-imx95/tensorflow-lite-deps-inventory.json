@@ -1,0 +1,1060 @@
+{
+  "description": "LAB-241 observed aarch64-linux external repositories, 2026-11-22. Before means the current unmodified fetch plus pinned rule reconstruction, not the unavailable 2026-11-07 tar. URLs, versions and archive hashes are unchanged except the explicit go_sdk rule inputs. Generated repositories have no independent source archive hash; their rule and definition trace identify their pinned provider.",
+  "sourceRevision": "41cd35bea009fa11a7bceecfa1a9dcf3f9255628",
+  "baselineDepsHash": "sha256-0Wy36/yHffDO7Gp/xopIN1MgdLMoT7JhtqOly9gGp20=",
+  "fixedDepsHash": "sha256-YDF/2rU7tnWANCMPbobt7uoVvUP4H9PRwJK2Vqpcox8=",
+  "repositories": [
+    {
+      "name": "FP16",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository FP16 instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:934:28: in workspace\n  tensorflow/workspace2.bzl:64:9: in _initialize_third_party\n  third_party/FP16/workspace.bzl:6:20: in repo\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "d973501a40c55126b31accc2d9f08d931ec3cc190c0430309a5e341d3c0ce32a",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/Maratyszcza/FP16/archive/4dfe081cf6bcd15db339cf2680b9281b8451eeb3.zip",
+          "https://github.com/Maratyszcza/FP16/archive/4dfe081cf6bcd15db339cf2680b9281b8451eeb3.zip"
+        ],
+        "strip_prefix": "FP16-4dfe081cf6bcd15db339cf2680b9281b8451eeb3"
+      }
+    },
+    {
+      "name": "FXdiv",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository FXdiv instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:171:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "3d7b0e9c4c658a84376a1086126be02f9b7f753caa95e009d9ac38d11da444db",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/Maratyszcza/FXdiv/archive/63058eff77e11aa15bf531df5dd34395ec3017c8.zip",
+          "https://github.com/Maratyszcza/FXdiv/archive/63058eff77e11aa15bf531df5dd34395ec3017c8.zip"
+        ],
+        "strip_prefix": "FXdiv-63058eff77e11aa15bf531df5dd34395ec3017c8"
+      }
+    },
+    {
+      "name": "KleidiAI",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository KleidiAI instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:164:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "f3ea4fce53f3b31076958dbff229f0048dae15bf454929673c78292a56279d52",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/gitlab.arm.com/kleidi/kleidiai/-/archive/847ebd19d0192528659b0a0fa2c6057eed674c6a/kleidiai-847ebd19d0192528659b0a0fa2c6057eed674c6a.zip",
+          "https://gitlab.arm.com/kleidi/kleidiai/-/archive/847ebd19d0192528659b0a0fa2c6057eed674c6a/kleidiai-847ebd19d0192528659b0a0fa2c6057eed674c6a.zip"
+        ],
+        "strip_prefix": "kleidiai-847ebd19d0192528659b0a0fa2c6057eed674c6a"
+      }
+    },
+    {
+      "name": "XNNPACK",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository XNNPACK instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:155:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "435a5360d1c30b5130270afff32b398b239713e97f1aa7ea1e0a02c6c5247e17",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/google/XNNPACK/archive/6a834a09c53765bea56b8aea9a644a90564fe3a5.zip",
+          "https://github.com/google/XNNPACK/archive/6a834a09c53765bea56b8aea9a644a90564fe3a5.zip"
+        ],
+        "strip_prefix": "XNNPACK-6a834a09c53765bea56b8aea9a644a90564fe3a5"
+      }
+    },
+    {
+      "name": "bazel_skylib",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "Repository bazel_skylib instantiated at:\n  WORKSPACE:24:14: in <toplevel>\n  tensorflow/workspace3.bzl:25:17: in workspace",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
+          "https://github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz"
+        ],
+        "sha256": "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506"
+      }
+    },
+    {
+      "name": "bazel_toolchains",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "Repository bazel_toolchains instantiated at:\n  WORKSPACE:68:14: in <toplevel>\n  tensorflow/workspace1.bzl:22:17: in workspace",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "urls": [
+          "http://mirror.tensorflow.org/github.com/bazelbuild/bazel-toolchains/archive/8c717f8258cd5f6c7a45b97d974292755852b658.tar.gz",
+          "https://github.com/bazelbuild/bazel-toolchains/archive/8c717f8258cd5f6c7a45b97d974292755852b658.tar.gz"
+        ],
+        "sha256": "294cdd859e57fcaf101d4301978c408c88683fbc46fbc1a3829da92afbea55fb",
+        "strip_prefix": "bazel-toolchains-8c717f8258cd5f6c7a45b97d974292755852b658"
+      }
+    },
+    {
+      "name": "build_bazel_apple_support",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository build_bazel_apple_support instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:750:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "9f7bb62c3ae889e0eae8c18458fd8764e2e537687d9a1d85885d6af980e4fc31",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/bazelbuild/apple_support/releases/download/1.6.0/apple_support.1.6.0.tar.gz",
+          "https://github.com/bazelbuild/apple_support/releases/download/1.6.0/apple_support.1.6.0.tar.gz"
+        ]
+      }
+    },
+    {
+      "name": "build_bazel_rules_android",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository build_bazel_rules_android instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:720:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/bazelbuild/rules_android/archive/v0.1.1.zip",
+          "https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"
+        ],
+        "strip_prefix": "rules_android-0.1.1"
+      }
+    },
+    {
+      "name": "build_bazel_rules_apple",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository build_bazel_rules_apple instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:736:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "a6141240657093fa7ccc7ca1ee5a62408dd9996d1bf47bc2369b8b9faefb2698",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/bazelbuild/rules_apple/releases/download/2.3.0/rules_apple.2.3.0.tar.gz",
+          "https://github.com/bazelbuild/rules_apple/releases/download/2.3.0/rules_apple.2.3.0.tar.gz"
+        ]
+      }
+    },
+    {
+      "name": "build_bazel_rules_swift",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository build_bazel_rules_swift instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:743:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "32f95dbe6a88eb298aaa790f05065434f32a662c65ec0a6aabdaf6881e4f169f",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/bazelbuild/rules_swift/releases/download/1.5.0/rules_swift.1.5.0.tar.gz",
+          "https://github.com/bazelbuild/rules_swift/releases/download/1.5.0/rules_swift.1.5.0.tar.gz"
+        ]
+      }
+    },
+    {
+      "name": "cmake_3.22.1_toolchains",
+      "rule": "@rules_foreign_cc//toolchains:prebuilt_toolchains_repository.bzl%prebuilt_toolchains_repository",
+      "definition": "Repository cmake_3.22.1_toolchains instantiated at:\n  WORKSPACE:72:14: in <toplevel>\n  tensorflow/workspace0.bzl:136:34: in workspace\n  @external/rules_foreign_cc/foreign_cc/repositories.bzl:62:28: in rules_foreign_cc_dependencies\n  @external/rules_foreign_cc/toolchains/prebuilt_toolchains.bzl:64:22: in prebuilt_toolchains\n  @external/rules_foreign_cc/toolchains/prebuilt_toolchains.bzl:136:14: in _cmake_toolchains\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {
+        "tool": "cmake"
+      }
+    },
+    {
+      "name": "com_github_grpc_grpc",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository com_github_grpc_grpc instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:439:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "bazel/grpc_extra_deps.bzl patched; archive URL/hash unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "b956598d8cbe168b5ee717b5dafa56563eb5201a947856a6688bbeac9cac4e1f",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/grpc/grpc/archive/b54a5b338637f92bfcf4b0bc05e0f57a5fd8fadd.tar.gz",
+          "https://github.com/grpc/grpc/archive/b54a5b338637f92bfcf4b0bc05e0f57a5fd8fadd.tar.gz"
+        ],
+        "strip_prefix": "grpc-b54a5b338637f92bfcf4b0bc05e0f57a5fd8fadd",
+        "patch_file": [
+          "//third_party/grpc:generate_cc_env_fix.patch",
+          "//third_party/grpc:register_go_toolchain.patch"
+        ]
+      }
+    },
+    {
+      "name": "com_google_absl",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository com_google_absl instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:934:28: in workspace\n  tensorflow/workspace2.bzl:65:9: in _initialize_third_party\n  third_party/absl/workspace.bzl:39:20: in repo\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "0320586856674d16b0b7a4d4afb22151bdc798490bb7f295eddd8f6a62b46fea",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/abseil/abseil-cpp/archive/fb3621f4f897824c0dbe0615fa94543df6192f30.tar.gz",
+          "https://github.com/abseil/abseil-cpp/archive/fb3621f4f897824c0dbe0615fa94543df6192f30.tar.gz"
+        ],
+        "strip_prefix": "abseil-cpp-fb3621f4f897824c0dbe0615fa94543df6192f30",
+        "patch_file": [
+          "//third_party/absl:nvidia_jetson.patch"
+        ]
+      }
+    },
+    {
+      "name": "com_google_benchmark",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository com_google_benchmark instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:934:28: in workspace\n  tensorflow/workspace2.bzl:67:14: in _initialize_third_party\n  third_party/benchmark/workspace.bzl:9:20: in repo\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "552ca3d4d1af4beeb1907980f7096315aa24150d6baf5ac1e5ad90f04846c670",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/google/benchmark/archive/f7547e29ccaed7b64ef4f7495ecfff1c9f6f3d03.tar.gz",
+          "https://github.com/google/benchmark/archive/f7547e29ccaed7b64ef4f7495ecfff1c9f6f3d03.tar.gz"
+        ],
+        "strip_prefix": "benchmark-f7547e29ccaed7b64ef4f7495ecfff1c9f6f3d03"
+      }
+    },
+    {
+      "name": "com_google_googleapis",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository com_google_googleapis instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:332:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "249d83abc5d50bf372c35c49d77f900bff022b2c21eb73aa8da1458b6ac401fc",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/googleapis/googleapis/archive/6b3fdcea8bc5398be4e7e9930c693f0ea09316a0.tar.gz",
+          "https://github.com/googleapis/googleapis/archive/6b3fdcea8bc5398be4e7e9930c693f0ea09316a0.tar.gz"
+        ],
+        "strip_prefix": "googleapis-6b3fdcea8bc5398be4e7e9930c693f0ea09316a0"
+      }
+    },
+    {
+      "name": "com_google_protobuf",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository com_google_protobuf instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:395:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "f66073dee0bc159157b0bd7f502d7d1ee0bc76b3c1eac9836927511bdc4b3fc1",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/protocolbuffers/protobuf/archive/v3.21.9.zip",
+          "https://github.com/protocolbuffers/protobuf/archive/v3.21.9.zip"
+        ],
+        "strip_prefix": "protobuf-3.21.9",
+        "patch_file": [
+          "//third_party/protobuf:protobuf.patch"
+        ]
+      }
+    },
+    {
+      "name": "cpuinfo",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository cpuinfo instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:185:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "4bf314b3f04db2fd984fef38a7e278e702b74297ef0af592b73296edba02b9d4",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/pytorch/cpuinfo/archive/8a1772a0c5c447df2d18edf33ec4603a8c9c04a6.zip",
+          "https://github.com/pytorch/cpuinfo/archive/8a1772a0c5c447df2d18edf33ec4603a8c9c04a6.zip"
+        ],
+        "strip_prefix": "cpuinfo-8a1772a0c5c447df2d18edf33ec4603a8c9c04a6",
+        "patch_file": [
+          "//third_party/cpuinfo:cpuinfo_ppc64le_support.patch"
+        ]
+      }
+    },
+    {
+      "name": "cuda_cccl",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cuda_repo",
+      "definition": "Repository cuda_cccl instantiated at:\n  WORKSPACE:92:30: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:573:18: in cuda_redist_init_repositories",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_cublas",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cuda_repo",
+      "definition": "Repository cuda_cublas instantiated at:\n  WORKSPACE:92:30: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:573:18: in cuda_redist_init_repositories",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_cudart",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cuda_repo",
+      "definition": "Repository cuda_cudart instantiated at:\n  WORKSPACE:92:30: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:573:18: in cuda_redist_init_repositories",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_cudnn",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cudnn_repo",
+      "definition": "Repository cuda_cudnn instantiated at:\n  WORKSPACE:96:29: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:548:15: in cudnn_redist_init_repository",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_cufft",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cuda_repo",
+      "definition": "Repository cuda_cufft instantiated at:\n  WORKSPACE:92:30: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:573:18: in cuda_redist_init_repositories",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_cupti",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cuda_repo",
+      "definition": "Repository cuda_cupti instantiated at:\n  WORKSPACE:92:30: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:573:18: in cuda_redist_init_repositories",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_curand",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cuda_repo",
+      "definition": "Repository cuda_curand instantiated at:\n  WORKSPACE:92:30: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:573:18: in cuda_redist_init_repositories",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_cusolver",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cuda_repo",
+      "definition": "Repository cuda_cusolver instantiated at:\n  WORKSPACE:92:30: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:573:18: in cuda_redist_init_repositories",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_cusparse",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cuda_repo",
+      "definition": "Repository cuda_cusparse instantiated at:\n  WORKSPACE:92:30: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:573:18: in cuda_redist_init_repositories",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_nvcc",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cuda_repo",
+      "definition": "Repository cuda_nvcc instantiated at:\n  WORKSPACE:92:30: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:573:18: in cuda_redist_init_repositories",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_nvjitlink",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cuda_repo",
+      "definition": "Repository cuda_nvjitlink instantiated at:\n  WORKSPACE:92:30: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:573:18: in cuda_redist_init_repositories",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_nvml",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cuda_repo",
+      "definition": "Repository cuda_nvml instantiated at:\n  WORKSPACE:92:30: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:573:18: in cuda_redist_init_repositories",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_nvtx",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_redist_init_repositories.bzl%cuda_repo",
+      "definition": "Repository cuda_nvtx instantiated at:\n  WORKSPACE:92:30: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_redist_init_repositories.bzl:573:18: in cuda_redist_init_repositories",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "cuda_redist_json",
+      "rule": "@local_tsl//third_party/gpus/cuda/hermetic:cuda_json_init_repository.bzl%cuda_redist_json",
+      "definition": "Repository cuda_redist_json instantiated at:\n  WORKSPACE:79:26: in <toplevel>\n  @external/local_tsl/third_party/gpus/cuda/hermetic/cuda_json_init_repository.bzl:121:21: in cuda_json_init_repository",
+      "change": "unchanged",
+      "kind": "disabled CUDA generated stub; no download",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "eigen_archive",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository eigen_archive instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:934:28: in workspace\n  tensorflow/workspace2.bzl:70:11: in _initialize_third_party\n  third_party/eigen3/workspace.bzl:14:20: in repo\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "1f4babf536ce8fc2129dbf92ff3be54cd18ffb2171e9eb40edd00f0a045a54fa",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/gitlab.com/libeigen/eigen/-/archive/33d0937c6bdf5ec999939fb17f2a553183d14a74/eigen-33d0937c6bdf5ec999939fb17f2a553183d14a74.tar.gz",
+          "https://gitlab.com/libeigen/eigen/-/archive/33d0937c6bdf5ec999939fb17f2a553183d14a74/eigen-33d0937c6bdf5ec999939fb17f2a553183d14a74.tar.gz"
+        ],
+        "strip_prefix": "eigen-33d0937c6bdf5ec999939fb17f2a553183d14a74"
+      }
+    },
+    {
+      "name": "envoy_api",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "Repository envoy_api instantiated at:\n  WORKSPACE:68:14: in <toplevel>\n  tensorflow/workspace1.bzl:34:14: in workspace\n  @external/com_github_grpc_grpc/bazel/grpc_deps.bzl:235:21: in grpc_deps",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "url": "https://github.com/envoyproxy/data-plane-api/archive/c83ed7ea9eb5fb3b93d1ad52b59750f1958b8bde.tar.gz",
+        "sha256": "9e8cf42abce32c9b0e9e271b0cb62803084cbe5e5b49f5d5c2aef0766f9d69ca",
+        "strip_prefix": "data-plane-api-c83ed7ea9eb5fb3b93d1ad52b59750f1958b8bde"
+      }
+    },
+    {
+      "name": "farmhash_archive",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository farmhash_archive instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:934:28: in workspace\n  tensorflow/workspace2.bzl:71:13: in _initialize_third_party\n  third_party/farmhash/workspace.bzl:14:20: in repo\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "18392cf0736e1d62ecbb8d695c31496b6507859e8c75541d7ad0ba092dc52115",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/google/farmhash/archive/0d859a811870d10f53a594927d0d0b97573ad06d.tar.gz",
+          "https://github.com/google/farmhash/archive/0d859a811870d10f53a594927d0d0b97573ad06d.tar.gz"
+        ],
+        "strip_prefix": "farmhash-0d859a811870d10f53a594927d0d0b97573ad06d"
+      }
+    },
+    {
+      "name": "fft2d",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository fft2d instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:507:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "5f4dabc2ae21e1f537425d58a49cdca1c49ea11db0d6271e2a4b27e9697548eb",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/petewarden/OouraFFT/archive/v1.0.tar.gz",
+          "https://github.com/petewarden/OouraFFT/archive/v1.0.tar.gz"
+        ],
+        "strip_prefix": "OouraFFT-1.0"
+      }
+    },
+    {
+      "name": "flatbuffers",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository flatbuffers instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:934:28: in workspace\n  tensorflow/workspace2.bzl:72:16: in _initialize_third_party\n  third_party/flatbuffers/workspace.bzl:14:20: in repo\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "c9c6b8653597ed7ee5c62243979010bd0f09b29a46be414505bc5b58a874bb17",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/google/flatbuffers/archive/e6463926479bd6b330cbcf673f7e917803fd5831.tar.gz",
+          "https://github.com/google/flatbuffers/archive/e6463926479bd6b330cbcf673f7e917803fd5831.tar.gz"
+        ],
+        "strip_prefix": "flatbuffers-e6463926479bd6b330cbcf673f7e917803fd5831"
+      }
+    },
+    {
+      "name": "gemmlowp",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository gemmlowp instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:934:28: in workspace\n  tensorflow/workspace2.bzl:73:13: in _initialize_third_party\n  third_party/gemmlowp/workspace.bzl:14:20: in repo\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "7dc418717c8456473fac4ff2288b71057e3dcb72894524c734a4362cdb51fa8b",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/google/gemmlowp/archive/16e8662c34917be0065110bfcd9cc27d30f52fdf.zip",
+          "https://github.com/google/gemmlowp/archive/16e8662c34917be0065110bfcd9cc27d30f52fdf.zip"
+        ],
+        "strip_prefix": "gemmlowp-16e8662c34917be0065110bfcd9cc27d30f52fdf"
+      }
+    },
+    {
+      "name": "go_sdk",
+      "rule": "@io_bazel_rules_go//go/private:sdk.bzl%_go_download_sdk",
+      "definition": "Repository go_sdk instantiated at:\n  WORKSPACE:72:14: in <toplevel>\n  tensorflow/workspace0.bzl:135:20: in workspace\n  @external/com_github_grpc_grpc/bazel/grpc_extra_deps.bzl:36:27: in grpc_extra_deps\n  @external/io_bazel_rules_go/go/private/sdk.bzl:431:28: in go_register_toolchains\n  @external/io_bazel_rules_go/go/private/sdk.bzl:130:21: in go_download_sdk",
+      "change": "release index removed; SDK bytes unchanged",
+      "kind": "download",
+      "before": {
+        "version": "1.18.4",
+        "indexUrls": [
+          "https://golang.org/dl/?mode=json&include=all",
+          "https://golang.google.cn/dl/?mode=json&include=all"
+        ],
+        "indexSha256": null,
+        "sdkUrl": "https://dl.google.com/go/go1.18.4.linux-arm64.tar.gz",
+        "sdkSha256": "35014d92b50d97da41dade965df7ebeb9a715da600206aa59ce1b2d05527421f"
+      },
+      "after": {
+        "version": "1.18.4",
+        "indexUrls": [],
+        "sdkUrl": "https://dl.google.com/go/go1.18.4.linux-arm64.tar.gz",
+        "sdkSha256": "35014d92b50d97da41dade965df7ebeb9a715da600206aa59ce1b2d05527421f",
+        "additionalSupportedPlatform": {
+          "platform": "linux_amd64",
+          "url": "https://dl.google.com/go/go1.18.4.linux-amd64.tar.gz",
+          "sha256": "c9b099b68d93f5c5c8a8844a89f8db07eaa58270e3a1e01804f17f4cf8df02f5"
+        }
+      }
+    },
+    {
+      "name": "hexagon_nn",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository hexagon_nn instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:934:28: in workspace\n  tensorflow/workspace2.bzl:74:15: in _initialize_third_party\n  third_party/hexagon/workspace.bzl:8:20: in repo\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "f577b4c150b72e11e9dfb3f9d14f9772ba8fe460f7d65c84a7327ea9bef44d8e",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/storage.cloud.google.com/download.tensorflow.org/tflite/hexagon_nn_headers_v1.20.0.9.tgz",
+          "https://storage.googleapis.com/mirror.tensorflow.org/storage.cloud.google.com/download.tensorflow.org/tflite/hexagon_nn_headers_v1.20.0.9.tgz"
+        ]
+      }
+    },
+    {
+      "name": "io_bazel_rules_closure",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "Repository io_bazel_rules_closure instantiated at:\n  WORKSPACE:24:14: in <toplevel>\n  tensorflow/workspace3.bzl:12:17: in workspace",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/bazelbuild/rules_closure/archive/308b05b2419edb5c8ee0471b67a40403df940149.tar.gz",
+          "https://github.com/bazelbuild/rules_closure/archive/308b05b2419edb5c8ee0471b67a40403df940149.tar.gz"
+        ],
+        "sha256": "5b00383d08dd71f28503736db0500b6fb4dda47489ff5fc6bed42557c07c6ba9",
+        "strip_prefix": "rules_closure-308b05b2419edb5c8ee0471b67a40403df940149"
+      }
+    },
+    {
+      "name": "io_bazel_rules_go",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository io_bazel_rules_go instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:809:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "16e9fca53ed6bd4ff4ad76facc9b7b651a89db1689a2877d6fd7b82aa824e366",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
+          "https://github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip"
+        ]
+      }
+    },
+    {
+      "name": "llvm-project",
+      "rule": "@llvm-raw//utils/bazel:configure.bzl%llvm_configure",
+      "definition": "Repository llvm-project instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:468:15: in _tf_repositories\n  third_party/llvm/setup.bzl:19:19: in llvm_setup",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {
+        "targets": [
+          "AArch64",
+          "AMDGPU",
+          "ARM",
+          "NVPTX",
+          "PowerPC",
+          "RISCV",
+          "SystemZ",
+          "X86"
+        ]
+      }
+    },
+    {
+      "name": "llvm-raw",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository llvm-raw instantiated at:\n  WORKSPACE:24:14: in <toplevel>\n  tensorflow/workspace3.bzl:63:9: in workspace\n  third_party/llvm/workspace.bzl:10:20: in repo\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "add2841174abc79c45aa309bdf0cf631aa8f97e7a4df57dcfca57c60df27527f",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/llvm/llvm-project/archive/f8287f6c373fcf993643dd6f0e30dde304c1be73.tar.gz",
+          "https://github.com/llvm/llvm-project/archive/f8287f6c373fcf993643dd6f0e30dde304c1be73.tar.gz"
+        ],
+        "strip_prefix": "llvm-project-f8287f6c373fcf993643dd6f0e30dde304c1be73",
+        "patch_file": [
+          "//third_party/llvm:generated.patch",
+          "//third_party/llvm:build.patch",
+          "//third_party/llvm:mathextras.patch",
+          "//third_party/llvm:toolchains.patch",
+          "//third_party/llvm:zstd.patch"
+        ]
+      }
+    },
+    {
+      "name": "ninja_1.10.2_toolchains",
+      "rule": "@rules_foreign_cc//toolchains:prebuilt_toolchains_repository.bzl%prebuilt_toolchains_repository",
+      "definition": "Repository ninja_1.10.2_toolchains instantiated at:\n  WORKSPACE:72:14: in <toplevel>\n  tensorflow/workspace0.bzl:136:34: in workspace\n  @external/rules_foreign_cc/foreign_cc/repositories.bzl:62:28: in rules_foreign_cc_dependencies\n  @external/rules_foreign_cc/toolchains/prebuilt_toolchains.bzl:65:22: in prebuilt_toolchains\n  @external/rules_foreign_cc/toolchains/prebuilt_toolchains.bzl:3426:14: in _ninja_toolchains\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {
+        "tool": "ninja"
+      }
+    },
+    {
+      "name": "protobuf",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "Repository protobuf instantiated at:\n  WORKSPACE:33:25: in <toplevel>\n  @external/local_tsl/third_party/py/python_init_repositories.bzl:23:20: in python_init_repositories\n  @external/rules_python/python/private/py_repositories.bzl:64:17: in py_repositories\n  @external/rules_python/python/private/py_repositories.bzl:25:10: in http_archive\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "url": "https://github.com/protocolbuffers/protobuf/releases/download/v27.0/protobuf-27.0.tar.gz",
+        "sha256": "da288bf1daa6c04d03a9051781caa52aceb9163586bff9aa6cfb12f69b9395aa",
+        "strip_prefix": "protobuf-27.0"
+      }
+    },
+    {
+      "name": "pthreadpool",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository pthreadpool instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:178:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "a4cf06de57bfdf8d7b537c61f1c3071bce74e57524fe053e0bbd2332feca7f95",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/Maratyszcza/pthreadpool/archive/4fe0e1e183925bf8cfa6aae24237e724a96479b8.zip",
+          "https://github.com/Maratyszcza/pthreadpool/archive/4fe0e1e183925bf8cfa6aae24237e724a96479b8.zip"
+        ],
+        "strip_prefix": "pthreadpool-4fe0e1e183925bf8cfa6aae24237e724a96479b8"
+      }
+    },
+    {
+      "name": "pypi",
+      "rule": "@rules_python//python/private/pypi:pip_repository.bzl%pip_repository",
+      "definition": "Repository pypi instantiated at:\n  WORKSPACE:55:16: in <toplevel>\n  @external/local_tsl/third_party/py/python_init_pip.bzl:29:14: in python_init_pip",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {
+        "requirements_lock": "@python_version_repo//:requirements_lock_3_12.txt"
+      }
+    },
+    {
+      "name": "pypi__packaging",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "Repository pypi__packaging instantiated at:\n  WORKSPACE:33:25: in <toplevel>\n  @external/local_tsl/third_party/py/python_init_repositories.bzl:23:20: in python_init_repositories\n  @external/rules_python/python/private/py_repositories.bzl:70:14: in py_repositories\n  @external/rules_python/python/private/pypi/deps.bzl:133:14: in pypi_deps\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "url": "https://files.pythonhosted.org/packages/88/ef/eb23f262cca3c0c4eb7ab1933c3b1f03d021f2c48f54763065b6f0e321be/packaging-24.2-py3-none-any.whl",
+        "sha256": "09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759"
+      }
+    },
+    {
+      "name": "python",
+      "rule": "@rules_python//python/private:toolchains_repo.bzl%toolchain_aliases",
+      "definition": "Repository python instantiated at:\n  WORKSPACE:51:23: in <toplevel>\n  @external/local_tsl/third_party/py/python_init_toolchains.bzl:60:35: in python_init_toolchains\n  @external/rules_python/python/private/python_register_toolchains.bzl:165:22: in python_register_toolchains",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {
+        "python_version": "3.12.7"
+      }
+    },
+    {
+      "name": "python_aarch64-unknown-linux-gnu",
+      "rule": "@rules_python//python/private:python_repository.bzl%python_repository",
+      "definition": "Repository python_aarch64-unknown-linux-gnu instantiated at:\n  WORKSPACE:51:23: in <toplevel>\n  @external/local_tsl/third_party/py/python_init_toolchains.bzl:60:35: in python_init_toolchains\n  @external/rules_python/python/private/python_register_toolchains.bzl:133:26: in python_register_toolchains",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "patches": [],
+        "platform": "aarch64-unknown-linux-gnu",
+        "python_version": "3.12.7",
+        "release_filename": "20241016/cpython-3.12.7+20241016-aarch64-unknown-linux-gnu-install_only.tar.gz",
+        "sha256": "bba3c6be6153f715f2941da34f3a6a69c2d0035c9c5396bc5bb68c6d2bd1065a",
+        "strip_prefix": "python",
+        "urls": [
+          "https://github.com/indygreg/python-build-standalone/releases/download/20241016/cpython-3.12.7+20241016-aarch64-unknown-linux-gnu-install_only.tar.gz"
+        ]
+      }
+    },
+    {
+      "name": "python_toolchains",
+      "rule": "@rules_python//python/private:toolchains_repo.bzl%toolchains_repo",
+      "definition": "Repository python_toolchains instantiated at:\n  WORKSPACE:51:23: in <toplevel>\n  @external/local_tsl/third_party/py/python_init_toolchains.bzl:60:35: in python_init_toolchains\n  @external/rules_python/python/private/python_register_toolchains.bzl:176:20: in python_register_toolchains",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {
+        "python_version": "3.12.7"
+      }
+    },
+    {
+      "name": "python_version_repo",
+      "rule": "@local_tsl//third_party/py:python_repo.bzl%python_repository",
+      "definition": "Repository python_version_repo instantiated at:\n  WORKSPACE:33:25: in <toplevel>\n  @external/local_tsl/third_party/py/python_init_repositories.bzl:13:22: in python_init_repositories",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "pythons_hub",
+      "rule": "@rules_python//python/private:pythons_hub.bzl%hub_repo",
+      "definition": "Repository pythons_hub instantiated at:\n  WORKSPACE:33:25: in <toplevel>\n  @external/local_tsl/third_party/py/python_init_repositories.bzl:23:20: in python_init_repositories\n  @external/rules_python/python/private/py_repositories.bzl:37:10: in py_repositories\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk11_linux_aarch64_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk11_linux_aarch64_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:62:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk11_linux_ppc64le_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk11_linux_ppc64le_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:78:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk11_linux_s390x_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk11_linux_s390x_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:94:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk11_linux_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk11_linux_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:46:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk11_macos_aarch64_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk11_macos_aarch64_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:126:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk11_macos_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk11_macos_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:110:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk11_win_arm64_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk11_win_arm64_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:158:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk11_win_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk11_win_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:142:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk17_linux_aarch64_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk17_linux_aarch64_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:190:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk17_linux_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk17_linux_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:174:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk17_macos_aarch64_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk17_macos_aarch64_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:222:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk17_macos_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk17_macos_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:206:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk17_win_arm64_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk17_win_arm64_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:253:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk17_win_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk17_win_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:238:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk18_linux_aarch64_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk18_linux_aarch64_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:285:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk18_linux_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk18_linux_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:269:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk18_macos_aarch64_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk18_macos_aarch64_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:317:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk18_macos_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk18_macos_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:301:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk18_win_arm64_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk18_win_arm64_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:349:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "remotejdk18_win_toolchain_config_repo",
+      "rule": "@bazel_tools//tools/jdk:remote_java_repository.bzl%_toolchain_config",
+      "definition": "Repository remotejdk18_win_toolchain_config_repo instantiated at:\n  /DEFAULT.WORKSPACE.SUFFIX:333:6: in <toplevel>\n  @external/bazel_tools/tools/build_defs/repo/utils.bzl:233:18: in maybe\n  @external/bazel_tools/tools/jdk/remote_java_repository.bzl:54:22: in remote_java_repository",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "rules_cc",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "urls": [
+          "https://github.com/bazelbuild/rules_cc/releases/download/0.0.13/rules_cc-0.0.13.tar.gz"
+        ],
+        "sha256": "d9bdd3ec66b6871456ec9c965809f43a0901e692d754885e89293807762d3d80",
+        "strip_prefix": "rules_cc-0.0.13"
+      }
+    },
+    {
+      "name": "rules_foreign_cc",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "url": "https://github.com/bazelbuild/rules_foreign_cc/archive/0.7.1.tar.gz",
+        "sha256": "bcd0c5f46a49b85b384906daae41d277b3dc0ff27c7c752cc51e43048a58ec83",
+        "strip_prefix": "rules_foreign_cc-0.7.1"
+      }
+    },
+    {
+      "name": "rules_foreign_cc_framework_toolchain_freebsd_commands",
+      "rule": "@rules_foreign_cc//foreign_cc/private/framework:toolchain.bzl%framework_toolchain_repository",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "rules_foreign_cc_framework_toolchain_linux_commands",
+      "rule": "@rules_foreign_cc//foreign_cc/private/framework:toolchain.bzl%framework_toolchain_repository",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "rules_foreign_cc_framework_toolchain_macos_commands",
+      "rule": "@rules_foreign_cc//foreign_cc/private/framework:toolchain.bzl%framework_toolchain_repository",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "rules_foreign_cc_framework_toolchain_windows_commands",
+      "rule": "@rules_foreign_cc//foreign_cc/private/framework:toolchain.bzl%framework_toolchain_repository",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "rules_java",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "url": "https://github.com/bazelbuild/rules_java/releases/download/5.3.5/rules_java-5.3.5.tar.gz",
+        "sha256": "c73336802d0b4882e40770666ad055212df4ea62cfa6edf9cb0f9d29828a0934"
+      }
+    },
+    {
+      "name": "rules_jvm_external",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "url": "https://github.com/bazelbuild/rules_jvm_external/archive/4.3.zip",
+        "sha256": "6274687f6fc5783b589f56a2f1ed60de3ce1f99bc4e8f9edef3de43bdf7c6e74",
+        "strip_prefix": "rules_jvm_external-4.3"
+      }
+    },
+    {
+      "name": "rules_license",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "urls": [
+          "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/0.0.7/rules_license-0.0.7.tar.gz",
+          "https://github.com/bazelbuild/rules_license/releases/download/0.0.7/rules_license-0.0.7.tar.gz"
+        ],
+        "sha256": "4531deccb913639c30e5c7512a054d5d875698daeb75d8cf90f284375fe7c360"
+      }
+    },
+    {
+      "name": "rules_pkg",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "urls": [
+          "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.7.1/rules_pkg-0.7.1.tar.gz",
+          "https://github.com/bazelbuild/rules_pkg/releases/download/0.7.1/rules_pkg-0.7.1.tar.gz"
+        ],
+        "sha256": "451e08a4d78988c06fa3f9306ec813b836b1d076d0f055595444ba4ff22b867f"
+      }
+    },
+    {
+      "name": "rules_proto",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/bazelbuild/rules_proto/archive/11bf7c25e666dd7ddacbcd4d4c4a9de7a25175f8.tar.gz",
+          "https://github.com/bazelbuild/rules_proto/archive/11bf7c25e666dd7ddacbcd4d4c4a9de7a25175f8.tar.gz"
+        ],
+        "sha256": "20b240eba17a36be4b0b22635aca63053913d5c1ee36e16be36499d167a2f533",
+        "strip_prefix": "rules_proto-11bf7c25e666dd7ddacbcd4d4c4a9de7a25175f8"
+      }
+    },
+    {
+      "name": "rules_python",
+      "rule": "@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "url": "https://github.com/bazelbuild/rules_python/releases/download/0.39.0/rules_python-0.39.0.tar.gz",
+        "sha256": "62ddebb766b4d6ddf1712f753dac5740bea072646f630eb9982caa09ad8a7687",
+        "strip_prefix": "rules_python-0.39.0",
+        "patches": [
+          "@local_tsl//third_party/py:rules_python.patch"
+        ]
+      }
+    },
+    {
+      "name": "rules_python_internal",
+      "rule": "@rules_python//python/private:internal_config_repo.bzl%internal_config_repo",
+      "definition": "",
+      "change": "unchanged",
+      "kind": "generated from pinned rule; no source archive downloaded for this repository",
+      "sourceBeforeAndAfter": {}
+    },
+    {
+      "name": "ruy",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository ruy instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:934:28: in workspace\n  tensorflow/workspace2.bzl:90:8: in _initialize_third_party\n  third_party/ruy/workspace.bzl:6:20: in repo\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "a22c42e80c7bb450db8492728e4742ee66f46d5458c45fe67ce2c9b61240630c",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/google/ruy/archive/3286a34cc8de6149ac6844107dfdffac91531e72.zip",
+          "https://github.com/google/ruy/archive/3286a34cc8de6149ac6844107dfdffac91531e72.zip"
+        ],
+        "strip_prefix": "ruy-3286a34cc8de6149ac6844107dfdffac91531e72"
+      }
+    },
+    {
+      "name": "tf_runtime",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository tf_runtime instantiated at:\n  WORKSPACE:24:14: in <toplevel>\n  tensorflow/workspace3.bzl:22:15: in workspace\n  third_party/tf_runtime/workspace.bzl:12:20: in repo\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "0507af13a28468d3cfd3499c2b301923d8f7bca25b5711f572fc049a860ed738",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/tensorflow/runtime/archive/5d18d4ac03fc02dd40d5a8b06c65a3ca77a0596a.tar.gz",
+          "https://github.com/tensorflow/runtime/archive/5d18d4ac03fc02dd40d5a8b06c65a3ca77a0596a.tar.gz"
+        ],
+        "strip_prefix": "runtime-5d18d4ac03fc02dd40d5a8b06c65a3ca77a0596a"
+      }
+    },
+    {
+      "name": "upb",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository upb instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:815:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "61d0417abd60e65ed589c9deee7c124fe76a4106831f6ad39464e1525cef1454",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/github.com/protocolbuffers/upb/archive/9effcbcb27f0a665f9f345030188c0b291e32482.tar.gz",
+          "https://github.com/protocolbuffers/upb/archive/9effcbcb27f0a665f9f345030188c0b291e32482.tar.gz"
+        ],
+        "strip_prefix": "upb-9effcbcb27f0a665f9f345030188c0b291e32482",
+        "patch_file": [
+          "//third_party/grpc:upb_platform_fix.patch"
+        ]
+      }
+    },
+    {
+      "name": "zlib",
+      "rule": "//third_party:repo.bzl%_tf_http_archive",
+      "definition": "Repository zlib instantiated at:\n  WORKSPACE:64:14: in <toplevel>\n  tensorflow/workspace2.bzl:941:21: in workspace\n  tensorflow/workspace2.bzl:497:20: in _tf_repositories\n  third_party/repo.bzl:136:21: in tf_http_archive",
+      "change": "unchanged",
+      "kind": "checksum-pinned download",
+      "sourceBeforeAndAfter": {
+        "sha256": "9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23",
+        "urls": [
+          "https://storage.googleapis.com/mirror.tensorflow.org/zlib.net/fossils/zlib-1.3.1.tar.gz",
+          "https://zlib.net/fossils/zlib-1.3.1.tar.gz"
+        ],
+        "strip_prefix": "zlib-1.3.1"
+      }
+    }
+  ]
+}
