@@ -21,7 +21,7 @@ index 3100640..78197bc 100644
 +
  config DRM_PANEL_EBBG_FT8719
  	tristate "EBBG FT8719 panel driver"
- 	depends on OF
+ 	depends on GPIOLIB
 diff --git a/drivers/gpu/drm/panel/Makefile b/drivers/gpu/drm/panel/Makefile
 index 75f6bf2..f0258f3 100644
 --- a/drivers/gpu/drm/panel/Makefile

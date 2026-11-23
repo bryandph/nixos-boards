@@ -81,6 +81,27 @@ The kernel patches are extracted from
 (branch `rpi-7.1.y`) and rebased onto `rpi-6.18.y`. They are GPL-2.0 like
 the kernel. See `packages/clockworkpi/uconsole/kernel.nix`.
 
+The locked kernel is `6.18.64-unstable_20261118` (Raspberry Pi source
+`71edfd62996a0d816039c9c1092222f3795fa2fc`). The rebase is build-verified
+only: the hardware was unreachable, so no hardware acceptance is claimed.
+
+- `0001`: only the adjacent EBBG Kconfig context changed after
+  [the GPIOLIB dependency fix](https://github.com/raspberrypi/linux/commit/b2a75ce2af881d33a43524de187a416bc4eee3fc)
+  (mainline `ae3aa8cf5fd5ccb428a814e7eb38ae33ad1cfa34`); the CWU50 driver
+  and its configuration are unchanged.
+- `0002` (OCP8178 backlight) and `0003` (overlays) apply unchanged.
+- `0004`: the battery driver, including AXP228 fuel-gauge calibration and
+  V_OFF plumbing, and the AC-event VBUS path kick are unchanged. Only the
+  MFD power-off hunk was removed because
+  [the upstream CHGLED fix](https://github.com/raspberrypi/linux/commit/1a23e121c92e45dac842febaac7834be6b76cb58)
+  (mainline `3756bf05c963563f1325af105356541882dd5899`) already preserves
+  the register's other bits with `regmap_set_bits()`. Around line 1250 of
+  `drivers/mfd/axp20x.c`, that replaced the old full-register
+  `regmap_write()` matched by our hunk, causing the patch failure. Upstream
+  preserves CHGLED on AXP221/AXP223/AXP228, as our hunk did, and also preserves
+  unrelated control bits on the other PMIC variants; no local power feature
+  was dropped.
+
 ## See also
 
 - [Boot and recovery](uConsole-Boot-and-Recovery)

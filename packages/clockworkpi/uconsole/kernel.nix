@@ -1,13 +1,17 @@
 # uConsole CM5 kernel: nixos-raspberrypi's linux_rpi5 (the kernel of the
 # rest of the Pi 5 family) plus an owned ClockworkPi patch series
 # extracted from the ak-rex/ClockworkPi-linux fork (rpi-7.1.y branch,
-# the consolidated state of the drivers) and rebased onto rpi-6.18.y:
+# the consolidated state of the drivers) and rebased onto rpi-6.18.y
+# 6.18.64 (71edfd62996a0d816039c9c1092222f3795fa2fc):
 #   0001  panel-cwu50 DSI panel driver (merged CM3/CM4/CM5 driver)
 #   0002  ocp8178 1-wire backlight driver
 #   0003  clockworkpi-uconsole-cm5 + clockworkpi-custom-battery overlays
 #   0004  AXP228 power: fuel-gauge calibration + V_OFF plumbing
 #         (axp20x_battery), VBUS path kick on AC plug events
-#         (axp20x_ac_power), CHGLED preserve on power-off (mfd/axp20x)
+#         (axp20x_ac_power). CHGLED preserve on power-off is upstream:
+#         raspberrypi/linux 1a23e121c92e45dac842febaac7834be6b76cb58
+#         (mainline 3756bf05c963563f1325af105356541882dd5899).
+# The rebase is build-verified only; no hardware acceptance is implied.
 {lib}: {
   # The patches, as `boot.kernelPatches` entries.
   patches = [
