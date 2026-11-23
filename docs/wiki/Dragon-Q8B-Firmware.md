@@ -22,7 +22,7 @@ Provider `radxa-7.0.11`, version 20260916: linux-firmware 20260916 (ab23307cfe7f
 
 ## dragon-q8b-mainline
 
-Provider `mainline`, version 6.18.64: locked nixpkgs 3457b69ac4aba6d9ea9a743370af160fb502db29 default mainline kernel; Q8B compatibility not established and no provider exported.
+Provider `mainline`, version 6.18.64: locked nixpkgs 94c3211b0ee8ba969a3f12eb4aff8ba0f72971dd default mainline kernel; Q8B compatibility not established and no provider exported.
 
 | Artifact | Status | Class | License | Layer | Load | Redistribution | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
