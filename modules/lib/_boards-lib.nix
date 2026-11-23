@@ -12,18 +12,18 @@
   sourceFileOption = mkOption {
     type = types.nullOr (types.submodule {
       options = {
-        tree = mkOption {
+        bundle = mkOption {
           type = types.attrs;
-          description = "Arguments for a shared, fixed-output fetchgit source tree.";
+          description = "Shared fixed-output bundle: name, recursive hash and files (path, URL, sha256).";
         };
         path = mkOption {
           type = types.str;
-          description = "File path relative to the pinned source tree.";
+          description = "File path relative to the pinned source bundle.";
         };
       };
     });
     default = null;
-    description = "Copy this file from a pinned source tree instead of downloading its URL; the URL remains provenance metadata.";
+    description = "Copy this file from a pinned source bundle instead of downloading its URL; the URL remains provenance metadata.";
   };
 
   fileType = types.submodule {
@@ -428,6 +428,35 @@
       toHashFormat = "base16";
     };
 
+  # One download derivation serializes a related set of files. In
+  # particular, cgit can shed parallel requests with HTTP 503 responses.
+  mkSourceBundle = {
+    pkgs,
+    bundle,
+  }:
+    pkgs.runCommand bundle.name {
+      outputHash = bundle.hash;
+      outputHashAlgo = "sha256";
+      outputHashMode = "recursive";
+      nativeBuildInputs = [(lib.getBin pkgs.curl)];
+      SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+      impureEnvVars = lib.fetchers.proxyImpureEnvVars;
+      preferLocalBuild = true;
+    } (''
+        mkdir -p "$out"
+      ''
+      + lib.concatMapStrings (file: ''
+        mkdir -p "$out/$(dirname ${lib.escapeShellArg file.path})"
+        echo ${lib.escapeShellArg "Fetching sequentially: ${file.url}"}
+        curl --fail --location --silent --show-error \
+          --retry 8 --retry-all-errors --retry-delay 5 --retry-max-time 300 \
+          --connect-timeout 30 --max-time 300 \
+          --write-out 'Downloaded %{size_download} bytes in %{time_total}s\n' \
+          --output "$out/${file.path}" ${lib.escapeShellArg file.url}
+        echo "${hex file.sha256}  $out/${file.path}" | sha256sum -c
+      '')
+      bundle.files);
+
   # Build one artifact. `fetch` ({url, hash, name} -> path) replaces the
   # downloader for the file and its notices, so tests can supply content
   # without network access; the size and hash are checked either way.
@@ -452,7 +481,12 @@
       then fetch {inherit url hash name;}
       else if sourceFile == null
       then pkgs.fetchurl {inherit url hash name;}
-      else
+      else let
+        source = mkSourceBundle {
+          inherit pkgs;
+          inherit (sourceFile) bundle;
+        };
+      in
         # Keep fetchurl's flat fixed-output identity: changing the builder
         # must not change this file's output path or any downstream output.
         pkgs.runCommand name {
@@ -461,8 +495,8 @@
           outputHashMode = "flat";
           preferLocalBuild = true;
         } ''
-          echo ${lib.escapeShellArg "Copying ${sourceFile.path} from shared source ${pkgs.fetchgit sourceFile.tree}"}
-          cp ${lib.escapeShellArg "${pkgs.fetchgit sourceFile.tree}/${sourceFile.path}"} "$out"
+          echo ${lib.escapeShellArg "Copying ${sourceFile.path} from shared source ${source}"}
+          cp ${lib.escapeShellArg "${source}/${sourceFile.path}"} "$out"
         '';
     src =
       if a.class == "R2" && fetch == null
@@ -1009,6 +1043,7 @@ in {
     internalUseText
     namePredicate
     mkArtifact
+    mkSourceBundle
     freeNixpkgsConfig
     withProvider
     claimConflicts

@@ -9,10 +9,16 @@
   manifest = config.boards.manifests.beagley-ai;
   artifacts = lib.filterAttrs (_: a: a.sourceFile != null) manifest.artifacts;
   sourceFiles = lib.concatMap (a: [a] ++ a.notices) (lib.attrValues artifacts);
-  tree = (lib.head sourceFiles).sourceFile.tree;
-  paths = lib.unique (map (file: file.sourceFile.path) sourceFiles);
+  bundle = (lib.head sourceFiles).sourceFile.bundle;
+  records = lib.unique (map (file: {
+      inherit (file) url sha256;
+      inherit (file.sourceFile) path;
+    })
+    sourceFiles);
+  sortFiles = lib.sort (a: b: a.url < b.url);
 in {
   perSystem = {pkgs, ...}: let
+    source = boardsLib.mkSourceBundle {inherit pkgs bundle;};
     # Include TI notices attached to non-TI artifacts (e.g. SDK tools).
     compatible = lib.all (id: let
       a = manifest.artifacts.${id};
@@ -34,17 +40,18 @@ in {
     (lib.attrNames manifest.artifacts);
   in {
     checks.beagley-ai-ti-firmware-source = assert compatible;
-    assert builtins.length paths == 11;
-    assert lib.sort builtins.lessThan tree.sparseCheckout == lib.sort builtins.lessThan (map (path: "/${path}") paths);
-    assert lib.all (file: file.sourceFile.tree == tree) sourceFiles;
+    assert builtins.length records == 11;
+    assert sortFiles bundle.files == sortFiles records;
+    assert lib.all (file: file.url == "https://git.ti.com/cgit/processor-firmware/ti-linux-firmware/plain/${file.path}?id=d528873a75e532075a1fd5d2a53defef98d60437") bundle.files;
+    assert lib.all (file: file.sourceFile.bundle == bundle) sourceFiles;
       pkgs.runCommand "beagley-ai-ti-firmware-source" {} ''
-        # Check the actual sparse output as well as its declared patterns.
-        test "$(find ${pkgs.fetchgit tree} -type f | wc -l)" -eq 11
+        # Check the fetched inventory and every manifest file hash.
+        test "$(find ${source} -type f | wc -l)" -eq 11
         ${lib.concatMapStrings (file: ''
           echo '${builtins.convertHash {
             hash = file.sha256;
             toHashFormat = "base16";
-          }}  ${pkgs.fetchgit tree}/${file.sourceFile.path}' | sha256sum -c
+          }}  ${source}/${file.sourceFile.path}' | sha256sum -c
         '') (lib.unique sourceFiles)}
         touch "$out"
       '';

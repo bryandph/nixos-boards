@@ -6,32 +6,27 @@
   osrtWheels = builtins.fromJSON (builtins.readFile ./accelerator-osrt-wheels.json);
   tiFirmwareRev = "d528873a75e532075a1fd5d2a53defef98d60437";
   tiFirmware = path: "https://git.ti.com/cgit/processor-firmware/ti-linux-firmware/plain/${path}?id=${tiFirmwareRev}";
-  # One shallow sparse fetch supplies all firmware and notices. fetchgit
-  # requests blob filtering; git.ti.com currently ignores it, so the wire
-  # transfer is a full shallow pack, but only these 11 files enter the store.
-  # Non-cone patterns select files exactly, not their siblings or parents.
-  tiFirmwareTree = {
-    url = "https://git.ti.com/git/processor-firmware/ti-linux-firmware.git";
-    rev = tiFirmwareRev;
+  # cgit sheds load with HTTP 503s. One fixed-output bundle fetches these
+  # files sequentially with backoff, instead of parallel per-file requests.
+  # The test run recovered eight 503s and downloaded only 5,993,629 bytes;
+  # a sparse Git fetch still transferred ~712 MiB (server ignores filters).
+  tiFirmwarePath = url: builtins.match "https://git[.]ti[.]com/cgit/processor-firmware/ti-linux-firmware/plain/(.*)[?]id=${tiFirmwareRev}" url;
+  tiFirmwareBundle = {
+    name = "ti-linux-firmware-${builtins.substring 0 7 tiFirmwareRev}";
     hash = "sha256-nAKqal3r7DmLpCFCfOjPH1aTTWc2IJIxR1psAtysF8w=";
-    fetchSubmodules = false;
-    nonConeMode = true;
-    sparseCheckout = map (path: "/${path}") [
-      "LICENSE.ti"
-      "WHENCE"
-      "LICENCE.cnm"
-      "ti-sysfw/ti-fs-firmware-j722s-hs-fs-enc.bin"
-      "ti-sysfw/ti-fs-firmware-j722s-hs-fs-cert.bin"
-      "ti-dm/j722s/ipc_echo_testb_mcu1_0_release_strip.xer5f"
-      "ti-ipc/j722s/ipc_echo_test_mcu2_0_release_strip.xer5f"
-      "ti-ipc/j722s/ipc_echo_test_mcu3_0_release_strip.xer5f"
-      "ti-ipc/j722s/ipc_echo_test_c7x_1_release_strip.xe71"
-      "ti-ipc/j722s/ipc_echo_test_c7x_2_release_strip.xe71"
-      "cnm/wave521c_k3_codec_fw.bin"
-    ];
+    # Derive the unique file inventory from the records below: no second
+    # copy of any file's URL or hash can drift away from the manifest.
+    files = builtins.attrValues (builtins.listToAttrs (map (file: {
+        name = file.url;
+        value = {
+          inherit (file) url sha256;
+          path = builtins.head (tiFirmwarePath file.url);
+        };
+      }) (builtins.filter (file: tiFirmwarePath file.url != null)
+        (builtins.concatLists (map (a: [a] ++ (a.notices or [])) (builtins.attrValues manifest.artifacts))))));
   };
   tiSourceFile = path: {
-    tree = tiFirmwareTree;
+    bundle = tiFirmwareBundle;
     inherit path;
   };
   sandboxRev = "be3a57d2760691f6b4f5cc7cae6e00ccddef7016";
@@ -311,8 +306,6 @@
       load = "userspace";
     }
     // attrs;
-in {
-  inherit licenses;
   manifest = {
     provider = "beagle-ti-6.12-psdk-11.02";
     version = "11.02";
@@ -584,4 +577,4 @@ in {
       };
     };
   };
-}
+in {inherit licenses manifest;}
