@@ -461,6 +461,7 @@
           outputHashMode = "flat";
           preferLocalBuild = true;
         } ''
+          echo ${lib.escapeShellArg "Copying ${sourceFile.path} from shared source ${pkgs.fetchgit sourceFile.tree}"}
           cp ${lib.escapeShellArg "${pkgs.fetchgit sourceFile.tree}/${sourceFile.path}"} "$out"
         '';
     src =
