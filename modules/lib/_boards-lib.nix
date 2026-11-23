@@ -430,6 +430,8 @@
 
   # One download derivation serializes a related set of files. In
   # particular, cgit can shed parallel requests with HTTP 503 responses.
+  # Even sequential runs saw 6-8 503s across 11 files, up to 5 on one
+  # file (LAB-251), so each file gets 30 retries at 10 s within 20 min.
   mkSourceBundle = {
     pkgs,
     bundle,
@@ -449,7 +451,7 @@
         mkdir -p "$out/$(dirname ${lib.escapeShellArg file.path})"
         echo ${lib.escapeShellArg "Fetching sequentially: ${file.url}"}
         curl --fail --location --silent --show-error \
-          --retry 8 --retry-all-errors --retry-delay 5 --retry-max-time 300 \
+          --retry 30 --retry-all-errors --retry-delay 10 --retry-max-time 1200 \
           --connect-timeout 30 --max-time 300 \
           --write-out 'Downloaded %{size_download} bytes in %{time_total}s\n' \
           --output "$out/${file.path}" ${lib.escapeShellArg file.url}
