@@ -6,6 +6,34 @@
   osrtWheels = builtins.fromJSON (builtins.readFile ./accelerator-osrt-wheels.json);
   tiFirmwareRev = "d528873a75e532075a1fd5d2a53defef98d60437";
   tiFirmware = path: "https://git.ti.com/cgit/processor-firmware/ti-linux-firmware/plain/${path}?id=${tiFirmwareRev}";
+  # One shallow sparse fetch supplies all firmware and notices. fetchgit
+  # requests blob filtering; git.ti.com currently ignores it, so the wire
+  # transfer is a full shallow pack, but only these 11 files enter the store.
+  # Non-cone patterns select files exactly, not their siblings or parents.
+  tiFirmwareTree = {
+    url = "https://git.ti.com/git/processor-firmware/ti-linux-firmware.git";
+    rev = tiFirmwareRev;
+    hash = "sha256-nAKqal3r7DmLpCFCfOjPH1aTTWc2IJIxR1psAtysF8w=";
+    fetchSubmodules = false;
+    nonConeMode = true;
+    sparseCheckout = map (path: "/${path}") [
+      "LICENSE.ti"
+      "WHENCE"
+      "LICENCE.cnm"
+      "ti-sysfw/ti-fs-firmware-j722s-hs-fs-enc.bin"
+      "ti-sysfw/ti-fs-firmware-j722s-hs-fs-cert.bin"
+      "ti-dm/j722s/ipc_echo_testb_mcu1_0_release_strip.xer5f"
+      "ti-ipc/j722s/ipc_echo_test_mcu2_0_release_strip.xer5f"
+      "ti-ipc/j722s/ipc_echo_test_mcu3_0_release_strip.xer5f"
+      "ti-ipc/j722s/ipc_echo_test_c7x_1_release_strip.xe71"
+      "ti-ipc/j722s/ipc_echo_test_c7x_2_release_strip.xe71"
+      "cnm/wave521c_k3_codec_fw.bin"
+    ];
+  };
+  tiSourceFile = path: {
+    tree = tiFirmwareTree;
+    inherit path;
+  };
   sandboxRev = "be3a57d2760691f6b4f5cc7cae6e00ccddef7016";
   sandbox = path: "https://raw.githubusercontent.com/TexasInstruments-Sandbox/ti-edgeai-armbian-build/${sandboxRev}/${path}";
   retrieved = "2026-10-12";
@@ -49,14 +77,17 @@
 
   notices = {
     tiText = {
+      sourceFile = tiSourceFile "LICENSE.ti";
       url = tiFirmware "LICENSE.ti";
       sha256 = "sha256-qyD/vnu6fpS+JGs0F9M6kUs/B8FsR+9af3YCNJpmamE=";
     };
     whence = {
+      sourceFile = tiSourceFile "WHENCE";
       url = tiFirmware "WHENCE";
       sha256 = "sha256-QS2K5Ky58yga+5MT7j89xhAK6/5CpsIRSdEKPSgEiwM=";
     };
     chipsMedia = {
+      sourceFile = tiSourceFile "LICENCE.cnm";
       url = tiFirmware "LICENCE.cnm";
       sha256 = "sha256-iCNtWuRberyWwqtMaVKviHWOJLF0Et0XN0buHFWbPG8=";
     };
@@ -169,6 +200,7 @@
   }: {
     class = "R1";
     url = tiFirmware path;
+    sourceFile = tiSourceFile path;
     inherit path size sha256 layer load features;
     notices = noticeFiles;
     license = licenses.tiText;

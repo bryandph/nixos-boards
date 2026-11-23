@@ -9,8 +9,26 @@
   layers = ["boot-firmware" "kernel" "runtime-firmware" "userspace"];
   loads = ["firmware" "boot-image" "boot-partition" "board-storage" "remoteproc" "userspace"];
 
+  sourceFileOption = mkOption {
+    type = types.nullOr (types.submodule {
+      options = {
+        tree = mkOption {
+          type = types.attrs;
+          description = "Arguments for a shared, fixed-output fetchgit source tree.";
+        };
+        path = mkOption {
+          type = types.str;
+          description = "File path relative to the pinned source tree.";
+        };
+      };
+    });
+    default = null;
+    description = "Copy this file from a pinned source tree instead of downloading its URL; the URL remains provenance metadata.";
+  };
+
   fileType = types.submodule {
     options = {
+      sourceFile = sourceFileOption;
       url = mkOption {
         type = types.str;
         description = "Pinned download URL.";
@@ -123,6 +141,7 @@
 
   artifactType = types.submodule {
     options = {
+      sourceFile = sourceFileOption;
       internalUse = internalUseOption;
       status = mkOption {
         type = types.enum ["adopted" "blocked"];
@@ -423,16 +442,27 @@
     errors = artifactErrors manifest id a;
     fileName = baseNameOf a.path;
     inherit (a) license;
-    fetchFile =
+    fetchFile = {
+      url,
+      hash,
+      name,
+      sourceFile ? null,
+    }:
       if fetch != null
-      then fetch
+      then fetch {inherit url hash name;}
+      else if sourceFile == null
+      then pkgs.fetchurl {inherit url hash name;}
       else
-        {
-          url,
-          hash,
-          name,
-        }:
-          pkgs.fetchurl {inherit url hash name;};
+        # Keep fetchurl's flat fixed-output identity: changing the builder
+        # must not change this file's output path or any downstream output.
+        pkgs.runCommand name {
+          outputHash = hash;
+          outputHashAlgo = "sha256";
+          outputHashMode = "flat";
+          preferLocalBuild = true;
+        } ''
+          cp ${lib.escapeShellArg "${pkgs.fetchgit sourceFile.tree}/${sourceFile.path}"} "$out"
+        '';
     src =
       if a.class == "R2" && fetch == null
       then
@@ -456,7 +486,7 @@
         })
       else
         fetchFile {
-          inherit (a) url;
+          inherit (a) url sourceFile;
           hash = a.sha256;
           name = fileName;
         };
@@ -467,7 +497,7 @@
       lib.imap0 (i: n: {
         name = "${toString i}-${noticeName n.url}";
         file = fetchFile {
-          inherit (n) url;
+          inherit (n) url sourceFile;
           hash = n.sha256;
           name = "${pname}-notice-${toString i}";
         };
